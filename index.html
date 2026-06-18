@@ -2284,7 +2284,7 @@ var _rtStorage = {
 var _rtRaw = null;
 try { _rtRaw = _rtStorage.getItem('rt_data'); } catch(e) {}
 
-let RT = JSON.parse(_rtRaw || JSON.stringify({
+var _rtDefault = {
   adminEmail: 'resettradersofficial@gmail.com',
   adminPass: 'admin123',
   lessons: [
@@ -2315,7 +2315,16 @@ let RT = JSON.parse(_rtRaw || JSON.stringify({
     tgUrl: 'https://t.me/+cSc9edQLwJc5ZTQ1',
     waNum: ''
   }
-}));
+};
+
+// Safe parse — if stored data is corrupted, fall back to defaults cleanly
+let RT;
+try {
+  RT = _rtRaw ? JSON.parse(_rtRaw) : _rtDefault;
+} catch(e) {
+  RT = _rtDefault;
+  try { _rtStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e2) {}
+}
 
 function save() {
   try { _rtStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e) { console.warn('Storage save failed:', e); }
@@ -2518,7 +2527,7 @@ function playLesson(id, student) {
           allowfullscreen
           style="position:absolute;inset:0;width:100%;height:100%;border:none;"
         ></iframe>
-        <div class="vid-watermark">${userEmail}</div>`;
+        <div class="vid-watermark">${(currentUser && currentUser.email) ? currentUser.email : 'RESET TRADERS'}</div>`;
     } else {
       // GitHub raw / Firebase Storage / direct MP4 — native secure player
       // crossOrigin="anonymous" required for GitHub raw.githubusercontent.com CORS
@@ -2534,7 +2543,7 @@ function playLesson(id, student) {
         '<source src="' + lesson.video + '" type="video/webm">' +
         'Your browser does not support video playback.' +
         '</video>' +
-        '<div class="vid-watermark" style="z-index:20;">' + userEmail + '</div>';
+        '<div class="vid-watermark" style="z-index:20;">' + ((currentUser && currentUser.email) ? currentUser.email : 'RESET TRADERS') + '</div>';
       // Attach error handler after render
       setTimeout(function() {
         var vid = document.getElementById('secure-player');
@@ -3414,18 +3423,37 @@ function proceedToRazorpay() {
     try { new Razorpay(options).open(); return; } catch(e) {}
   }
 
-  // ── PHASE 1: redirect to razorpay.me ──
-  // Save pending enrollment so we can confirm after payment
+  // ── PHASE 1: open razorpay.me link ──
+  // IMPORTANT: window.open() MUST be called synchronously inside a click handler
+  // or Chrome's popup blocker will block it. We open it here directly before
+  // any async work.
+  var payWin = window.open(RAZORPAY_ME_URL, '_blank');
+
+  // If popup was blocked, show a direct link fallback
+  if (!payWin || payWin.closed || typeof payWin.closed === 'undefined') {
+    errEl.textContent = 'Popup blocked by your browser. Please allow popups for this site, or click the payment link below.';
+    errEl.style.display = 'block';
+    // Insert a direct link as fallback
+    var linkId = 'rzp-fallback-link';
+    if (!document.getElementById(linkId)) {
+      var link = document.createElement('a');
+      link.id = linkId;
+      link.href = RAZORPAY_ME_URL;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = '→ Open Payment Page';
+      link.style.cssText = 'display:block;margin-top:10px;color:var(--orange);font-weight:800;font-size:14px;text-align:center;';
+      errEl.parentNode.insertBefore(link, errEl.nextSibling);
+    }
+  }
+
+  // Save pending enrollment
   try { _rtStorage.setItem('rt_pending', JSON.stringify({
     name: name, email: email, phone: phone, plan: currentPlan,
     ts: Date.now()
   })); } catch(e) {}
+
   closeModal('payment');
-  // Open razorpay.me with amount locked (in paise: ₹16,999 = 1699900, ₹99,999 = 9999900)
-  var p = PLANS[currentPlan];
-  // Open Razorpay.me page — student pays the correct amount shown in modal
-  window.open(RAZORPAY_ME_URL, '_blank');
-  // Show confirmation instructions
   openModal('pending');
 }
 
