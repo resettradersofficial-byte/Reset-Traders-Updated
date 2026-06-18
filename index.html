@@ -2269,6 +2269,21 @@ section, footer, nav, .ticker-wrap {
    JAVASCRIPT — Full Logic
 ══════════════════════════════════════ -->
 <script>
+// ── CACHE BUST — runs first, before anything else ──
+// Clears stale localStorage from old site versions on every user's browser.
+// Bump RT_VERSION number each time you deploy a breaking change.
+(function() {
+  var RT_VERSION = 4;
+  try {
+    var v = parseInt(localStorage.getItem('rt_version') || '0', 10);
+    if (v < RT_VERSION) {
+      localStorage.removeItem('rt_data');
+      localStorage.removeItem('rt_pending');
+      localStorage.setItem('rt_version', String(RT_VERSION));
+    }
+  } catch(e) { /* localStorage blocked — fine, continue */ }
+})();
+
 // ═══════════ DATA STORE ═══════════
 // Safe localStorage wrapper — falls back to in-memory if blocked (Chrome privacy settings, incognito, etc.)
 var _rtMemStore = {};
@@ -2555,35 +2570,18 @@ function playLesson(id, student) {
         ></iframe>
         <div class="vid-watermark">${watermarkEmail}</div>`;
     } else {
-      // GitHub raw / Firebase Storage / direct MP4 — native secure player
-      // crossOrigin="anonymous" required for GitHub raw.githubusercontent.com CORS
-      var isGithub = lesson.video.indexOf('raw.githubusercontent.com') !== -1 || lesson.video.indexOf('github.com') !== -1;
-      var corsAttr = isGithub ? 'crossorigin="anonymous"' : '';
+      // Direct MP4/GitHub raw — use exact same player as admin preview (no crossorigin attr)
       wrap.innerHTML =
-        '<video id="secure-player" ' + corsAttr + ' ' +
+        '<video id="secure-player" ' +
         'style="position:absolute;inset:0;width:100%;height:100%;background:#000;" ' +
         'controls autoplay playsinline ' +
-        'controlsList="nodownload nofullscreen noremoteplayback" ' +
-        'disablePictureInPicture oncontextmenu="return false;">' +
+        'controlsList="nodownload" ' +
+        'oncontextmenu="return false;">' +
         '<source src="' + lesson.video + '" type="video/mp4">' +
         '<source src="' + lesson.video + '" type="video/webm">' +
         'Your browser does not support video playback.' +
         '</video>' +
         '<div class="vid-watermark" style="z-index:20;">' + watermarkEmail + '</div>';
-      // Attach error handler after render
-      setTimeout(function() {
-        var vid = document.getElementById('secure-player');
-        if (vid) {
-          vid.onerror = function() {
-            wrap.innerHTML =
-              '<div class="video-placeholder" style="color:#888;flex-direction:column;gap:12px;padding:20px;text-align:center;">' +
-              '<div style="font-size:40px;">⚠️</div>' +
-              '<div style="font-size:14px;font-weight:700;color:#aaa;">Video could not load.</div>' +
-              '<div style="font-size:12px;color:#555;line-height:1.7;">If using a GitHub URL, make sure the file is set to <strong style="color:#888;">public</strong> and use the <strong style="color:#888;">raw.githubusercontent.com</strong> link.<br>Try opening the URL directly in your browser to verify.</div>' +
-              '</div>';
-          };
-        }
-      }, 200);
     }
     // Disable right click on entire player
     wrap.addEventListener('contextmenu', e => e.preventDefault());
@@ -3388,29 +3386,6 @@ function initEmailJS() {
   } catch(e) { console.warn('EmailJS init failed:', e); }
 }
 
-// ── VERSION-BASED CACHE BUST ──
-// Increment RT_VERSION whenever a breaking change is deployed.
-// This forces a one-time localStorage clear on all users' browsers.
-var RT_VERSION = 3;
-try {
-  var storedVer = parseInt(localStorage.getItem('rt_version') || '0', 10);
-  if (storedVer < RT_VERSION) {
-    // Clear stale data from old versions — triggers on every user's next page load
-    localStorage.removeItem('rt_data');
-    localStorage.setItem('rt_version', RT_VERSION);
-    // Reload RT from defaults since we just cleared
-    _rtRaw = null;
-    RT = _rtDefault;
-    RT.lessons      = RT.lessons      || _rtDefault.lessons;
-    RT.students     = RT.students     || _rtDefault.students;
-    RT.testimonials = RT.testimonials || [];
-    RT.socialLinks  = RT.socialLinks  || _rtDefault.socialLinks;
-    RT.founderPhotos= RT.founderPhotos|| {};
-    try { localStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e) {}
-    console.log('RT data reset to v' + RT_VERSION + ' defaults ✅');
-  }
-} catch(e) {}
-
 var currentPlan = null;
 var PLANS = {
   course:     { name:'The Trader Reset Course', amount:1699900, display:'₹16,999', pass_prefix:'RT' },
@@ -3454,54 +3429,29 @@ function proceedToRazorpay() {
   }
   errEl.style.display = 'none';
 
-  // ── PHASE 2: if API key is set, use Razorpay popup ──
+  // Save pending enrollment
+  try {
+    localStorage.setItem('rt_pending', JSON.stringify({
+      name: name, email: email, phone: phone, plan: currentPlan, ts: Date.now()
+    }));
+  } catch(e) {}
+
+  // ── PHASE 2: Razorpay API key set ──
   if (RZP_KEY) {
     var p = PLANS[currentPlan];
     var options = {
-      key: RZP_KEY,
-      amount: p.amount,
-      currency: 'INR',
-      name: 'Reset Traders',
-      description: p.name,
+      key: RZP_KEY, amount: p.amount, currency: 'INR',
+      name: 'Reset Traders', description: p.name,
       prefill: { name: name, email: email, contact: phone },
       theme: { color: '#FF6B1A' },
-      handler: function(response) {
-        onPaymentSuccess(response, name, email, phone);
-      }
+      handler: function(response) { onPaymentSuccess(response, name, email, phone); }
     };
     try { new Razorpay(options).open(); return; } catch(e) {}
   }
 
-  // ── PHASE 1: open razorpay.me link ──
-  // IMPORTANT: window.open() MUST be called synchronously inside a click handler
-  // or Chrome's popup blocker will block it. We open it here directly before
-  // any async work.
-  var payWin = window.open(RAZORPAY_ME_URL, '_blank');
-
-  // If popup was blocked, show a direct link fallback
-  if (!payWin || payWin.closed || typeof payWin.closed === 'undefined') {
-    errEl.textContent = 'Popup blocked by your browser. Please allow popups for this site, or click the payment link below.';
-    errEl.style.display = 'block';
-    // Insert a direct link as fallback
-    var linkId = 'rzp-fallback-link';
-    if (!document.getElementById(linkId)) {
-      var link = document.createElement('a');
-      link.id = linkId;
-      link.href = RAZORPAY_ME_URL;
-      link.target = '_blank';
-      link.rel = 'noopener';
-      link.textContent = '→ Open Payment Page';
-      link.style.cssText = 'display:block;margin-top:10px;color:var(--orange);font-weight:800;font-size:14px;text-align:center;';
-      errEl.parentNode.insertBefore(link, errEl.nextSibling);
-    }
-  }
-
-  // Save pending enrollment
-  try { _rtStorage.setItem('rt_pending', JSON.stringify({
-    name: name, email: email, phone: phone, plan: currentPlan,
-    ts: Date.now()
-  })); } catch(e) {}
-
+  // ── PHASE 1: open razorpay.me ──
+  // window.open MUST be the first thing after validation — Chrome blocks it otherwise
+  window.open(RAZORPAY_ME_URL, '_blank');
   closeModal('payment');
   openModal('pending');
 }
@@ -3907,6 +3857,13 @@ function adminConfirmPayment(email) {
     <button onclick="openSelfVerify()" style="width:100%;background:var(--orange);color:#000;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-bottom:12px;">
       ✅ I've Paid — Enter Payment ID
     </button>
+    <!-- Fallback if popup was blocked -->
+    <div style="text-align:center;margin-bottom:12px;">
+      <a href="https://razorpay.me/@omkardevidaspardeshi" target="_blank" rel="noopener"
+        style="color:var(--orange);font-size:13px;font-weight:800;text-decoration:underline;">
+        🔗 Payment page not opened? Click here to open it
+      </a>
+    </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       <a href="https://www.instagram.com/resettraders" target="_blank" rel="noopener"
         style="background:transparent;border:1px solid #333;color:var(--gray-light);border-radius:8px;padding:10px 20px;font-size:12px;font-weight:700;text-decoration:none;display:inline-block;">
