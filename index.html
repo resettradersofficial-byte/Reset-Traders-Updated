@@ -23,12 +23,19 @@
   --red: #EF4444;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 body {
   background: var(--black);
   color: var(--white);
   font-family: 'Montserrat', sans-serif;
   overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Prevent any child from creating horizontal scroll */
+#main-site, #course-portal, #admin-panel {
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* ── PAGES ── */
@@ -40,6 +47,7 @@ body {
   background: var(--maroon);
   overflow: hidden; padding: 8px 0;
   border-bottom: 1px solid var(--orange);
+  max-width: 100%;
 }
 .ticker-track {
   display: flex; width: max-content;
@@ -427,6 +435,7 @@ nav {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   white-space: nowrap; pointer-events: none; letter-spacing: 20px;
+  overflow: hidden; max-width: 100%;
 }
 .cta-banner h2 {
   font-weight: 900; font-size: clamp(38px, 5.5vw, 72px);
@@ -1158,6 +1167,17 @@ footer { background: var(--black2); border-top: 1px solid #1a1a1a; padding: 60px
   #rt-chat-bubble { bottom: 20px; right: 16px; }
 }
 
+
+/* ── MOBILE OVERFLOW GUARD ── */
+section, footer, nav, .ticker-wrap {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.hero-grid, .features-inner, .markets-inner, .pricing-inner,
+.testi-inner, .process-inner, .faq-inner, .footer-grid,
+.payment-inner, .pain-inner, .admin-body, .portal-layout {
+  max-width: 100%;
+}
 
 /* ── HERO VIDEO REAL EMBED ── */
 .hero-video-thumb {
@@ -2212,7 +2232,7 @@ footer { background: var(--black2); border-top: 1px solid #1a1a1a; padding: 60px
       <div class="admin-card">
         <h3>SOCIAL LINKS</h3>
         <div class="admin-field"><label>YouTube Channel URL</label><input type="text" id="yt-url" placeholder="https://youtube.com/@resettraders" /></div>
-      <div class="admin-field"><label>Intro Video YouTube ID <span style="color:#555;font-weight:500;">(the part after ?v= in the YouTube URL)</span></label><input type="text" id="intro-video-id" placeholder="e.g. dQw4w9WgXcQ" /></div>
+      <div class="admin-field"><label>Intro Video URL <span style="color:#555;font-weight:500;">(paste your GitHub raw video URL, e.g. https://raw.githubusercontent.com/user/repo/main/intro.mp4)</span></label><input type="text" id="intro-video-id" placeholder="https://raw.githubusercontent.com/youruser/yourrepo/main/intro.mp4" /></div>
       <h3 style="margin-top:24px;font-size:14px;font-weight:800;color:var(--white);">FOUNDER PHOTOS</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <div class="admin-field">
@@ -2250,8 +2270,21 @@ footer { background: var(--black2); border-top: 1px solid #1a1a1a; padding: 60px
 ══════════════════════════════════════ -->
 <script>
 // ═══════════ DATA STORE ═══════════
-// In production, replace localStorage with your backend API
-let RT = JSON.parse(localStorage.getItem('rt_data') || JSON.stringify({
+// Safe localStorage wrapper — falls back to in-memory if blocked (Chrome privacy settings, incognito, etc.)
+var _rtMemStore = {};
+var _rtStorage = {
+  getItem: function(k) {
+    try { return localStorage.getItem(k); } catch(e) { return _rtMemStore[k] || null; }
+  },
+  setItem: function(k, v) {
+    try { localStorage.setItem(k, v); } catch(e) { _rtMemStore[k] = v; }
+  }
+};
+
+var _rtRaw = null;
+try { _rtRaw = _rtStorage.getItem('rt_data'); } catch(e) {}
+
+let RT = JSON.parse(_rtRaw || JSON.stringify({
   adminEmail: 'resettradersofficial@gmail.com',
   adminPass: 'admin123',
   lessons: [
@@ -2277,7 +2310,7 @@ let RT = JSON.parse(localStorage.getItem('rt_data') || JSON.stringify({
   testimonials: [],
   socialLinks: {
     ytUrl: 'https://www.youtube.com/@ResetTraders',
-    introVideoId: 'YJo4LCghnmsaEwln',
+    introVideoId: '',
     igUrl: 'https://www.instagram.com/resettraders?igsh=OXVlaWQ0bzJnY3dt',
     tgUrl: 'https://t.me/+cSc9edQLwJc5ZTQ1',
     waNum: ''
@@ -2285,7 +2318,7 @@ let RT = JSON.parse(localStorage.getItem('rt_data') || JSON.stringify({
 }));
 
 function save() {
-  localStorage.setItem('rt_data', JSON.stringify(RT));
+  try { _rtStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e) { console.warn('Storage save failed:', e); }
   // If Firebase is connected, sync there too
   if (window._firebaseReady && window._firebaseDb) {
     try {
@@ -2302,7 +2335,7 @@ window._syncToFirebase = function() {
   window._firebaseGet(ref).then(function(snapshot) {
     if (snapshot.exists()) {
       RT = snapshot.val();
-      localStorage.setItem('rt_data', JSON.stringify(RT));
+      try { _rtStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e) {}
       console.log('Data loaded from Firebase ✅');
     } else {
       // First time — push local data to Firebase
@@ -2487,22 +2520,35 @@ function playLesson(id, student) {
         ></iframe>
         <div class="vid-watermark">${userEmail}</div>`;
     } else {
-      // Firebase Storage / direct MP4 — native secure player
-      wrap.innerHTML = `
-        <video
-          id="secure-player"
-          style="position:absolute;inset:0;width:100%;height:100%;background:#000;"
-          controls
-          autoplay
-          playsinline
-          controlsList="nodownload nofullscreen noremoteplayback"
-          disablePictureInPicture
-          oncontextmenu="return false;"
-        >
-          <source src="${lesson.video}" type="video/mp4">
-          Your browser does not support video playback.
-        </video>
-        <div class="vid-watermark" style="z-index:20;">${userEmail}</div>`;
+      // GitHub raw / Firebase Storage / direct MP4 — native secure player
+      // crossOrigin="anonymous" required for GitHub raw.githubusercontent.com CORS
+      var isGithub = lesson.video.indexOf('raw.githubusercontent.com') !== -1 || lesson.video.indexOf('github.com') !== -1;
+      var corsAttr = isGithub ? 'crossorigin="anonymous"' : '';
+      wrap.innerHTML =
+        '<video id="secure-player" ' + corsAttr + ' ' +
+        'style="position:absolute;inset:0;width:100%;height:100%;background:#000;" ' +
+        'controls autoplay playsinline ' +
+        'controlsList="nodownload nofullscreen noremoteplayback" ' +
+        'disablePictureInPicture oncontextmenu="return false;">' +
+        '<source src="' + lesson.video + '" type="video/mp4">' +
+        '<source src="' + lesson.video + '" type="video/webm">' +
+        'Your browser does not support video playback.' +
+        '</video>' +
+        '<div class="vid-watermark" style="z-index:20;">' + userEmail + '</div>';
+      // Attach error handler after render
+      setTimeout(function() {
+        var vid = document.getElementById('secure-player');
+        if (vid) {
+          vid.onerror = function() {
+            wrap.innerHTML =
+              '<div class="video-placeholder" style="color:#888;flex-direction:column;gap:12px;padding:20px;text-align:center;">' +
+              '<div style="font-size:40px;">⚠️</div>' +
+              '<div style="font-size:14px;font-weight:700;color:#aaa;">Video could not load.</div>' +
+              '<div style="font-size:12px;color:#555;line-height:1.7;">If using a GitHub URL, make sure the file is set to <strong style="color:#888;">public</strong> and use the <strong style="color:#888;">raw.githubusercontent.com</strong> link.<br>Try opening the URL directly in your browser to verify.</div>' +
+              '</div>';
+          };
+        }
+      }, 200);
     }
     // Disable right click on entire player
     wrap.addEventListener('contextmenu', e => e.preventDefault());
@@ -2901,21 +2947,36 @@ function renderPublicTestimonials() {
 
 // ── Hero Intro Video ──
 function playHeroVideo() {
-  var videoId = (RT.socialLinks && RT.socialLinks.introVideoId) ? RT.socialLinks.introVideoId.trim() : '';
-  if (!videoId) {
-    alert('No intro video set yet. Add the YouTube Video ID in Admin → Site Settings → Intro Video YouTube ID.');
+  var videoUrl = (RT.socialLinks && RT.socialLinks.introVideoId) ? RT.socialLinks.introVideoId.trim() : '';
+  if (!videoUrl) {
+    alert('No intro video set yet. Add the GitHub raw video URL in Admin \u2192 Site Settings \u2192 Intro Video URL.');
     return;
   }
   var box = document.getElementById('hero-video-box');
   if (!box) return;
   box.style.aspectRatio = '16/9';
   box.style.position = 'relative';
-  box.innerHTML =
-    '<iframe src="https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0&modestbranding=1" ' +
-    'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' +
-    'allowfullscreen ' +
-    'style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:8px;">' +
-    '</iframe>';
+  // Detect YouTube (fallback) vs direct video file (GitHub raw, etc.)
+  var isYoutube = videoUrl.indexOf('youtube.com') !== -1 || videoUrl.indexOf('youtu.be') !== -1;
+  if (isYoutube) {
+    var ytMatch = videoUrl.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    var ytId = ytMatch ? ytMatch[1] : videoUrl;
+    box.innerHTML =
+      '<iframe src="https://www.youtube-nocookie.com/embed/' + ytId + '?autoplay=1&rel=0&modestbranding=1" ' +
+      'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' +
+      'allowfullscreen ' +
+      'style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:8px;"></iframe>';
+  } else {
+    // GitHub raw video or any direct .mp4/.webm URL
+    box.innerHTML =
+      '<video autoplay controls playsinline ' +
+      'style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:8px;background:#000;" ' +
+      'controlsList="nodownload" oncontextmenu="return false;">' +
+      '<source src="' + videoUrl + '" type="video/mp4">' +
+      '<source src="' + videoUrl + '" type="video/webm">' +
+      'Your browser does not support video playback.' +
+      '</video>';
+  }
 }
 
 // ── Settings ──
@@ -3355,10 +3416,10 @@ function proceedToRazorpay() {
 
   // ── PHASE 1: redirect to razorpay.me ──
   // Save pending enrollment so we can confirm after payment
-  localStorage.setItem('rt_pending', JSON.stringify({
+  try { _rtStorage.setItem('rt_pending', JSON.stringify({
     name: name, email: email, phone: phone, plan: currentPlan,
     ts: Date.now()
-  }));
+  })); } catch(e) {}
   closeModal('payment');
   // Open razorpay.me with amount locked (in paise: ₹16,999 = 1699900, ₹99,999 = 9999900)
   var p = PLANS[currentPlan];
