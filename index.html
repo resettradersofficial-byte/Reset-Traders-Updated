@@ -2323,8 +2323,30 @@ try {
   RT = _rtRaw ? JSON.parse(_rtRaw) : _rtDefault;
 } catch(e) {
   RT = _rtDefault;
-  try { _rtStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e2) {}
 }
+
+// ── REPAIR corrupted / partial localStorage (Gemini fix) ──
+if (!RT || typeof RT !== 'object') RT = _rtDefault;
+RT.lessons      = RT.lessons      || _rtDefault.lessons;
+RT.students     = RT.students     || _rtDefault.students;
+RT.testimonials = RT.testimonials || [];
+RT.socialLinks  = RT.socialLinks  || _rtDefault.socialLinks;
+RT.founderPhotos= RT.founderPhotos|| {};
+// Ensure every student has doubts and progress arrays
+RT.students.forEach(function(s) {
+  s.progress = s.progress || [];
+  s.doubts   = s.doubts   || {};
+});
+// Ensure every lesson has a video field
+RT.lessons.forEach(function(l) {
+  if (l.video === undefined) l.video = '';
+});
+// Migration: old introVideoId (YouTube ID only) → new full URL field
+if (RT.socialLinks.introVideoId && !RT.socialLinks.introVideoUrl) {
+  RT.socialLinks.introVideoUrl = RT.socialLinks.introVideoId;
+}
+// Write repaired data back so next load is clean
+try { _rtStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e2) {}
 
 function save() {
   try { _rtStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e) { console.warn('Storage save failed:', e); }
@@ -2486,9 +2508,13 @@ function closeMobDrawer() {
 
 function playLesson(id, student) {
   student = student || currentUser;
+  if (!student) return; // guard: no logged-in user
   const lesson = RT.lessons.find(l => l.id === id);
   if (!lesson) return;
   currentLesson = lesson;
+
+  // Safe email for watermark — use student param directly (Gemini fix)
+  var watermarkEmail = (student && student.email) ? student.email : 'RESET TRADERS';
 
   // Highlight active in both desktop sidebar and mobile drawer
   document.querySelectorAll('.lesson-item').forEach(el => {
@@ -2527,7 +2553,7 @@ function playLesson(id, student) {
           allowfullscreen
           style="position:absolute;inset:0;width:100%;height:100%;border:none;"
         ></iframe>
-        <div class="vid-watermark">${(currentUser && currentUser.email) ? currentUser.email : 'RESET TRADERS'}</div>`;
+        <div class="vid-watermark">${watermarkEmail}</div>`;
     } else {
       // GitHub raw / Firebase Storage / direct MP4 — native secure player
       // crossOrigin="anonymous" required for GitHub raw.githubusercontent.com CORS
@@ -2543,7 +2569,7 @@ function playLesson(id, student) {
         '<source src="' + lesson.video + '" type="video/webm">' +
         'Your browser does not support video playback.' +
         '</video>' +
-        '<div class="vid-watermark" style="z-index:20;">' + ((currentUser && currentUser.email) ? currentUser.email : 'RESET TRADERS') + '</div>';
+        '<div class="vid-watermark" style="z-index:20;">' + watermarkEmail + '</div>';
       // Attach error handler after render
       setTimeout(function() {
         var vid = document.getElementById('secure-player');
@@ -3361,6 +3387,29 @@ function initEmailJS() {
     }
   } catch(e) { console.warn('EmailJS init failed:', e); }
 }
+
+// ── VERSION-BASED CACHE BUST ──
+// Increment RT_VERSION whenever a breaking change is deployed.
+// This forces a one-time localStorage clear on all users' browsers.
+var RT_VERSION = 3;
+try {
+  var storedVer = parseInt(localStorage.getItem('rt_version') || '0', 10);
+  if (storedVer < RT_VERSION) {
+    // Clear stale data from old versions — triggers on every user's next page load
+    localStorage.removeItem('rt_data');
+    localStorage.setItem('rt_version', RT_VERSION);
+    // Reload RT from defaults since we just cleared
+    _rtRaw = null;
+    RT = _rtDefault;
+    RT.lessons      = RT.lessons      || _rtDefault.lessons;
+    RT.students     = RT.students     || _rtDefault.students;
+    RT.testimonials = RT.testimonials || [];
+    RT.socialLinks  = RT.socialLinks  || _rtDefault.socialLinks;
+    RT.founderPhotos= RT.founderPhotos|| {};
+    try { localStorage.setItem('rt_data', JSON.stringify(RT)); } catch(e) {}
+    console.log('RT data reset to v' + RT_VERSION + ' defaults ✅');
+  }
+} catch(e) {}
 
 var currentPlan = null;
 var PLANS = {
