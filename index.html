@@ -3357,7 +3357,7 @@ function submitDoubt() {
 var RAZORPAY_ME_URL = 'https://razorpay.me/@omkardevidaspardeshi';
 
 // ─── PHASE 2 (later): paste your API key here ────
-var RZP_KEY = ''; // e.g. 'rzp_live_XXXXXXXXXXXX'
+var RZP_KEY = 'rzp_live_T3EyDXvzd0BjDG'; // Live key — Reset Traders
 
 // ── EMAILJS CONFIG ── paste your IDs here after setup ──
 var EJS = {};
@@ -3452,23 +3452,83 @@ function proceedToRazorpay() {
     }));
   } catch(e) {}
 
-  // ── PHASE 2: Razorpay API key set ──
+  // ── PHASE 2: Razorpay API popup (when key is set) ──
   if (RZP_KEY) {
     var p = PLANS[currentPlan];
-    var options = {
-      key: RZP_KEY, amount: p.amount, currency: 'INR',
-      name: 'Reset Traders', description: p.name,
-      prefill: { name: name, email: email, contact: phone },
-      theme: { color: '#FF6B1A' },
-      handler: function(response) { onPaymentSuccess(response, name, email, phone); }
-    };
-    try { new Razorpay(options).open(); return; } catch(e) {}
+    var _name = name, _email = email, _phone = phone;
+
+    function openRzpPopup() {
+      var options = {
+        key:         RZP_KEY,
+        amount:      p.amount,    // in paise — student cannot alter this
+        currency:    'INR',
+        name:        'Reset Traders',
+        description: p.name,
+        image:       '',          // optional: add your logo URL
+        prefill:     { name: _name, email: _email, contact: _phone },
+        notes:       { plan: currentPlan },
+        theme:       { color: '#FF6B1A' },
+        modal:       { ondismiss: function() { console.log('Payment dismissed'); } },
+        handler: function(response) {
+          onPaymentSuccess(response, _name, _email, _phone);
+        }
+      };
+      try {
+        var rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(resp) {
+          var errEl = document.getElementById('pay-error');
+          if (errEl) {
+            errEl.textContent = 'Payment failed: ' + (resp.error.description || 'Please try again.');
+            errEl.style.display = 'block';
+          }
+        });
+        rzp.open();
+        return true;
+      } catch(e) {
+        console.error('Razorpay error:', e);
+        return false;
+      }
+    }
+
+    // Check if SDK is loaded — if not, load dynamically then fire
+    if (typeof Razorpay !== 'undefined') {
+      if (openRzpPopup()) return; // success — stop here
+    } else {
+      // SDK not loaded yet — load it now
+      var sdk = document.createElement('script');
+      sdk.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      sdk.onload = function() {
+        if (!openRzpPopup()) {
+          // SDK loaded but popup failed — fall through to razorpay.me
+          var amountRupees2 = Math.round(p.amount / 100);
+          window.open(RAZORPAY_ME_URL + '?amount=' + amountRupees2, '_blank');
+          closeModal('payment');
+          openModal('pending');
+        }
+      };
+      sdk.onerror = function() {
+        // SDK failed to load — fall through to razorpay.me
+        var amountRupees3 = Math.round(p.amount / 100);
+        window.open(RAZORPAY_ME_URL + '?amount=' + amountRupees3, '_blank');
+        closeModal('payment');
+        openModal('pending');
+      };
+      document.head.appendChild(sdk);
+      return; // wait for onload
+    }
   }
 
-  // ── PHASE 1: open razorpay.me ──
-  // window.open MUST be the first thing after validation — Chrome blocks it otherwise
-  window.open(RAZORPAY_ME_URL, '_blank');
+  // ── PHASE 1: open razorpay.me with amount pre-filled ──
+  // Amount in rupees (razorpay.me uses rupees, NOT paise)
+  var p = PLANS[currentPlan];
+  var amountRupees = Math.round(p.amount / 100); // convert paise to rupees
+  var fallbackUrl = RAZORPAY_ME_URL + '?amount=' + amountRupees;
+  // window.open MUST be called directly — Chrome blocks popups from async calls
+  window.open(fallbackUrl, '_blank');
   closeModal('payment');
+  // Show pending modal with correct amount
+  var pendingLabel = document.getElementById('pending-amount-label');
+  if (pendingLabel) pendingLabel.textContent = p.display;
   openModal('pending');
 }
 
