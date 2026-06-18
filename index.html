@@ -2438,20 +2438,21 @@ document.getElementById('login-pass').addEventListener('keydown', e => { if(e.ke
 // ═══════════ PAGE ROUTING ═══════════
 function stopVideo() {
   // Stop any playing HTML5 video
-  var vid = document.getElementById('secure-player');
-  if (vid) { try { vid.pause(); vid.src = ''; vid.load(); } catch(e) {} }
-  // Stop any YouTube iframe by blanking its src
   var wrap = document.getElementById('video-wrap');
   if (wrap) {
-    var iframe = wrap.querySelector('iframe');
-    if (iframe) { try { iframe.src = ''; } catch(e) {} }
     var video = wrap.querySelector('video');
     if (video) { try { video.pause(); video.src = ''; video.load(); } catch(e) {} }
+    var iframe = wrap.querySelector('iframe');
+    if (iframe) { try { iframe.src = ''; } catch(e) {} }
   }
 }
 
+var _currentPage = 'main'; // track current page so we only stop when leaving portal
+
 function showPage(p) {
-  if (p !== 'portal') stopVideo(); // kill audio when leaving portal
+  // Only stop video when navigating AWAY from portal (not when entering it)
+  if (_currentPage === 'portal' && p !== 'portal') stopVideo();
+  _currentPage = p;
   document.getElementById('main-site').classList.toggle('active', p === 'main');
   document.getElementById('course-portal').classList.toggle('active', p === 'portal');
   document.getElementById('admin-panel').classList.toggle('active', p === 'admin');
@@ -2459,10 +2460,9 @@ function showPage(p) {
 }
 
 function logout() {
-  stopVideo();
   currentUser = null;
   currentLesson = null;
-  showPage('main');
+  showPage('main'); // stopVideo() is handled inside showPage
 }
 
 // ═══════════ COURSE PORTAL ═══════════
