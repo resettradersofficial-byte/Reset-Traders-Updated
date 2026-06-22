@@ -46,7 +46,7 @@ export const firebaseConfig = {
 export const RESET_CONFIG = {
   siteUrl: "https://resettraders.com/",
   currency: "INR",
-  razorpayKeyId: "rzp_test_T3yQr3ui4cuBmi",
+  razorpayKeyId: "rzp_live_T4i01yrRmSu5d9",
   createOrderEndpoint: "https://shiny-dew-032freset-traders-payments.resettradersofficial.workers.dev/create-order",
   verifyPaymentEndpoint: "https://shiny-dew-032freset-traders-payments.resettradersofficial.workers.dev/verify-payment",
   paymentStatusEndpoint: "https://shiny-dew-032freset-traders-payments.resettradersofficial.workers.dev/payment-status"
