@@ -349,10 +349,10 @@ function answerChat(text) {
     return "Reset Traders has two main programs: The Trader Reset course with 15+ video lessons, and 1:1 Elite Mentorship for direct coaching, review, community access, and accountability.";
   }
   if (has("price", "pricing", "cost", "fee", "fees", "pay", "payment", "razorpay", "upi", "card", "netbanking", "net banking", "elite")) {
-    return "The Trader Reset is Rs. 16,999. Elite Mentorship is Rs. 74,999 total, kept just under the Rs. 75,000 Razorpay transaction limit. Access opens only after secure payment verification.";
+    return "The Trader Reset course is ₹16,999 with lifetime access. Elite Mentorship is ₹74,999 and includes direct coaching, trade review, accountability, and community support. Course access unlocks only after secure payment verification.";";
   }
   if (has("tax", "gst", "limit", "75000", "75k", "75,000")) {
-    return "Elite is set at Rs. 74,999 as the total checkout amount. If GST is added separately later, keep the final Razorpay order total under Rs. 75,000 or split it into two payments.";
+    return "Elite Mentorship is ₹74,999. It is for serious traders who want direct coaching, trade review, accountability, and guided improvement.";";
   }
   if (has("join", "enroll", "buy", "signup", "sign up", "start", "purchase")) {
     return "To join: choose a plan, enter your name, email, phone, and portal password, complete Razorpay checkout, then log in to the student portal after payment verification.";
