@@ -1,5 +1,6 @@
 // Reset Audit lead Worker.
-// POST {email, profile, isRetake, website} from the audit page -> builds the result email -> Pabbly webhook.
+// POST {email, profile, isRetake, website} from the audit page -> builds the result email ->
+// Google Apps Script web app (sends from the Reset Traders Gmail), in the background.
 // The email body is built only from the fixed tables below, keyed by validated enum values,
 // so nothing the client sends is ever echoed into the HTML except the validated email and integer percentages.
 
@@ -205,7 +206,7 @@ async function limited(limiter, key) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get("Origin") || "";
     const allowed = originAllowed(origin);
 
@@ -234,19 +235,32 @@ export default {
       return json(429, { error: "Too many requests. Try again in a minute." }, origin);
     }
 
-    if (!env.PABBLY_AUDIT_URL) return json(500, { error: "Email service not configured." }, origin);
+    if (!env.APPS_SCRIPT_URL || !env.APPS_SCRIPT_TOKEN) return json(500, { error: "Email service not configured." }, origin);
 
+    // Hand the email to Apps Script in the background; the page never waits on Google.
     const message = buildEmail(result);
-    try {
-      const res = await fetch(env.PABBLY_AUDIT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(message)
-      });
-      if (!res.ok) return json(502, { error: "Email service error." }, origin);
-    } catch (_) {
-      return json(502, { error: "Email service unreachable." }, origin);
-    }
-    return json(200, { ok: true }, origin);
+    const work = sendViaAppsScript(env, message);
+    if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(work);
+    else await work;
+    return json(202, { ok: true, queued: true }, origin);
   }
 };
+
+export async function sendViaAppsScript(env, message) {
+  try {
+    const res = await fetch(env.APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...message, token: env.APPS_SCRIPT_TOKEN }),
+      redirect: "follow"
+    });
+    const text = await res.text();
+    let ok = false;
+    try { ok = JSON.parse(text).ok === true; } catch (_) {}
+    if (!ok) console.error("apps-script send not ok", res.status, text.slice(0, 200));
+    return ok;
+  } catch (err) {
+    console.error("apps-script unreachable", String(err));
+    return false;
+  }
+}

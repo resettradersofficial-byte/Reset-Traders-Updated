@@ -5,3 +5,7 @@ node_modules/
 .firebase/
 firestore-debug.log
 ui-debug.log
+
+# Apps Script: local clasp state and the one-time token setup file
+apps-script/**/.clasp.json
+apps-script/**/Setup.js

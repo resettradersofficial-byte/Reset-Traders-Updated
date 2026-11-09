@@ -3,8 +3,9 @@ main = "src/index.js"
 compatibility_date = "2026-10-01"
 workers_dev = true
 
-# Secret (set with `npx wrangler secret put PABBLY_AUDIT_URL`, never committed):
-#   PABBLY_AUDIT_URL  Pabbly Connect webhook for the "Audit Lead" workflow
+# Secrets (set with `npx wrangler secret put <NAME>`, never committed):
+#   APPS_SCRIPT_URL    /exec URL of the "Reset Audit Mailer" Apps Script web app
+#   APPS_SCRIPT_TOKEN  shared token, also stored as AUDIT_TOKEN in the script's Script Properties
 
 # Per-IP and per-email throttles so the Worker can't be used to email-bomb someone.
 [[ratelimits]]
