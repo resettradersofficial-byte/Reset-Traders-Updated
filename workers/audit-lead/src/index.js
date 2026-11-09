@@ -96,6 +96,13 @@ const COST = {
   funded: "On a funded account, this is how accounts get lost: one hijacked session undoes weeks of good trading.",
   steady: "You are consistent now. This is what shows up when your size or the stakes go up."
 };
+const PATTERN_TEXT = {
+  loss: "Losses are your trigger. You trade well until something goes red, then the next decision belongs to the hijack.",
+  win: "Losses don't knock you off plan. Winning does: a good result or a near-finish is when you drift.",
+  both: "Red or green, your last result decides your next move. A loss and a win both pulled you off plan.",
+  fomo: "Missing out is a trigger on its own. A move without you and a shiny new strategy both pulled you in.",
+  social: "Other traders' results get into your trading. Someone else's win changed what you did next."
+};
 export function shapeOf(p) {
   if (p.level === "steady") return "steady";
   const n = (p.leads || []).length;
@@ -124,7 +131,7 @@ export function problem(p) {
       : `${subj} took ${hijackN} of your 8 trading moments: often enough to cost you, not so often that it is out of reach.`);
     (p.patterns || []).forEach((k, i) => s.push(i === 0 ? WHEN_FIRST[k] : (WHEN_MORE[k] || WHEN_FIRST[k])));
   }
-  s.push(`Underneath it is the fear of ${FEAR_SHORT[p.root || p.type]}.`);
+  // (The fear underneath follows as its own paragraph in the email.)
   s.push(p.stage === "steady" && p.level !== "steady"
     ? "You say you are consistent. Your answers say this pattern is still there, waiting for bigger size or higher stakes."
     : COST[p.stage]);
@@ -260,8 +267,13 @@ export function buildEmail({ email, isRetake, profile }) {
           <p style="margin:0 0 16px;font:13px/1.5 Inter,Arial,sans-serif;color:#6b7194;">${esc(mix)}</p>
 ${problemText
     ? `          <p style="${H}">The problem</p>
-          <p style="${P}">${esc(problemText)}</p>`
+          <p style="${P}">${esc(problemText)}</p>
+          <p style="${P}">${esc(fear)}</p>`
     : `          <p style="${P}">${esc(fear)}</p>`}
+${(profile.patterns || []).length
+    ? `          <p style="${H}">Where it shows up</p>
+${profile.patterns.map((k) => `          <p style="${P}">${esc(PATTERN_TEXT[k])}</p>`).join("\n")}`
+    : ""}
 
           <p style="${H}">Your stop rule</p>
           <p style="margin:0 0 16px;padding:14px 16px;background:#efe6d3;border-left:4px solid #FA5901;border-radius:0 8px 8px 0;font:700 17px/1.55 Kalam,'Segoe Print',Georgia,serif;color:#1d2347;">${esc(rule)}</p>

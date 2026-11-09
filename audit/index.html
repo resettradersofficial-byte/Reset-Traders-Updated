@@ -152,7 +152,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .shows b { display: block; font-weight: 600; color: var(--muted); font-size: 13px; }
 .problem { border-color: var(--brand); }
 .problem h3 { color: var(--brand); }
-.problem #problem { margin: 0; font-size: 16px; line-height: 1.55; color: var(--text); }
+.problem-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.problem-list li { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; font-size: 15px; line-height: 1.4; color: var(--text); }
+.problem-list b { font: 700 12px/1.4 var(--display); text-transform: uppercase; letter-spacing: .06em; color: var(--lamp); }
 .problem .fix-pointer { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
 .mirror { display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: center; }
 .mirror .face { width: 112px; height: 112px; border-radius: 14px; overflow: hidden; background: var(--panel-2); display: grid; place-items: center; }
@@ -255,7 +257,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
       <h1 class="res-type" id="r-type">Rusher</h1>
       <p class="res-line" id="r-line"></p>
     </div>
-    <div class="panel problem"><h3>The problem</h3><p id="problem"></p><p class="fix-pointer">The fix is your stop rule, below.</p></div>
+    <div class="panel problem"><h3>The problem</h3><ul class="problem-list" id="problem"></ul><p class="fix-pointer">The fix is your stop rule, below. The full breakdown comes by email when you unlock it.</p></div>
     <div class="panel mix"><h3>Your 8 trading moments</h3><svg id="mix" viewBox="0 0 360 210" role="img" aria-label="Share of your 8 trading moments: reset answers and each hijack"></svg><p id="mix-note"></p></div>
     <div class="panel" id="where-panel"><h3>Where it shows up</h3><ul class="shows" id="where"></ul></div>
     <div class="panel mirror" id="mirror"></div>
@@ -540,29 +542,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     CI: 'You argue with the market before you accept a loss, with size or with reasons.'
   };
   const pairKey = (a, b) => ORDER.filter(k => k === a || k === b).join('');
-  // "The problem": a plain diagnosis composed from the person's own result.
-  const PROBLEM = {
-    R: 'You take trades to end the discomfort of waiting, not because the setup is there.',
-    P: 'You trade for how the result will look: size, posts and red days get managed for an audience.',
-    C: 'You trade to win: back what you just lost, and against everyone else\'s results.',
-    I: 'You analyse instead of executing, and find reasons to move your rules when it counts.'
-  };
   const FEAR_SHORT = { R: 'falling behind', P: 'being seen failing', C: 'losing', I: 'being wrong' };
-  const WHEN_FIRST = {
-    loss: 'It starts right after a loss.',
-    win: 'It starts after a win or when a target is close, not after losses.',
-    both: 'It starts after any strong result, red or green.',
-    fomo: 'Missing a move sets it off.',
-    social: 'Seeing someone else win sets it off.'
-  };
-  const WHEN_MORE = { fomo: 'Missing a move sets it off too.', social: 'So does seeing someone else win.' };
-  const COST = {
-    first: 'If you take it into your first challenge, it will cost you the challenge before your strategy gets a fair test.',
-    f12: 'This is the most likely reason your challenges failed, more than the strategy.',
-    f3: 'After three or more failed challenges, this is the thing to fix, not the strategy.',
-    funded: 'On a funded account, this is how accounts get lost: one hijacked session undoes weeks of good trading.',
-    steady: 'You are consistent now. This is what shows up when your size or the stakes go up.'
-  };
   function resultHeadline(p) {
     const T = TYPES[p.top];
     if (p.level === 'steady') return { big: 'Steady', line: `Your hijacks are mostly quiet. Under pressure, the ${T.name} is the one to watch.` };
@@ -570,30 +550,36 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (p.shape === 'split') return { big: 'Split', line: 'No single hijack runs your session. Each kind of pressure brings out a different one.' };
     return { big: T.name, line: T.line };
   }
-  function problemText(p) {
-    const s = [];
-    const leadPicks = p.picks.filter(x => p.leads.some(k => x.o.w[k]));
+  // Short bullets for the page; the full paragraph is built by the Worker for the email.
+  const DO_SHORT = { R: 'take trades to end the wait', P: 'trade for how it looks', C: 'trade to win it back', I: 'analyse instead of executing' };
+  const WHEN_SHORT = { loss: 'Right after a loss', win: 'After a win or near a target', both: 'After any big result, red or green', fomo: 'When you miss a move', social: 'When someone else wins' };
+  const COST_SHORT = {
+    first: 'It can fail your first challenge before your strategy gets a fair test',
+    f12: 'The most likely reason your challenges failed',
+    f3: 'The thing to fix, not your strategy',
+    funded: 'How funded accounts get lost',
+    steady: 'It shows up when your size or the stakes go up'
+  };
+  function problemBullets(p) {
+    const b = [];
+    const uniq = arr => [...new Set(arr)];
     if (p.level === 'steady') {
-      s.push(`Most of the time you trade your plan. The risk is the day the pressure is higher than usual: that is when the ${TYPES[p.top].name} gets in.`);
-      if (p.picks.length) s.push(`It already showed up ${p.picks.map(x => WHERE[x.qi]).filter((v, i, a) => a.indexOf(v) === i).join(' and ')}.`);
+      b.push(['What you do', `You mostly trade your plan. Under pressure, watch the ${TYPES[p.top].name}`]);
+      b.push(['How much', `${p.hijackN} of 8 moments went to a hijack`]);
+      b.push(['When', p.picks.length ? uniq(p.picks.map(x => cap(WHERE[x.qi]))).join(' · ') : 'Only on days the pressure is higher than usual']);
     } else {
-      if (p.shape === 'single') s.push(PROBLEM[p.top]);
-      else if (p.shape === 'blend') { const o = p.leads.find(k => k !== p.ruleType); s.push(`Two hijacks share your session equally. ${PROBLEM[p.ruleType]} And ${PROBLEM[o].charAt(0).toLowerCase()}${PROBLEM[o].slice(1)}`); }
-      else s.push('Your mistakes change with the moment: different pressure, different hijack. That makes the problem harder to spot, because no single habit stands out.');
-      const subj = p.shape === 'single' ? 'It' : 'Together they';
-      s.push(p.level === 'strong'
-        ? `${subj} took ${p.hijackN} of your 8 trading moments, so this is not an occasional slip. It is how you trade under pressure.`
-        : `${subj} took ${p.hijackN} of your 8 trading moments: often enough to cost you, not so often that it is out of reach.`);
-      const when = p.patterns.map((k, i) => i === 0 ? WHEN_FIRST[k] : (WHEN_MORE[k] || WHEN_FIRST[k]));
-      if (when.length) s.push(...when);
-      else if (leadPicks.length) s.push(`It showed up ${[...new Set(leadPicks.map(x => WHERE[x.qi]))].join(' and ')}.`);
+      const leadsInOrder = [p.ruleType, ...p.leads.filter(k => k !== p.ruleType)];
+      b.push(['What you do', p.shape === 'split' ? 'A different mistake under each kind of pressure' : 'You ' + leadsInOrder.map(k => DO_SHORT[k]).join(', and ')]);
+      b.push(['How much', `${p.hijackN} of 8 moments${p.level === 'strong' ? ': this is how you trade under pressure' : ''}`]);
+      const when = p.patterns.map(k => WHEN_SHORT[k]);
+      const leadPicks = p.picks.filter(x => p.leads.some(k => x.o.w[k]));
+      b.push(['When', when.length ? when.join(' · ') : uniq(leadPicks.map(x => cap(WHERE[x.qi]))).join(' · ')]);
     }
-    s.push(`Underneath it is the fear of ${FEAR_SHORT[p.root]}.`);
-    s.push(p.stage === 'steady' && p.level !== 'steady'
-      ? 'You say you are consistent. Your answers say this pattern is still there, waiting for bigger size or higher stakes.'
-      : COST[p.stage]);
-    return s.join(' ');
+    b.push(['Why', `Fear of ${FEAR_SHORT[p.root]}`]);
+    b.push(['Cost', p.stage === 'steady' && p.level !== 'steady' ? 'You feel consistent, but the pattern is still there for bigger size' : COST_SHORT[p.stage]]);
+    return b;
   }
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   const PATTERN_TEXT = {
     loss: 'Losses are your trigger. You trade well until something goes red, then the next decision belongs to the hijack.',
     win: 'Losses don\'t knock you off plan. Winning does: a good result or a near-finish is when you drift.',
@@ -688,7 +674,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
             : `Your Reset Profile. ${P.hijackN} of your 8 trading moments went to a hijack. The ${T.name} is running most of your session.`;
     $('r-type').textContent = head.big;
     $('r-line').textContent = head.line;
-    $('problem').textContent = problemText(P);
+    $('problem').innerHTML = problemBullets(P).map(([k, v]) => `<li><b>${esc(k)}</b><span>${esc(v)}</span></li>`).join('');
     $('mix').innerHTML = mixSvg(P);
     const ruleHitLoss = P.picks.some(p => LOSS_MOMENTS.includes(p.qi) && p.o.w[P.ruleType]);
     const notes = [];
