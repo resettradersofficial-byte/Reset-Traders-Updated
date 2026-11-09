@@ -1,0 +1,177 @@
+rules_version = '2';
+
+// Reset Traders Firestore rules.
+// Server code (payment Worker / Admin SDK / service account) bypasses these rules.
+// Everything not matched below is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function myProfilePath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+    function isAdmin() {
+      return signedIn()
+        && exists(myProfilePath())
+        && get(myProfilePath()).data.get('role', '') == 'admin';
+    }
+    function accessIsLive(a) {
+      return a.get('active', false) == true
+        && (a.get('expiresAt', null) == null
+            || (a.expiresAt is timestamp && a.expiresAt > request.time));
+    }
+    function hasActiveAccess() {
+      return signedIn()
+        && exists(myProfilePath())
+        && (get(myProfilePath()).data.get('role', '') == 'admin'
+            || accessIsLive(get(myProfilePath()).data.get('access', {})));
+    }
+    function tokenEmail() {
+      return request.auth.token.get('email', '').lower();
+    }
+
+    // ---------- users ----------
+    // Students may create/maintain their own profile, but never grant themselves access,
+    // change their role, plan or expiry. Access is switched on only by the payment Worker
+    // (server-side) or by an admin.
+    function inactiveCheckoutAccess(a) {
+      return a == {'active': false, 'source': 'checkout_started'};
+    }
+    function selfProfileFields() {
+      return ['uid', 'email', 'name', 'role', 'access', 'createdAt', 'updatedAt'];
+    }
+    function validSelfCreate(uid) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(selfProfileFields())
+        && d.get('uid', uid) == uid
+        && d.get('email', '') == tokenEmail()
+        && d.get('name', '') is string && d.get('name', '').size() <= 120
+        && d.get('role', 'student') == 'student'
+        && inactiveCheckoutAccess(d.get('access', {'active': false, 'source': 'checkout_started'}));
+    }
+    function validSelfUpdate(uid) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let changed = after.diff(before).affectedKeys();
+      return changed.hasOnly(['email', 'name', 'role', 'access', 'createdAt', 'updatedAt'])
+        && after.get('uid', uid) == uid
+        && (!changed.hasAny(['email']) || after.email == tokenEmail())
+        && (!changed.hasAny(['name']) || (after.name is string && after.name.size() <= 120))
+        // role may only be filled in as 'student' when it was missing
+        && (!changed.hasAny(['role']) || (before.get('role', null) == null && after.role == 'student'))
+        // access may only be reset to the inactive checkout state, and only if it was not live
+        && (!changed.hasAny(['access'])
+            || (inactiveCheckoutAccess(after.access) && before.get('access', {}).get('active', false) != true))
+        && (!changed.hasAny(['createdAt']) || before.get('createdAt', null) == null);
+    }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow create: if isAdmin() || (isSelf(uid) && validSelfCreate(uid));
+      allow update: if isAdmin() || (isSelf(uid) && validSelfUpdate(uid));
+      allow delete: if isAdmin();
+
+      match /progress/{lessonId} {
+        allow read: if isSelf(uid) || isAdmin();
+        allow create, update: if isSelf(uid)
+          && hasActiveAccess()
+          && request.resource.data.keys().hasOnly(['lessonId', 'completed', 'completedAt'])
+          && request.resource.data.lessonId == lessonId
+          && request.resource.data.completed is bool;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ---------- single-device sessions ----------
+    match /sessions/{uid} {
+      allow read: if isSelf(uid) || isAdmin();
+      allow create, update: if isSelf(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'sessionId', 'email', 'userAgent', 'updatedAt', 'signedOutAt'])
+        && request.resource.data.get('uid', uid) == uid
+        && request.resource.data.get('sessionId', '') is string
+        && request.resource.data.get('sessionId', '').size() <= 64
+        && request.resource.data.get('userAgent', '') is string
+        && request.resource.data.get('userAgent', '').size() <= 240;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- course content ----------
+    match /lessons/{lessonId} {
+      allow read: if hasActiveAccess();
+      allow write: if isAdmin();
+    }
+
+    match /testimonials/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /site/{docId} {
+      allow read: if docId == 'public' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ---------- student doubts ----------
+    match /doubts/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if hasActiveAccess()
+        && request.resource.data.keys().hasOnly(['uid', 'studentEmail', 'studentName', 'lessonId', 'lessonTitle', 'text', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- payments (written only by the payment Worker, server-side) ----------
+    match /orders/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /payments/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ---------- Reset Audit leads (public, create-only) ----------
+    match /auditLeads/{id} {
+      allow read: if isAdmin();
+      allow create: if validAuditLead(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+    function validPct(p) {
+      return p is map
+        && p.keys().hasOnly(['R', 'P', 'C', 'I'])
+        && p.keys().hasAll(['R', 'P', 'C', 'I'])
+        && p.R is int && p.R >= 0 && p.R <= 100
+        && p.P is int && p.P >= 0 && p.P <= 100
+        && p.C is int && p.C >= 0 && p.C <= 100
+        && p.I is int && p.I >= 0 && p.I <= 100;
+    }
+    function validAuditLead(d) {
+      let fields = ['email', 'type', 'pct', 'body', 'nerve', 'stage', 'rule', 'isRetake', 'source', 'createdAt'];
+      return d.keys().hasOnly(fields)
+        && d.keys().hasAll(fields)
+        && d.email is string
+        && d.email.size() <= 254
+        && d.email.matches('^[^\\s@A-Z]+@[^\\s@A-Z]+\\.[^\\s@A-Z]{2,}$')
+        && d.type in ['Rusher', 'Performer', 'Competitor', 'Intellectualizer']
+        && validPct(d.pct)
+        && d.body in ['jaw', 'chest', 'stomach', 'neck', 'none']
+        && d.nerve in ['fight', 'flight', 'freeze', 'fawn']
+        && d.stage in ['first', 'f12', 'f3', 'funded', 'steady']
+        && d.rule is string && d.rule.size() <= 400
+        && d.isRetake is bool
+        && d.source in ['audit', 'test']
+        && d.createdAt == request.time;
+    }
+  }
+}
