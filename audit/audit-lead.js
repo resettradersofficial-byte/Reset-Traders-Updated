@@ -48,6 +48,8 @@ async function saveLead(email, profile, isRetake) {
     rule: String(profile.rule || "").slice(0, 400),
     level: profile.level,
     root: profile.root,
+    leads: profile.leads,
+    patterns: profile.patterns,
     isRetake,
     source,
     ...(ref ? { ref } : {}),
@@ -64,7 +66,7 @@ async function sendEmail(email, profile, isRetake) {
       isRetake,
       ...(ref ? { ref } : {}),
       website: "",
-      profile: { type: profile.type, pct: profile.pct, body: profile.body, nerve: profile.nerve, stage: profile.stage, rule: profile.rule, level: profile.level, root: profile.root }
+      profile: { type: profile.type, pct: profile.pct, body: profile.body, nerve: profile.nerve, stage: profile.stage, rule: profile.rule, level: profile.level, root: profile.root, leads: profile.leads, patterns: profile.patterns }
     })
   });
   if (!res.ok) throw new Error(`audit-lead ${res.status}`);

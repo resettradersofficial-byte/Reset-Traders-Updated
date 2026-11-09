@@ -173,7 +173,7 @@ service cloud.firestore {
     }
 
     function validAuditLead(d) {
-      return d.keys().hasOnly(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt", "ref", "level", "root"])
+      return d.keys().hasOnly(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt", "ref", "level", "root", "leads", "patterns"])
         && d.keys().hasAll(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt"])
         && d.email is string
         && d.email.size() <= 254
@@ -191,6 +191,13 @@ service cloud.firestore {
         // optional (older cached pages don't send them): result level and the type from the sting question
         && (!("level" in d) || d.level in ["steady", "mixed", "strong"])
         && (!("root" in d) || d.root in ["Rusher", "Performer", "Competitor", "Intellectualizer"])
+        // optional: tied lead hijacks (blend/split) and where the hijacks showed up
+        && (!("leads" in d) || (d.leads is list && d.leads.size() <= 4
+              && d.leads.hasOnly(["Rusher", "Performer", "Competitor", "Intellectualizer"])
+              && d.leads.toSet().size() == d.leads.size()))
+        && (!("patterns" in d) || (d.patterns is list && d.patterns.size() <= 5
+              && d.patterns.hasOnly(["loss", "win", "both", "fomo", "social"])
+              && d.patterns.toSet().size() == d.patterns.size()))
         && d.createdAt == request.time;
     }
 

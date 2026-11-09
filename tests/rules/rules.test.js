@@ -280,6 +280,18 @@ describe("auditLeads", () => {
       await assertFails(addDoc(collection(db, "auditLeads"), lead(bad)));
     }
   });
+  test("leads and patterns are optional, known values only, no duplicates", async () => {
+    const db = anon();
+    await assertSucceeds(addDoc(collection(db, "auditLeads"), lead({ level: "strong", root: "Competitor", leads: ["Rusher", "Competitor"], patterns: ["both", "fomo", "social"] })));
+    await assertSucceeds(addDoc(collection(db, "auditLeads"), lead({ level: "steady", root: "Performer", leads: [], patterns: [] })));
+    await assertSucceeds(addDoc(collection(db, "auditLeads"), lead({ leads: ["Rusher", "Performer", "Competitor", "Intellectualizer"] })));
+    for (const bad of [
+      { leads: ["Rusher", "Rusher"] }, { leads: ["Hacker"] }, { leads: "Rusher" }, { leads: ["Rusher", "Performer", "Competitor", "Intellectualizer", "Rusher"] },
+      { patterns: ["loss", "loss"] }, { patterns: ["greed"] }, { patterns: "loss" }, { patterns: ["loss", "win", "both", "fomo", "social", "x"] }
+    ]) {
+      await assertFails(addDoc(collection(db, "auditLeads"), lead(bad)));
+    }
+  });
   test("ref is optional and limited to dm, bio, story, reel", async () => {
     const db = anon();
     for (const ref of ["dm", "bio", "story", "reel"]) {

@@ -62,6 +62,75 @@ const STAGE = {
   funded: "Losing funded accounts is this same pattern with bigger stakes. Same fix.",
   steady: "You're already consistent. This is the hijack most likely to show up when the stakes rise."
 };
+// "The problem" — mirrors problemText()/resultHeadline() in audit/index.html. Keep them in sync.
+const NAME_KEY = { Rusher: "R", Performer: "P", Competitor: "C", Intellectualizer: "I" };
+const PATTERN_KEYS = ["loss", "win", "both", "fomo", "social"];
+const PROBLEM = {
+  Rusher: "You take trades to end the discomfort of waiting, not because the setup is there.",
+  Performer: "You trade for how the result will look: size, posts and red days get managed for an audience.",
+  Competitor: "You trade to win: back what you just lost, and against everyone else's results.",
+  Intellectualizer: "You analyse instead of executing, and find reasons to move your rules when it counts."
+};
+const PAIRS = {
+  RP: "You hurry in, then need the result to look good.",
+  RC: "You get in early, and when it goes wrong you go back in to win it back.",
+  RI: "You swing between over-thinking and rushing: one trade you analyse to death, the next you chase.",
+  PC: "Every trade is a scoreboard: against the market and against everyone watching.",
+  PI: "You need to be right, and to be seen being right.",
+  CI: "You argue with the market before you accept a loss, with size or with reasons."
+};
+const pairKey = (a, b) => ["R", "P", "C", "I"].filter((k) => k === NAME_KEY[a] || k === NAME_KEY[b]).join("");
+const FEAR_SHORT = { Rusher: "falling behind", Performer: "being seen failing", Competitor: "losing", Intellectualizer: "being wrong" };
+const WHEN_FIRST = {
+  loss: "It starts right after a loss.",
+  win: "It starts after a win or when a target is close, not after losses.",
+  both: "It starts after any strong result, red or green.",
+  fomo: "Missing a move sets it off.",
+  social: "Seeing someone else win sets it off."
+};
+const WHEN_MORE = { fomo: "Missing a move sets it off too.", social: "So does seeing someone else win." };
+const COST = {
+  first: "If you take it into your first challenge, it will cost you the challenge before your strategy gets a fair test.",
+  f12: "This is the most likely reason your challenges failed, more than the strategy.",
+  f3: "After three or more failed challenges, this is the thing to fix, not the strategy.",
+  funded: "On a funded account, this is how accounts get lost: one hijacked session undoes weeks of good trading.",
+  steady: "You are consistent now. This is what shows up when your size or the stakes go up."
+};
+export function shapeOf(p) {
+  if (p.level === "steady") return "steady";
+  const n = (p.leads || []).length;
+  return n >= 3 ? "split" : n === 2 ? "blend" : "single";
+}
+export function headline(p) {
+  const shape = shapeOf(p);
+  if (shape === "steady") return { big: "Steady", line: `Your hijacks are mostly quiet. Under pressure, the ${p.type} is the one to watch.` };
+  if (shape === "blend") { const o = p.leads.find((n) => n !== p.type); return { big: `${p.type} + ${o}`, line: PAIRS[pairKey(p.type, o)] }; }
+  if (shape === "split") return { big: "Split", line: "No single hijack runs your session. Each kind of pressure brings out a different one." };
+  return { big: p.type, line: TYPES[p.type].line };
+}
+export function problem(p) {
+  if (!p.level) return "";
+  const shape = shapeOf(p), s = [];
+  const hijackN = Math.round(["R", "P", "C", "I"].reduce((a, k) => a + p.pct[k], 0) / 12.5);
+  if (shape === "steady") {
+    s.push(`Most of the time you trade your plan. The risk is the day the pressure is higher than usual: that is when the ${p.type} gets in.`);
+  } else {
+    if (shape === "single") s.push(PROBLEM[p.type]);
+    else if (shape === "blend") { const o = p.leads.find((n) => n !== p.type); s.push(`Two hijacks share your session equally. ${PROBLEM[p.type]} And ${PROBLEM[o].charAt(0).toLowerCase()}${PROBLEM[o].slice(1)}`); }
+    else s.push("Your mistakes change with the moment: different pressure, different hijack. That makes the problem harder to spot, because no single habit stands out.");
+    const subj = shape === "single" ? "It" : "Together they";
+    s.push(p.level === "strong"
+      ? `${subj} took ${hijackN} of your 8 trading moments, so this is not an occasional slip. It is how you trade under pressure.`
+      : `${subj} took ${hijackN} of your 8 trading moments: often enough to cost you, not so often that it is out of reach.`);
+    (p.patterns || []).forEach((k, i) => s.push(i === 0 ? WHEN_FIRST[k] : (WHEN_MORE[k] || WHEN_FIRST[k])));
+  }
+  s.push(`Underneath it is the fear of ${FEAR_SHORT[p.root || p.type]}.`);
+  s.push(p.stage === "steady" && p.level !== "steady"
+    ? "You say you are consistent. Your answers say this pattern is still there, waiting for bigger size or higher stakes."
+    : COST[p.stage]);
+  return s.join(" ");
+}
+
 const week = (drill) => [
   "Set an alarm for your session open that asks one question: is this the setup, or is this urgency?",
   "After every trade, note where you felt it in your body. Just the spot, nothing else.",
@@ -108,12 +177,16 @@ export function validate(payload) {
 
   const p = payload.profile;
   if (!p || typeof p !== "object" || Array.isArray(p)) return { error: "Invalid profile." };
-  const allowedProfile = new Set(["type", "pct", "body", "nerve", "stage", "rule", "level", "root"]);
+  const allowedProfile = new Set(["type", "pct", "body", "nerve", "stage", "rule", "level", "root", "leads", "patterns"]);
   if (Object.keys(p).some((k) => !allowedProfile.has(k))) return { error: "Unexpected profile field." };
   if (!Object.hasOwn(TYPES, p.type)) return { error: "Invalid type." };
   // level/root are optional so pages still cached with the older script keep working.
   if (p.level !== undefined && !LEVELS.includes(p.level)) return { error: "Invalid level." };
   if (p.root !== undefined && !Object.hasOwn(TYPES, p.root)) return { error: "Invalid root." };
+  const uniqueListOf = (v, allowed, max) => Array.isArray(v) && v.length <= max && new Set(v).size === v.length && v.every((x) => allowed.includes(x));
+  if (p.leads !== undefined && !uniqueListOf(p.leads, Object.keys(TYPES), 4)) return { error: "Invalid leads." };
+  if (p.patterns !== undefined && !uniqueListOf(p.patterns, PATTERN_KEYS, 5)) return { error: "Invalid patterns." };
+  if (p.leads && p.leads.length && p.level !== "steady" && !p.leads.includes(p.type)) return { error: "Invalid leads." };
   if (!Object.hasOwn(BODY, p.body)) return { error: "Invalid body." };
   if (!Object.hasOwn(NERVE, p.nerve)) return { error: "Invalid nerve." };
   if (!Object.hasOwn(STAGE, p.stage)) return { error: "Invalid stage." };
@@ -128,7 +201,7 @@ export function validate(payload) {
     email,
     ref: payload.ref || null,
     isRetake: payload.isRetake === true,
-    profile: { type: p.type, body: p.body, nerve: p.nerve, stage: p.stage, pct: { R: pct.R, P: pct.P, C: pct.C, I: pct.I }, level: p.level || null, root: p.root || null }
+    profile: { type: p.type, body: p.body, nerve: p.nerve, stage: p.stage, pct: { R: pct.R, P: pct.P, C: pct.C, I: pct.I }, level: p.level || null, root: p.root || null, leads: p.leads || [], patterns: p.patterns || [] }
   };
 }
 
@@ -140,6 +213,7 @@ export function buildEmail({ email, isRetake, profile }) {
   const ruleRaw = `When ${B.cue} after a loss, I ${T.breaker}, before I ${N.act}.`;
   const rule = ruleRaw.charAt(0).toUpperCase() + ruleRaw.slice(1);
   const days = week(T.drill);
+  if (shapeOf(profile) === "blend") { const o = TYPES[profile.leads.find((n) => n !== profile.type)]; days[5] = `Your second hijack, the ${profile.leads.find((n) => n !== profile.type)}: ${o.drill}`; }
   // New pages send level/root: pct is then the share of the 8 trading moments per hijack.
   const steady = profile.level === "steady";
   const fear = TYPES[profile.root || profile.type].fear;
@@ -151,9 +225,10 @@ export function buildEmail({ email, isRetake, profile }) {
   } else {
     mix = ["R", "P", "C", "I"].map((k) => `${TYPE_KEYS[k]} ${profile.pct[k]}%`).join(" · ");
   }
-  const label = steady ? "Your result" : "Your hijack type";
-  const big = steady ? "Steady" : profile.type;
-  const line = steady ? `Your hijacks are mostly quiet. Under pressure, the ${profile.type} is the one to watch.` : T.line;
+  const shape = shapeOf(profile);
+  const label = shape === "single" ? "Your hijack type" : shape === "blend" ? "Your hijacks" : "Your result";
+  const { big, line } = headline(profile);
+  const problemText = problem(profile);
 
   const subject = `Your Reset Audit result: ${big}${isRetake ? " (retake)" : ""}`;
 
@@ -183,7 +258,10 @@ export function buildEmail({ email, isRetake, profile }) {
           <p style="margin:0 0 4px;font:900 34px/1.1 Poppins,Arial,sans-serif;color:#0a0c1c;">${esc(big)}</p>
           <p style="margin:0 0 6px;font:700 17px/1.4 Poppins,Arial,sans-serif;color:#FA5901;">${esc(line)}</p>
           <p style="margin:0 0 16px;font:13px/1.5 Inter,Arial,sans-serif;color:#6b7194;">${esc(mix)}</p>
-          <p style="${P}">${esc(fear)}</p>
+${problemText
+    ? `          <p style="${H}">The problem</p>
+          <p style="${P}">${esc(problemText)}</p>`
+    : `          <p style="${P}">${esc(fear)}</p>`}
 
           <p style="${H}">Your stop rule</p>
           <p style="margin:0 0 16px;padding:14px 16px;background:#efe6d3;border-left:4px solid #FA5901;border-radius:0 8px 8px 0;font:700 17px/1.55 Kalam,'Segoe Print',Georgia,serif;color:#1d2347;">${esc(rule)}</p>
