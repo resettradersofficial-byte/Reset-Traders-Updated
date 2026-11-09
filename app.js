@@ -338,39 +338,45 @@ function ensureChatWelcome() {
   const body = $("chat-messages");
   if (!body || body.dataset.ready === "true") return;
   body.dataset.ready = "true";
-  appendChat("bot", "Hi, I am the Reset Traders assistant. Ask me about course access, pricing, markets, or how to join.");
+  appendChat("bot", "Hi, I am the Reset Traders assistant. Ask me about the Reset Audit, pricing, prop firms, or portal access.");
 }
 
 function answerChat(text) {
   const lower = text.toLowerCase();
   const has = (...words) => words.some((word) => lower.includes(word));
 
+  if (has("audit", "quiz", "test", "hijack", "rusher", "performer", "competitor", "intellectual")) {
+    return "The Reset Audit is free: 12 real trading moments, about 3 minutes. You get your hijack type, the fear under it, your body signal, a personal stop rule and a 7-day reset. Take it at resettraders.com/audit.";
+  }
+  if (has("prop", "ftmo", "challenge", "funded", "drawdown", "evaluation")) {
+    return "Yes, prop-firm traders are a core audience. The hijack shows up right at the daily drawdown limit and the evaluation deadline. Start with the free Reset Audit; international pricing is in USD.";
+  }
   if (has("course", "courses", "program", "offer", "inside", "videos", "lesson", "lessons")) {
-    return "Reset Traders has two main programs: The Trader Reset course with 15+ video lessons, and 1:1 Elite Mentorship for direct coaching, review, community access, and accountability.";
+    return "It starts with the free Reset Audit. Next is Reset Yourself, the psychology video course (opening soon, founding seats go to the audit list first). Elite Mentorship is 1:1 and by application only.";
   }
   if (has("price", "pricing", "cost", "fee", "fees", "elite")) {
-    return "The Trader Reset course is \u20B916,999 with lifetime access. Elite Mentorship is \u20B974,999 and includes direct coaching, trade review, accountability, and community support. Course access unlocks only after secure payment verification.";
+    return "The Reset Audit is free. Reset Yourself has a founding price of ₹19,999 in India or $247 internationally for the first 100 traders, then ₹24,999 / $297. Elite Mentorship is by application: a short form, then a call where you get the full details.";
   }
-  if (has("tax", "gst", "limit", "75000", "75k", "75,000")) {
-    return "The final checkout amount is shown clearly before payment. The Trader Reset is \u20B916,999 and Elite Mentorship is \u20B974,999.";
+  if (has("tax", "gst")) {
+    return "The final checkout amount is always shown clearly before you pay.";
   }
   if (has("pay", "payment", "razorpay", "upi", "card", "netbanking", "net banking", "wallet")) {
-    return "Payments are handled securely through Razorpay. You can use UPI, cards, net banking, or wallets, and course access unlocks only after the payment is verified.";
+    return "In India, payments go through Razorpay: UPI, cards, net banking or wallets. International pricing is in USD. Course access unlocks only after the payment is verified.";
   }
   if (has("join", "enroll", "buy", "signup", "sign up", "start", "purchase")) {
-    return "To join: choose a plan, enter your name, email, phone, and portal password, complete Razorpay checkout, then log in to the student portal after payment verification.";
+    return "Start with the free Reset Audit at resettraders.com/audit. Founding seats for Reset Yourself go to the audit list first. For 1:1 work, use Apply for Elite on the homepage.";
   }
   if (has("login", "portal", "access", "password", "account", "firebase")) {
-    return "Your student login uses Firebase Authentication. Use the same email and password you created during checkout. Course access is granted only after verified payment.";
+    return "Your student login uses Firebase Authentication. Use the same email and password you created during checkout. If you bought The Trader Reset, your access is unchanged.";
   }
   if (has("market", "markets", "forex", "gold", "xau", "xauusd", "crypto", "bitcoin", "btc", "nifty", "bank nifty", "nas", "nq", "futures", "stock", "stocks")) {
-    return "The system covers Stocks, Currencies, Metals like XAUUSD Gold, Crypto, Futures, NIFTY, NQ, and other major markets using one price-action framework.";
+    return "The psychology work applies to any market. The India path speaks to Nifty and Bank Nifty F&O and expiry days; the international path is built for prop-firm traders on futures, forex and indices.";
   }
   if (has("mentor", "mentorship", "omkar", "founder", "coach", "coaching", "1:1", "one to one")) {
-    return "Omkar Pardeshi leads Reset Traders. Elite Mentorship includes direct coaching, trade review, mindset work, and accountability for serious traders.";
+    return "Omkar Pardeshi founded Reset Traders. Elite Mentorship is 1:1 and by application only: a short form, then a call. If it is not a fit, we will say so.";
   }
   if (has("beginner", "experienced", "new", "start trading", "capital")) {
-    return "The course works for beginners and experienced traders. Beginners get structure from zero, while experienced traders use it to clean up mistakes and build consistency.";
+    return "The audit works at any level. Beginners learn their pattern before it costs them; experienced traders finally see why a good strategy keeps breaking.";
   }
   if (has("signal", "signals", "tips", "calls")) {
     return "Reset Traders does not sell trading signals. The goal is to teach you how to read markets, manage risk, and make your own decisions.";
@@ -388,7 +394,7 @@ function answerChat(text) {
     return "For personal help, message Reset Traders on Instagram or Telegram. For payment or access issues, include your registered email and phone number.";
   }
 
-  return "I can help with courses, pricing, payment, portal access, markets, mentorship, refunds, and video security. Ask me one of those and I will answer directly.";
+  return "I can help with the Reset Audit, the course, Elite, payments, portal access and refunds. Ask me one of those and I will answer directly.";
 }
 
 function initRevealAnimations() {
