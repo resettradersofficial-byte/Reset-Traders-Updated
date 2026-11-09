@@ -6,7 +6,7 @@
 // Every attempt is logged to the "Sends" tab. Failed sends keep their HTML so
 // resendFailed() can retry them from the editor.
 
-const SENDER_NAME = "Omkar · Reset Traders";
+const SENDER_NAME = "Leo · Reset Traders";
 const SUBJECT_PREFIX = "Your Reset Audit result: ";
 const TYPES = ["Rusher", "Performer", "Competitor", "Intellectualizer"];
 const EMAIL_RE = /^[^\s@<>"'()\\,;:]+@[^\s@<>"'()\\,;:]+\.[^\s@<>"'()\\,;:]{2,}$/;
