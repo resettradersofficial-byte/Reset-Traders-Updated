@@ -57,7 +57,7 @@ function validate_(msg) {
   const to = typeof msg.to === "string" ? msg.to.trim().toLowerCase() : "";
   if (!to || to.length > 254 || !EMAIL_RE.test(to)) return { error: "bad to" };
   const subject = typeof msg.subject === "string" ? msg.subject : "";
-  const m = subject.match(/^Your Reset Audit result: (Rusher|Performer|Competitor|Intellectualizer)( \(retake\))?$/);
+  const m = subject.match(/^Your Reset Audit result: (Rusher|Performer|Competitor|Intellectualizer|Steady)( \(retake\))?$/);
   if (!m) return { error: "bad subject" };
   const html = typeof msg.html === "string" ? msg.html : "";
   if (!html || html.length > MAX_HTML) return { error: "bad html" };

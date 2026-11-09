@@ -270,6 +270,16 @@ describe("auditLeads", () => {
     await assertSucceeds(addDoc(collection(anon(), "auditLeads"), lead()));
     await assertSucceeds(addDoc(collection(anon(), "auditLeads"), lead({ source: "audit", isRetake: true })));
   });
+  test("level and root are optional and limited to known values", async () => {
+    const db = anon();
+    for (const level of ["steady", "mixed", "strong"]) {
+      await assertSucceeds(addDoc(collection(db, "auditLeads"), lead({ level, root: "Performer" })));
+    }
+    await assertSucceeds(addDoc(collection(db, "auditLeads"), lead({ root: "Intellectualizer" })));
+    for (const bad of [{ level: "calm" }, { level: "" }, { level: 1 }, { root: "Steady" }, { root: "Hacker" }, { root: null }]) {
+      await assertFails(addDoc(collection(db, "auditLeads"), lead(bad)));
+    }
+  });
   test("ref is optional and limited to dm, bio, story, reel", async () => {
     const db = anon();
     for (const ref of ["dm", "bio", "story", "reel"]) {

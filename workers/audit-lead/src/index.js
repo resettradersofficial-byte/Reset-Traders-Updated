@@ -12,6 +12,7 @@ const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 const MAX_BODY_BYTES = 4096;
 const EMAIL_RE = /^[^\s@<>"'()\\,;:]+@[^\s@<>"'()\\,;:]+\.[^\s@<>"'()\\,;:]{2,}$/;
 const ALLOWED_REFS = ["dm", "bio", "story", "reel"];
+const LEVELS = ["steady", "mixed", "strong"];
 
 // Content mirrors audit/index.html (TYPES / BODY / NERVE / STAGE / week). Keep them in sync.
 const TYPES = {
@@ -107,9 +108,12 @@ export function validate(payload) {
 
   const p = payload.profile;
   if (!p || typeof p !== "object" || Array.isArray(p)) return { error: "Invalid profile." };
-  const allowedProfile = new Set(["type", "pct", "body", "nerve", "stage", "rule"]);
+  const allowedProfile = new Set(["type", "pct", "body", "nerve", "stage", "rule", "level", "root"]);
   if (Object.keys(p).some((k) => !allowedProfile.has(k))) return { error: "Unexpected profile field." };
   if (!Object.hasOwn(TYPES, p.type)) return { error: "Invalid type." };
+  // level/root are optional so pages still cached with the older script keep working.
+  if (p.level !== undefined && !LEVELS.includes(p.level)) return { error: "Invalid level." };
+  if (p.root !== undefined && !Object.hasOwn(TYPES, p.root)) return { error: "Invalid root." };
   if (!Object.hasOwn(BODY, p.body)) return { error: "Invalid body." };
   if (!Object.hasOwn(NERVE, p.nerve)) return { error: "Invalid nerve." };
   if (!Object.hasOwn(STAGE, p.stage)) return { error: "Invalid stage." };
@@ -124,7 +128,7 @@ export function validate(payload) {
     email,
     ref: payload.ref || null,
     isRetake: payload.isRetake === true,
-    profile: { type: p.type, body: p.body, nerve: p.nerve, stage: p.stage, pct: { R: pct.R, P: pct.P, C: pct.C, I: pct.I } }
+    profile: { type: p.type, body: p.body, nerve: p.nerve, stage: p.stage, pct: { R: pct.R, P: pct.P, C: pct.C, I: pct.I }, level: p.level || null, root: p.root || null }
   };
 }
 
@@ -135,10 +139,23 @@ export function buildEmail({ email, isRetake, profile }) {
   // Rebuilt server-side with the same formula as the page, never taken from the client.
   const ruleRaw = `When ${B.cue} after a loss, I ${T.breaker}, before I ${N.act}.`;
   const rule = ruleRaw.charAt(0).toUpperCase() + ruleRaw.slice(1);
-  const mix = ["R", "P", "C", "I"].map((k) => `${TYPE_KEYS[k]} ${profile.pct[k]}%`).join(" · ");
   const days = week(T.drill);
+  // New pages send level/root: pct is then the share of the 8 trading moments per hijack.
+  const steady = profile.level === "steady";
+  const fear = TYPES[profile.root || profile.type].fear;
+  let mix;
+  if (profile.level) {
+    const hijack = ["R", "P", "C", "I"].reduce((a, k) => a + profile.pct[k], 0);
+    const reset = Math.max(0, 100 - hijack);
+    mix = `Your 8 trading moments: Reset ${reset}% · ` + ["R", "P", "C", "I"].map((k) => `${TYPE_KEYS[k]} ${profile.pct[k]}%`).join(" · ");
+  } else {
+    mix = ["R", "P", "C", "I"].map((k) => `${TYPE_KEYS[k]} ${profile.pct[k]}%`).join(" · ");
+  }
+  const label = steady ? "Your result" : "Your hijack type";
+  const big = steady ? "Steady" : profile.type;
+  const line = steady ? `Your hijacks are mostly quiet. Under pressure, the ${profile.type} is the one to watch.` : T.line;
 
-  const subject = `Your Reset Audit result: ${profile.type}${isRetake ? " (retake)" : ""}`;
+  const subject = `Your Reset Audit result: ${big}${isRetake ? " (retake)" : ""}`;
 
   const P = "margin:0 0 16px;font:16px/1.6 Inter,Arial,sans-serif;color:#1d2347;";
   const H = "margin:28px 0 8px;font:700 13px/1.3 Poppins,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#FA5901;";
@@ -162,11 +179,11 @@ export function buildEmail({ email, isRetake, profile }) {
         <tr><td style="background:#ffffff;border-radius:0 0 12px 12px;padding:28px 24px 24px;border-top:4px solid #FA5901;">
           <p style="${P}">Hi,</p>
           <p style="${P}">${isRetake ? "Here's your result from the retake. Put it next to the first one and see what moved." : "Here's your Reset Audit result, so you have it somewhere other than your browser."}</p>
-          <p style="margin:0 0 4px;font:600 13px/1.4 Inter,Arial,sans-serif;color:#6b7194;">Your hijack type</p>
-          <p style="margin:0 0 4px;font:900 34px/1.1 Poppins,Arial,sans-serif;color:#0a0c1c;">${esc(profile.type)}</p>
-          <p style="margin:0 0 6px;font:700 17px/1.4 Poppins,Arial,sans-serif;color:#FA5901;">${esc(T.line)}</p>
+          <p style="margin:0 0 4px;font:600 13px/1.4 Inter,Arial,sans-serif;color:#6b7194;">${esc(label)}</p>
+          <p style="margin:0 0 4px;font:900 34px/1.1 Poppins,Arial,sans-serif;color:#0a0c1c;">${esc(big)}</p>
+          <p style="margin:0 0 6px;font:700 17px/1.4 Poppins,Arial,sans-serif;color:#FA5901;">${esc(line)}</p>
           <p style="margin:0 0 16px;font:13px/1.5 Inter,Arial,sans-serif;color:#6b7194;">${esc(mix)}</p>
-          <p style="${P}">${esc(T.fear)}</p>
+          <p style="${P}">${esc(fear)}</p>
 
           <p style="${H}">Your stop rule</p>
           <p style="margin:0 0 16px;padding:14px 16px;background:#efe6d3;border-left:4px solid #FA5901;border-radius:0 8px 8px 0;font:700 17px/1.55 Kalam,'Segoe Print',Georgia,serif;color:#1d2347;">${esc(rule)}</p>

@@ -149,6 +149,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .panel h3, .locked h3 { margin: 0 0 10px; font: 700 17px/1.3 var(--display); }
 .mix svg { width: 100%; height: auto; display: block; }
 .mix p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.shows b { display: block; font-weight: 600; color: var(--muted); font-size: 13px; }
 .mirror { display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: center; }
 .mirror .face { width: 112px; height: 112px; border-radius: 14px; overflow: hidden; background: var(--panel-2); display: grid; place-items: center; }
 .mirror .face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
@@ -159,6 +160,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .shows { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .shows li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; }
 .shows li::before { content: ""; width: 8px; height: 18px; margin-top: 3px; border-radius: 2px; background: var(--loss); box-shadow: 0 -5px 0 -2px var(--loss), 0 5px 0 -2px var(--loss); }
+.shows li.ok::before { background: var(--gain); box-shadow: 0 -5px 0 -2px var(--gain), 0 5px 0 -2px var(--gain); }
+.shows li.watch::before { background: var(--lamp); box-shadow: 0 -5px 0 -2px var(--lamp), 0 5px 0 -2px var(--lamp); }
+.shows li.more::before { background: var(--line); box-shadow: none; }
 .stage { margin: 0; font-size: 15px; color: var(--text); }
 .readiness { display: flex; align-items: center; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 14px; }
 .readiness > span:first-child { display: flex; flex-shrink: 0; }
@@ -247,9 +251,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
       <h1 class="res-type" id="r-type">Rusher</h1>
       <p class="res-line" id="r-line"></p>
     </div>
-    <div class="panel mix"><h3>Your hijack mix</h3><svg id="mix" viewBox="0 0 360 210" role="img" aria-label="Hijack mix"></svg><p id="mix-note"></p></div>
+    <div class="panel mix"><h3>Your 8 trading moments</h3><svg id="mix" viewBox="0 0 360 210" role="img" aria-label="Share of your 8 trading moments: reset answers and each hijack"></svg><p id="mix-note"></p></div>
     <div class="panel mirror" id="mirror"></div>
-    <div class="panel"><h3>How it shows up</h3><ul class="shows" id="shows"></ul></div>
+    <div class="panel"><h3>What your answers show</h3><ul class="shows" id="shows"></ul></div>
     <div class="paper"><p class="hand" id="fear"></p><div class="sig"><img src="img/leo.webp" alt="">Leo</div></div>
     <div class="panel" style="position:relative"><img id="sess-tilt" src="img/tilt_grin.webp" alt="" style="position:absolute;right:12px;top:-34px;width:74px;height:auto"><h3>The session you just traded</h3><svg id="sess" viewBox="0 0 340 120" role="img" aria-label="Your answers as a trading session" style="width:100%;height:auto;display:block"></svg><p class="stage" id="ready" style="color:var(--muted);font-size:14px;margin:8px 0 0"></p><p class="stage" id="stage" style="margin-top:12px"></p></div>
 
@@ -478,24 +482,51 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   // ---------- scoring ----------
   let P = null;
+  // Behaviour comes only from the 8 trading moments. The "which sentence stings" question (q9)
+  // sets the fear underneath (root), never the behaviour type. Levels: steady 0-2 hijack moments,
+  // mixed 3-5, strong 6-8. pct = share of the 8 moments that went to each hijack (0-100 each).
+  const ORDER = ['R', 'P', 'C', 'I'], MOMENTS = 8;
   function score() {
-    const t = { R: 0, P: 0, C: 0, I: 0 }; let okN = 0, body = 'chest', nerve = 'fight', stage = 'f12', root = 'R';
-    ans.forEach((oi, qi) => { const o = Q[qi].opts[oi]; if (o.w) Object.entries(o.w).forEach(([k, v]) => t[k] += v); if (o.ok) okN++; if (o.body) body = o.body; if (o.nerve) nerve = o.nerve; if (o.stage) stage = o.stage; if (qi === 8) root = Object.keys(o.w)[0]; });
-    const sum = Object.values(t).reduce((a, b) => a + b, 0) || 1;
-    const pct = {}; Object.keys(t).forEach(k => pct[k] = Math.round(t[k] / sum * 100));
-    const diff = 100 - Object.values(pct).reduce((a, b) => a + b, 0);
-    let top = Object.keys(t).sort((a, b) => t[b] - t[a] || (b === root) - (a === root))[0]; pct[top] += diff;
-    return { t, pct, top, root, okN, body, nerve, stage };
+    const m = { R: 0, P: 0, C: 0, I: 0 }; let okN = 0, body = 'chest', nerve = 'fight', stage = 'f12', root = 'R';
+    const picks = [];
+    ans.forEach((oi, qi) => { const o = Q[qi].opts[oi];
+      if (qi < MOMENTS) {
+        if (o.ok) okN++;
+        else if (o.w) { const tot = Object.values(o.w).reduce((a, b) => a + b, 0); Object.entries(o.w).forEach(([k, v]) => m[k] += v / tot); picks.push({ qi, o }); }
+      }
+      if (qi === MOMENTS && o.w) root = Object.keys(o.w)[0];
+      if (o.body) body = o.body; if (o.nerve) nerve = o.nerve; if (o.stage) stage = o.stage; });
+    const hijackN = MOMENTS - okN;
+    const level = hijackN <= 2 ? 'steady' : hijackN <= 5 ? 'mixed' : 'strong';
+    const maxV = Math.max(...ORDER.map(k => m[k]));
+    const tied = maxV > 0 ? ORDER.filter(k => m[k] === maxV) : [];
+    const behaviour = maxV > 0 ? (tied.includes(root) ? root : tied[0]) : null;
+    const top = level === 'steady' ? root : behaviour; // the type the result is about
+    const pct = {}; ORDER.forEach(k => pct[k] = Math.round(m[k] / MOMENTS * 100));
+    const second = ORDER.filter(k => k !== top && m[k] > 0).sort((a, b) => m[b] - m[a])[0] || null;
+    return { m, pct, top, behaviour, tiedWith: tied.filter(k => k !== behaviour), second, root, okN, hijackN, level, picks, body, nerve, stage };
   }
   function mixSvg(p) {
-    const order = ['R', 'P', 'C', 'I'], base = 170, scale = 1.35, XS = [48, 136, 224, 312]; let h = `<line x1="12" x2="348" y1="${base}" y2="${base}" stroke="var(--line)" stroke-width="1"/>`;
-    order.forEach((k, i) => { const cx = XS[i], v = p.pct[k], bh = Math.max(4, v * scale), y = base - bh, hot = k === p.top, col = hot ? 'var(--brand)' : 'var(--loss)';
-      h += `<line x1="${cx}" x2="${cx}" y1="${y - 10}" y2="${base}" stroke="${col}" stroke-width="2" opacity="${hot ? 1 : .55}"/>`;
-      h += `<rect x="${cx - 17}" y="${y}" width="34" height="${bh}" rx="3" fill="${col}" opacity="${hot ? 1 : .55}"/>`;
-      h += `<text x="${cx}" y="${y - 16}" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="800" font-size="17" fill="var(--text)">${v}%</text>`;
-      h += `<text x="${cx}" y="${base + 22}" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600" font-size="12" fill="${hot ? 'var(--text)' : 'var(--muted)'}">${TYPES[k].name}</text>`; });
+    const keys = ['OK', ...ORDER], base = 170, scale = 1.35, XS = [36, 108, 180, 252, 324];
+    const label = k => k === 'OK' ? 'Reset' : TYPES[k].name.replace('Intellectualizer', 'Intellect.');
+    let h = `<line x1="8" x2="352" y1="${base}" y2="${base}" stroke="var(--line)" stroke-width="1"/>`;
+    keys.forEach((k, i) => { const cx = XS[i], v = k === 'OK' ? Math.round(p.okN / MOMENTS * 100) : p.pct[k], bh = Math.max(4, v * scale), y = base - bh;
+      const hot = k === 'OK' ? p.level === 'steady' : (k === p.top && p.level !== 'steady'), col = k === 'OK' ? 'var(--gain)' : (hot ? 'var(--brand)' : 'var(--loss)');
+      const op = hot || (k === 'OK') ? 1 : .55;
+      h += `<rect x="${cx - 15}" y="${y}" width="30" height="${bh}" rx="3" fill="${col}" opacity="${op}"/>`;
+      h += `<text x="${cx}" y="${y - 10}" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="800" font-size="15" fill="var(--text)">${v}%</text>`;
+      h += `<text x="${cx}" y="${base + 22}" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600" font-size="11" fill="${hot ? 'var(--text)' : 'var(--muted)'}">${label(k)}</text>`; });
     return h;
   }
+  // Conditional wording for traders whose hijacks are quiet (never stated as fact).
+  const WATCH = {
+    R: ['Entering before the candle closes because waiting feels like falling behind.', 'Your next trade after a loss coming faster than the first one.'],
+    P: ['Sizing up when someone is watching, even a group chat.', 'Wanting to hide, soften or delete a red day.'],
+    C: ['Needing to win it back right after a loss.', 'Adding size, switching instruments or opening another account to prove a point.'],
+    I: ['One more timeframe, then a late entry or a chase.', 'Re-testing the whole strategy after a single loss.']
+  };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const article = w => /^[AEIOU]/.test(w) ? 'an' : 'a';
   function sessSvg() {
     const pts = [0]; const ups = [];
     for (let i = 0; i < 8; i++) { const o = Q[i].opts[ans[i]], up = !!o.ok, len = 3 + ((i * 37 + ans[i] * 13) % 5); ups.push(up); pts.push(pts[i] + (up ? len : -len)); }
@@ -506,17 +537,54 @@ button { font: inherit; color: inherit; cursor: pointer; }
     return h;
   }
   function finish() {
-    P = score(); const T = TYPES[P.top], second = ['R', 'P', 'C', 'I'].filter(k => k !== P.top).sort((a, b) => P.pct[b] - P.pct[a])[0];
+    P = score(); const T = TYPES[P.top], steady = P.level === 'steady';
     $('session').hidden = true; tilt.hidden = true;
-    $('r-kicker').textContent = P.okN >= 6 ? `Your Reset Profile. Your hijacks are mostly quiet. Under pressure, this is the one that wakes up.` : `Your Reset Profile. ${P.pct[P.top]}% of your hijack answers point here.`;
-    $('r-type').textContent = T.name; $('r-line').textContent = T.line;
+    const tieNote = P.tiedWith.length ? ` The ${TYPES[P.tiedWith[0]].name} took just as many.` : '';
+    $('r-kicker').textContent = steady
+      ? `Your Reset Profile. You picked the reset answer in ${P.okN} of 8 trading moments.`
+      : P.level === 'mixed'
+        ? `Your Reset Profile. ${P.hijackN} of your 8 trading moments went to a hijack. The ${T.name} took the most.${tieNote}`
+        : `Your Reset Profile. ${P.hijackN} of your 8 trading moments went to a hijack. The ${T.name} is running most of your session.${tieNote}`;
+    $('r-type').textContent = steady ? 'Steady' : T.name;
+    $('r-line').textContent = steady ? `Your hijacks are mostly quiet. Under pressure, the ${T.name} is the one to watch.` : T.line;
     $('mix').innerHTML = mixSvg(P);
-    $('mix-note').textContent = P.pct[second] >= 20 ? `Your backup hijack is the ${TYPES[second].name}. When the first one is under control, watch for it.` : `One hijack dominates. That makes it easier to catch.`;
-    const m = T.mirror;
-    $('mirror').innerHTML = `<div class="face">${m.img ? `<img src="${m.img}" alt="">` : `<svg viewBox="0 0 112 112" width="112" height="112" aria-hidden="true"><circle cx="56" cy="44" r="22" fill="#2a335f"/><path d="M16 112c4-30 20-42 40-42s36 12 40 42z" fill="#2a335f"/><text x="56" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="26" fill="#a1a9c8">?</text></svg>`}</div>
+    const R = TYPES[P.root];
+    $('mix-note').textContent = steady
+      ? `Mostly green. Keep the stop rule below anyway: it's for the day the stakes are bigger than usual.`
+      : P.behaviour !== P.root
+        ? `Your trades lean ${T.name}, but the sentence that stung most was the ${R.name}'s. That fear may be what's driving it.`
+        : P.second && P.m[P.second] >= 2
+          ? `Your backup hijack is the ${TYPES[P.second].name}. When the first one is under control, watch for it.`
+          : `One hijack dominates. That makes it easier to catch.`;
+    // A steady trader is not told "you trade like Kabir".
+    $('mirror').hidden = steady;
+    if (!steady) {
+      const m = T.mirror;
+      $('mirror').innerHTML = `<div class="face">${m.img ? `<img src="${m.img}" alt="">` : `<svg viewBox="0 0 112 112" width="112" height="112" aria-hidden="true"><circle cx="56" cy="44" r="22" fill="#2a335f"/><path d="M16 112c4-30 20-42 40-42s36 12 40 42z" fill="#2a335f"/><text x="56" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="26" fill="#a1a9c8">?</text></svg>`}</div>
       <div><p class="who">${m.who}</p><p class="note">${m.note}</p><a href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">${m.ep}</a></div>`;
-    $('shows').innerHTML = T.shows.map(s => `<li><span>${s}</span></li>`).join('');
-    $('fear').textContent = T.fear;
+    }
+    // "What your answers show": quote the person's own choices instead of claiming generic behaviour.
+    const quote = p => `<li><span><b>${esc(Q[p.qi].text)}</b> You chose: “${esc(p.o.a)}”</span></li>`;
+    let items = [];
+    if (steady) {
+      items = P.picks.map(quote);
+      if (!P.picks.length) items.push(`<li class="ok"><span>You picked the reset answer in all 8 moments.</span></li>`);
+      WATCH[P.top].forEach(w => items.push(`<li class="watch"><span><b>Under pressure, watch for</b>${esc(w)}</span></li>`));
+    } else {
+      const mine = P.picks.filter(p => p.o.w[P.top]);
+      const rest = P.picks.filter(p => !p.o.w[P.top]);
+      items = mine.slice(0, 3).map(quote);
+      const moreMine = Math.max(0, mine.length - 3);
+      const restTypes = [...new Set(rest.flatMap(p => Object.keys(p.o.w)))];
+      const restWho = restTypes.length === 1 ? `the ${TYPES[restTypes[0]].name}` : 'other hijacks';
+      const parts = [];
+      if (moreMine) parts.push(`${moreMine} more like ${moreMine > 1 ? 'these' : 'this'}`);
+      if (rest.length) parts.push(`${rest.length} pointing to ${restWho}`);
+      if (parts.length) items.push(`<li class="more"><span>Plus ${parts.join(', and ')}.</span></li>`);
+    }
+    $('shows').innerHTML = items.join('');
+    // The fear paragraph follows what actually stung (q9), not the behaviour type.
+    $('fear').textContent = R.fear;
     $('stage').textContent = STAGE[P.stage];
     $('sess').innerHTML = sessSvg();
     $('sess-tilt').src = P.okN >= 6 ? 'img/tilt_sad.webp' : 'img/tilt_grin.webp';
@@ -527,7 +595,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     $('body').textContent = B.note; $('nerve').textContent = `${N.name}. ${N.note}`;
     const week = ['Set an alarm for your session open that asks one question: is this the setup, or is this urgency?', 'After every trade, note where you felt it in your body. Just the spot, nothing else.', 'Before every entry, run the 60-second ego check. Would I take this if my last trade was a win? Is my size the same as always?', T.drill, 'Practise the pause after a loss: notice the body, one box breath (4 in, hold 4, 4 out, hold 4), name the feeling, run the ego check, then decide.', 'Count how many times your stop rule fired this week and what happened when you followed it.', 'Retake this audit and compare. If the numbers moved, keep going. If they didn\'t, reply to the email and tell us where it broke.'];
     $('week').innerHTML = week.map(w => `<li>${w}</li>`).join('');
-    $('gate-title').textContent = `Unlock your stop rule, ${T.name}`;
+    $('gate-title').textContent = steady ? 'Unlock your stop rule' : `Unlock your stop rule, ${T.name}`;
     $('locked').classList.add('sealed'); $('gate').hidden = false; $('next').hidden = true;
     show('result'); window.scrollTo(0, 0);
     saveToHash(false);
@@ -540,7 +608,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     e.preventDefault(); const v = $('email').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { $('err').textContent = 'Enter an email like name@gmail.com.'; return; }
     $('err').textContent = ''; $('unlock').textContent = 'Unlocking…';
-    try { await window.ResetAudit.onEmail(v, { type: TYPES[P.top].name, pct: P.pct, body: P.body, nerve: P.nerve, stage: P.stage, rule: $('rule').textContent }); } catch (_) {}
+    try { await window.ResetAudit.onEmail(v, { type: TYPES[P.top].name, pct: P.pct, body: P.body, nerve: P.nerve, stage: P.stage, rule: $('rule').textContent, level: P.level, root: TYPES[P.root].name }); } catch (_) {}
     $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; $('unlock').textContent = 'Unlock my full profile';
     saveToHash(true);
   });
@@ -555,20 +623,26 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const rg = x.createRadialGradient(540, 760, 0, 540, 760, 760); rg.addColorStop(0, 'rgba(250,89,1,0.22)'); rg.addColorStop(1, 'rgba(250,89,1,0)'); x.fillStyle = rg; x.fillRect(0, 0, 1080, 1920);
     const [mark, tl] = await Promise.all([loadImg('img/mark.webp'), loadImg(P.okN >= 6 ? 'img/tilt_sad.webp' : 'img/tilt_grin.webp')]);
     if (mark) x.drawImage(mark, 470, 210, 140, 140 * mark.height / mark.width);
-    x.textAlign = 'center'; x.fillStyle = '#a1a9c8'; x.font = '600 44px Inter, sans-serif'; x.fillText('My Reset Audit says I\'m a', 540, 520);
-    let fs = 200; x.font = `900 ${fs}px Poppins, sans-serif`; while (x.measureText(T.name).width > 960) { fs -= 6; x.font = `900 ${fs}px Poppins, sans-serif`; }
-    x.fillStyle = '#ffffff'; x.fillText(T.name, 540, 720);
-    x.fillStyle = '#ffb066'; x.font = '700 50px Poppins, sans-serif'; x.fillText(T.line, 540, 820);
-    const order = ['R', 'P', 'C', 'I'], base = 1400, CX = [180, 400, 620, 860];
-    x.strokeStyle = '#2a335f'; x.lineWidth = 3; x.beginPath(); x.moveTo(90, base); x.lineTo(990, base); x.stroke();
-    order.forEach((k, i) => { const cx = CX[i], v = P.pct[k], bh = Math.max(10, v * 4.2), y = base - bh, hot = k === P.top;
-      x.globalAlpha = hot ? 1 : 0.5; x.fillStyle = hot ? '#FA5901' : '#ff3b4e'; x.fillRect(cx - 4, y - 26, 8, bh + 26); x.beginPath(); x.roundRect ? x.roundRect(cx - 50, y, 100, bh, 8) : x.rect(cx - 50, y, 100, bh); x.fill(); x.globalAlpha = 1;
-      x.fillStyle = '#fff'; x.font = '800 52px Poppins, sans-serif'; x.fillText(v + '%', cx, y - 46);
-      x.fillStyle = hot ? '#fff' : '#a1a9c8'; x.font = '600 30px Inter, sans-serif'; x.fillText(TYPES[k].name, cx, base + 56); });
+    const steady = P.level === 'steady', big = steady ? 'Steady' : T.name;
+    const fit = (txt, weight, size, max) => { let s = size; x.font = `${weight} ${s}px Poppins, sans-serif`; while (x.measureText(txt).width > max && s > 20) { s -= 2; x.font = `${weight} ${s}px Poppins, sans-serif`; } };
+    x.textAlign = 'center'; x.fillStyle = '#a1a9c8'; x.font = '600 44px Inter, sans-serif';
+    x.fillText(steady ? 'My Reset Audit says I\'m' : `My Reset Audit says I'm ${article(T.name)}`, 540, 520);
+    fit(big, 900, 200, 960); x.fillStyle = '#ffffff'; x.fillText(big, 540, 720);
+    const sub = steady ? `Under pressure, I watch for the ${T.name}.` : T.line;
+    fit(sub, 700, 50, 980); x.fillStyle = '#ffb066'; x.fillText(sub, 540, 820);
+    x.fillStyle = '#a1a9c8'; x.font = '600 34px Inter, sans-serif'; x.fillText('My 8 trading moments', 540, 1000);
+    const keys = ['OK', ...ORDER], base = 1400, CX = [150, 345, 540, 735, 930];
+    x.strokeStyle = '#2a335f'; x.lineWidth = 3; x.beginPath(); x.moveTo(70, base); x.lineTo(1010, base); x.stroke();
+    keys.forEach((k, i) => { const cx = CX[i], v = k === 'OK' ? Math.round(P.okN / MOMENTS * 100) : P.pct[k], bh = Math.max(10, v * 2.8), y = base - bh;
+      const hot = k === 'OK' ? steady : (k === P.top && !steady);
+      x.globalAlpha = hot || k === 'OK' ? 1 : 0.5; x.fillStyle = k === 'OK' ? '#2fd27a' : (hot ? '#FA5901' : '#ff3b4e');
+      x.beginPath(); x.roundRect ? x.roundRect(cx - 45, y, 90, bh, 8) : x.rect(cx - 45, y, 90, bh); x.fill(); x.globalAlpha = 1;
+      x.fillStyle = '#fff'; x.font = '800 46px Poppins, sans-serif'; x.fillText(v + '%', cx, y - 24);
+      x.fillStyle = hot ? '#fff' : '#a1a9c8'; x.font = '600 26px Inter, sans-serif'; x.fillText(k === 'OK' ? 'Reset' : TYPES[k].name, cx, base + 50); });
     if (tl) { const tw = 380, th = tw * tl.height / tl.width; x.drawImage(tl, 1080 - tw - 40, 1920 - th - (P.okN >= 6 ? 60 : 0), tw, th); }
     x.textAlign = 'left'; x.fillStyle = '#efe6d3'; x.font = '700 54px Kalam, cursive'; x.fillText('What\'s yours?', 110, 1600);
     x.fillStyle = '#ffffff'; x.font = '600 40px Inter, sans-serif'; x.fillText('Take the Reset Audit', 110, 1680); x.fillStyle = '#FA5901'; x.font = '800 48px Poppins, sans-serif'; x.fillText('@resettraders', 110, 1760);
-    await showCard(c, T.name);
+    await showCard(c, big);
   });
   $('close-modal').addEventListener('click', () => $('modal').hidden = true);
 
@@ -628,7 +702,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   restoreFromHash();
 })();
 </script>
-<script type="module" src="audit-lead.js?v=20261110"></script>
+<script type="module" src="audit-lead.js?v=20261110b"></script>
 
 </body>
 </html>

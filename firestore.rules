@@ -173,7 +173,7 @@ service cloud.firestore {
     }
 
     function validAuditLead(d) {
-      return d.keys().hasOnly(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt", "ref"])
+      return d.keys().hasOnly(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt", "ref", "level", "root"])
         && d.keys().hasAll(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt"])
         && d.email is string
         && d.email.size() <= 254
@@ -188,6 +188,9 @@ service cloud.firestore {
         && d.source in ["audit", "test"]
         // optional: where the visitor came from (?ref=)
         && (!("ref" in d) || d.ref in ["dm", "bio", "story", "reel"])
+        // optional (older cached pages don't send them): result level and the type from the sting question
+        && (!("level" in d) || d.level in ["steady", "mixed", "strong"])
+        && (!("root" in d) || d.root in ["Rusher", "Performer", "Competitor", "Intellectualizer"])
         && d.createdAt == request.time;
     }
 
