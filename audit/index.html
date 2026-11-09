@@ -734,8 +734,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
     $('locked').classList.add('sealed'); $('gate').hidden = false; $('next').hidden = true;
     show('result'); window.scrollTo(0, 0);
     fitHeadline($('r-type'));
+    // Poppins may still be loading: measure again once it has, or the long words spill over.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitHeadline($('r-type')));
     saveToHash(false);
   }
+  window.addEventListener('resize', () => { if (!$('result').hidden) fitHeadline($('r-type')); });
 
   // ---------- email gate ----------
   // Hook for the live site: set window.ResetAudit.onEmail = async (email, profile) => { ...save to Firebase / send email... }
