@@ -187,7 +187,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .modal { position: fixed; inset: 0; z-index: 20; background: rgba(4,5,12,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
 .modal img { max-height: 72vh; width: auto; max-width: 100%; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-.modal p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; }
+.modal p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; max-width: 340px; }
+.modal img { -webkit-touch-callout: default; }
+.card-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.card-actions .cta { text-decoration: none; min-height: 48px; }
+.modal .inapp { color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; line-height: 1.45; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; }
@@ -291,7 +295,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 <div class="modal" id="modal" hidden role="dialog" aria-label="Your story card">
   <img id="card-img" alt="Your Reset Audit story card">
-  <p>Press and hold the card to save it, then post it to your story and tag @resettraders.</p>
+  <p id="card-tip">Press and hold the card to save it, then post it to your story and tag @resettraders.</p>
+  <div class="card-actions">
+    <button class="cta" id="share-card" type="button" hidden>Share to your story</button>
+    <a class="cta" id="save-card" href="#" download="reset-audit.png" hidden>Save the card</a>
+  </div>
+  <p class="inapp" id="inapp-hint" hidden>Instagram's browser can't save images. Tap <b>⋯</b> at the top right, choose <b>Open in browser</b>, then tap <b>Make my story card</b> again. Your result comes with you.</p>
   <button class="ghost" id="close-modal" type="button">Close</button>
 </div>
 
@@ -521,6 +530,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     $('gate-title').textContent = `Unlock your stop rule, ${T.name}`;
     $('locked').classList.add('sealed'); $('gate').hidden = false; $('next').hidden = true;
     show('result'); window.scrollTo(0, 0);
+    saveToHash(false);
   }
 
   // ---------- email gate ----------
@@ -532,6 +542,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     $('err').textContent = ''; $('unlock').textContent = 'Unlocking…';
     try { await window.ResetAudit.onEmail(v, { type: TYPES[P.top].name, pct: P.pct, body: P.body, nerve: P.nerve, stage: P.stage, rule: $('rule').textContent }); } catch (_) {}
     $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; $('unlock').textContent = 'Unlock my full profile';
+    saveToHash(true);
   });
   $('retake').addEventListener('click', () => { cur = 0; ans = []; show('note'); window.scrollTo(0, 0); });
 
@@ -557,10 +568,64 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (tl) { const tw = 380, th = tw * tl.height / tl.width; x.drawImage(tl, 1080 - tw - 40, 1920 - th - (P.okN >= 6 ? 60 : 0), tw, th); }
     x.textAlign = 'left'; x.fillStyle = '#efe6d3'; x.font = '700 54px Kalam, cursive'; x.fillText('What\'s yours?', 110, 1600);
     x.fillStyle = '#ffffff'; x.font = '600 40px Inter, sans-serif'; x.fillText('Take the Reset Audit', 110, 1680); x.fillStyle = '#FA5901'; x.font = '800 48px Poppins, sans-serif'; x.fillText('@resettraders', 110, 1760);
-    $('card-img').src = c.toDataURL('image/png'); $('modal').hidden = false;
+    await showCard(c, T.name);
   });
   $('close-modal').addEventListener('click', () => $('modal').hidden = true);
+
+  // Instagram/Facebook in-app browsers can't save images on long-press, and Android's can't use Web Share.
+  const IN_APP = /Instagram|FBAN|FBAV|FB_IAB|FBIOS|Messenger/i.test(navigator.userAgent || '');
+  let cardFile = null, cardUrl = '';
+  async function showCard(canvas, typeName) {
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    if (cardUrl) URL.revokeObjectURL(cardUrl);
+    cardUrl = blob ? URL.createObjectURL(blob) : canvas.toDataURL('image/png');
+    cardFile = blob ? new File([blob], `reset-audit-${typeName.toLowerCase()}.png`, { type: 'image/png' }) : null;
+    let canShare = false;
+    try { canShare = !!(cardFile && navigator.canShare && navigator.canShare({ files: [cardFile] })); } catch (_) {}
+    $('card-img').src = cardUrl;
+    $('share-card').hidden = !canShare;
+    $('save-card').hidden = IN_APP;
+    $('save-card').href = cardUrl;
+    if (cardFile) $('save-card').download = cardFile.name;
+    $('inapp-hint').hidden = !(IN_APP && !canShare);
+    $('card-tip').hidden = IN_APP && !canShare;
+    $('card-tip').textContent = canShare
+      ? 'Tap Share to your story, pick Instagram, and tag @resettraders.'
+      : 'Save the card (or press and hold it), then post it to your story and tag @resettraders.';
+    $('modal').hidden = false;
+  }
+  $('share-card').addEventListener('click', async () => {
+    if (!cardFile) return;
+    try { await navigator.share({ files: [cardFile], title: 'My Reset Audit' }); }
+    catch (err) {
+      if (err && err.name === 'AbortError') return; // they closed the share sheet
+      $('share-card').hidden = true;
+      $('save-card').hidden = IN_APP;
+      $('inapp-hint').hidden = !IN_APP;
+    }
+  });
+
+  // Keep the result in the URL fragment (never sent to any server) so "Open in browser" carries it over.
+  function saveToHash(unlocked) {
+    try { history.replaceState(null, '', location.pathname + location.search + '#r=' + ans.join('') + (unlocked ? '&u=1' : '')); } catch (_) {}
+  }
+  function clearHash() {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+  }
+  function restoreFromHash() {
+    const h = new URLSearchParams(location.hash.slice(1));
+    const r = h.get('r') || '';
+    if (!new RegExp(`^[0-4]{${Q.length}}$`).test(r)) return;
+    const a = r.split('').map(Number);
+    if (a.some((v, i) => v >= Q[i].opts.length)) return;
+    ans = a; cur = Q.length - 1; finish();
+    if (h.get('u') === '1') { $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; }
+    saveToHash(h.get('u') === '1');
+  }
+  $('retake').addEventListener('click', clearHash);
+
   window.__audit = { Q, setAns: a => { ans = a.slice(); cur = Q.length - 1; finish(); }, score: () => score() };
+  restoreFromHash();
 })();
 </script>
 <script type="module" src="audit-lead.js?v=20261110"></script>
