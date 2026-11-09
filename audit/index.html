@@ -257,13 +257,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
       <h1 class="res-type" id="r-type">Rusher</h1>
       <p class="res-line" id="r-line"></p>
     </div>
-    <div class="panel problem"><h3>The problem</h3><ul class="problem-list" id="problem"></ul><p class="fix-pointer">The fix is your stop rule, below. The full breakdown comes by email when you unlock it.</p></div>
+    <div class="panel problem"><h3 id="problem-title">The problem</h3><ul class="problem-list" id="problem"></ul><p class="fix-pointer">The fix is your stop rule, below. The full breakdown comes by email when you unlock it.</p></div>
     <div class="panel mix"><h3>Your 8 trading moments</h3><svg id="mix" viewBox="0 0 360 210" role="img" aria-label="Share of your 8 trading moments: reset answers and each hijack"></svg><p id="mix-note"></p></div>
     <div class="panel" id="where-panel"><h3>Where it shows up</h3><ul class="shows" id="where"></ul></div>
     <div class="panel mirror" id="mirror"></div>
-    <div class="panel"><h3>The evidence: your answers</h3><ul class="shows" id="shows"></ul></div>
+    <div class="panel"><h3 id="shows-title">The evidence: your answers</h3><ul class="shows" id="shows"></ul></div>
     <div class="paper"><p class="hand" id="fear"></p><div class="sig"><img src="img/leo.webp" alt="">Leo</div></div>
-    <div class="panel" style="position:relative"><img id="sess-tilt" src="img/tilt_grin.webp" alt="" style="position:absolute;right:12px;top:-34px;width:74px;height:auto"><h3>The session you just traded</h3><svg id="sess" viewBox="0 0 340 120" role="img" aria-label="Your answers as a trading session" style="width:100%;height:auto;display:block"></svg><p class="stage" id="ready" style="color:var(--muted);font-size:14px;margin:8px 0 0"></p><p class="stage" id="stage" style="margin-top:12px"></p></div>
+    <div class="panel" style="position:relative"><img id="sess-tilt" src="img/tilt_grin.webp" alt="" style="position:absolute;right:12px;top:-34px;width:74px;height:auto"><h3 style="padding-right:80px">The session you just traded</h3><svg id="sess" viewBox="0 0 340 120" role="img" aria-label="Your answers as a trading session" style="width:100%;height:auto;display:block"></svg><p class="stage" id="ready" style="color:var(--muted);font-size:14px;margin:8px 0 0"></p><p class="stage" id="stage" style="margin-top:12px"></p></div>
 
     <div class="locked sealed" id="locked">
       <div class="paper content">
@@ -278,7 +278,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
       <div class="gate" id="gate">
         <form id="gate-form" novalidate>
           <h3 id="gate-title">Unlock your stop rule</h3>
-          <p id="gate-copy">Your personal stop rule, your body's warning sign, your nervous system default and a 7-day reset plan. We'll also email you a copy.</p>
+          <p id="gate-copy">Your personal stop rule, your body's warning sign, your nervous system default and a 7-day reset plan. We'll email you the full breakdown too.</p>
           <label for="email" class="sr" style="position:absolute;left:-9999px">Email</label>
           <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" required>
           <span class="err" id="err" role="alert"></span>
@@ -564,12 +564,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const b = [];
     const uniq = arr => [...new Set(arr)];
     if (p.level === 'steady') {
-      b.push(['What you do', `You mostly trade your plan. Under pressure, watch the ${TYPES[p.top].name}`]);
+      b.push(['Habit', `You mostly trade your plan. Under pressure, watch the ${TYPES[p.top].name}`]);
       b.push(['How much', `${p.hijackN} of 8 moments went to a hijack`]);
       b.push(['When', p.picks.length ? uniq(p.picks.map(x => cap(WHERE[x.qi]))).join(' · ') : 'Only on days the pressure is higher than usual']);
     } else {
       const leadsInOrder = [p.ruleType, ...p.leads.filter(k => k !== p.ruleType)];
-      b.push(['What you do', p.shape === 'split' ? 'A different mistake under each kind of pressure' : 'You ' + leadsInOrder.map(k => DO_SHORT[k]).join(', and ')]);
+      b.push(['Habit', p.shape === 'split' ? 'A different mistake under each kind of pressure' : 'You ' + leadsInOrder.map(k => DO_SHORT[k]).join(', and ')]);
       b.push(['How much', `${p.hijackN} of 8 moments${p.level === 'strong' ? ': this is how you trade under pressure' : ''}`]);
       const when = p.patterns.map(k => WHEN_SHORT[k]);
       const leadPicks = p.picks.filter(x => p.leads.some(k => x.o.w[k]));
@@ -698,13 +698,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
     P.patterns.forEach(k => where.push(`<li class="watch"><span>${esc(PATTERN_TEXT[k])}</span></li>`));
     $('where').innerHTML = where.join('');
     $('where-panel').hidden = !where.length;
-    // A steady or evenly split trader is not told "you trade like Kabir".
-    $('mirror').hidden = steady || P.shape === 'split';
-    if (!$('mirror').hidden) {
-      const m = T.mirror;
-      $('mirror').innerHTML = `<div class="face">${m.img ? `<img src="${m.img}" alt="">` : `<svg viewBox="0 0 112 112" width="112" height="112" aria-hidden="true"><circle cx="56" cy="44" r="22" fill="#2a335f"/><path d="M16 112c4-30 20-42 40-42s36 12 40 42z" fill="#2a335f"/><text x="56" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="26" fill="#a1a9c8">?</text></svg>`}</div>
+    // Character card: a steady trader trades like Leo; a blend or split shows the character of the
+    // hijack the stop rule targets, as "part of you".
+    const LEO = { img: 'img/leo.webp', who: 'You trade like Leo.', note: 'He was a Rusher once. The urge still shows up; he just has a rule for it now. His story runs through Two Traders.', ep: 'Watch Two Traders' };
+    const m = steady ? LEO : { ...T.mirror, who: P.shape !== 'single' && T.mirror.img ? T.mirror.who.replace(/^You trade like/, 'Part of you trades like') : T.mirror.who };
+    $('mirror').hidden = false;
+    $('mirror').innerHTML = `<div class="face">${m.img ? `<img src="${m.img}" alt="">` : `<svg viewBox="0 0 112 112" width="112" height="112" aria-hidden="true"><circle cx="56" cy="44" r="22" fill="#2a335f"/><path d="M16 112c4-30 20-42 40-42s36 12 40 42z" fill="#2a335f"/><text x="56" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="26" fill="#a1a9c8">?</text></svg>`}</div>
       <div><p class="who">${m.who}</p><p class="note">${m.note}</p><a href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">${m.ep}</a></div>`;
-    }
+    $('problem-title').textContent = steady ? 'Your risk' : 'The problem';
+    $('shows-title').textContent = steady && !P.picks.length ? 'What your answers show' : 'The evidence: your answers';
     // "What your answers show": every hijack choice, quoted back with what that specific choice says.
     const tag = p => Object.keys(p.o.w).map(k => TYPES[k].name).join(' + ');
     const read = p => `<li><span><b>${esc(Q[p.qi].text)} · ${esc(tag(p))}</b>You chose “${esc(p.o.a)}” ${esc(READS[`${p.qi}:${p.oi}`] || '')}</span></li>`;
@@ -833,6 +835,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   }
   $('retake').addEventListener('click', clearHash);
 
+  // Warm the character pictures during the quiz so the result card never shows an empty frame.
+  ['img/leo.webp', 'img/rohan.webp', 'img/kabir.webp', 'img/tilt_grin.webp', 'img/tilt_sad.webp'].forEach(src => { const i = new Image(); i.src = src; });
   window.__audit = { Q, setAns: a => { ans = a.slice(); cur = Q.length - 1; finish(); }, score: () => score() };
   restoreFromHash();
 })();
