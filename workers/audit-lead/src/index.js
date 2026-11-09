@@ -183,7 +183,7 @@ export function buildEmail({ email, isRetake, profile }) {
 
           <p style="${P}">One thing at a time. You don't need a new strategy this week. You need to catch the moment before the hijack takes the trade.</p>
           <p style="${P}">Reply and tell me where it broke.</p>
-          <p style="margin:0 0 24px;font:700 22px/1.3 Kalam,'Segoe Print','Bradley Hand',cursive;color:#1d2347;">Leo<br><span style="font:14px/1.6 Inter,Arial,sans-serif;color:#6b7194;">Reset Traders</span></p>
+          <p style="margin:0 0 24px;font:700 22px/1.3 Kalam,'Segoe Print','Bradley Hand',cursive;color:#1d2347;">Leo<span style="display:block;margin-top:4px;font:14px/1.5 Inter,Arial,sans-serif;color:#6b7194;">with Omkar, Founder<br>Reset Traders</span></p>
           <p style="margin:0;padding-top:16px;border-top:1px solid #e6e1d6;font:12px/1.5 Inter,Arial,sans-serif;color:#8a8fa8;">Educational content · Trading involves risk</p>
         </td></tr>
       </table>
