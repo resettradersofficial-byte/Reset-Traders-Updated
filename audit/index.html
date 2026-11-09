@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reset Audit</title>
+<meta name="description" content="The free Reset Audit: 12 real trading moments, about 3 minutes. Find the hijack running your trades, the fear underneath it and a stop rule written for you.">
+<meta name="theme-color" content="#0a0c1c">
+<link rel="canonical" href="https://www.resettraders.com/audit/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Reset Traders">
+<meta property="og:url" content="https://www.resettraders.com/audit/">
+<meta property="og:title" content="Which hijack is trading your account?">
+<meta property="og:description" content="The Reset Audit. 12 questions · 3 minutes · free.">
+<meta property="og:image" content="https://www.resettraders.com/audit/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Tilt the ember imp beside the headline: Which hijack is trading your account?">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Which hijack is trading your account?">
+<meta name="twitter:description" content="The Reset Audit. 12 questions · 3 minutes · free.">
+<meta name="twitter:image" content="https://www.resettraders.com/audit/img/og.jpg">
+<link rel="icon" href="img/mark.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@400;700&family=Poppins:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: one narrow column on a night street. Paper = Leo speaking. Terminal panels = you and the market.
+   The progress bar is your trading session: every answer prints a candle. */
+:root {
+  color-scheme: dark;
+  --night: #0a0c1c;
+  --panel: #131834;
+  --panel-2: #1a2146;
+  --line: #2a335f;
+  --text: #eef0f8;
+  --muted: #a1a9c8;
+  --paper: #efe6d3;
+  --paper-2: #e4d8bf;
+  --ink: #1d2347;
+  --brand: #FA5901;
+  --lamp: #ffb066;
+  --cold: #7fb2ff;
+  --loss: #ff3b4e;
+  --gain: #2fd27a;
+  --display: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hand: "Kalam", "Segoe Print", "Bradley Hand", cursive;
+  --r-sm: 10px;
+  --r-md: 16px;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--night); color: var(--text); font: 400 16px/1.55 var(--body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--night); }
+.sky { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(60% 40% at 18% 8%, rgba(255,176,102,0.10), transparent 70%),
+    radial-gradient(55% 45% at 85% 20%, rgba(127,178,255,0.10), transparent 70%),
+    linear-gradient(180deg, #0c0f24 0%, var(--night) 55%); }
+.app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; min-height: 100%;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 96px;
+  display: flex; flex-direction: column; gap: 22px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--lamp); outline-offset: 3px; border-radius: 6px; }
+
+/* top bar */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 15px/1 var(--display); letter-spacing: 0.01em; }
+.brand img { width: 26px; height: auto; }
+.brand small { font: 500 13px/1 var(--body); color: var(--muted); }
+.session { display: flex; align-items: center; gap: 10px; }
+.session span { font: 500 12px/1 var(--body); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.session svg { display: block; }
+
+/* intro: the page under the door */
+.door-scene { position: relative; height: 300px; border-radius: var(--r-md); overflow: hidden; background: #0d1026; border: 1px solid var(--line); cursor: pointer; }
+.door { position: absolute; left: 14%; right: 14%; top: 0; bottom: 92px; background: linear-gradient(180deg, #3b2220, #2a1715); border-radius: 6px 6px 0 0;
+  box-shadow: inset 0 0 0 10px #1c0f0d; }
+.door::before { content: ""; position: absolute; inset: 34px 30px 40px; border: 3px solid rgba(0,0,0,0.25); border-radius: 4px; }
+.door::after { content: ""; position: absolute; right: 30px; top: 54%; width: 14px; height: 14px; border-radius: 50%; background: #c7a35a; }
+.gap { position: absolute; left: 14%; right: 14%; bottom: 84px; height: 8px; background: #fbd9a8; box-shadow: 0 0 22px 6px rgba(255,176,102,0.55); }
+.floor { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: linear-gradient(180deg, rgba(255,176,102,0.32), rgba(255,176,102,0) 75%), #17122a; }
+.slip { position: absolute; left: 50%; bottom: 26px; width: 150px; height: 46px; margin-left: -75px; background: var(--paper);
+  transform: perspective(300px) rotateX(58deg) rotateZ(-6deg); box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-radius: 2px;
+  animation: slip-in 1.3s cubic-bezier(.2,.8,.2,1) .5s both; }
+.slip::after { content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: var(--brand); }
+@keyframes slip-in { from { transform: perspective(300px) rotateX(58deg) rotateZ(-6deg) translate(0, -70px); opacity: 0; } 20% { opacity: 1; } }
+.tap-hint { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; font: 400 15px/1 var(--hand); color: var(--lamp); animation: pulse 2.2s ease-in-out 2s infinite both; }
+@keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+/* paper = Leo */
+.paper { position: relative; background: linear-gradient(180deg, var(--paper), var(--paper-2)); color: var(--ink); border-radius: 4px; padding: 26px 22px 24px 44px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45); background-image: repeating-linear-gradient(180deg, transparent 0 33px, rgba(70,90,150,0.16) 33px 34px), linear-gradient(180deg, var(--paper), var(--paper-2)); }
+.paper::before { content: ""; position: absolute; left: 30px; top: 0; bottom: 0; width: 2px; background: rgba(200,60,60,0.28); }
+.paper .hand { font: 400 21px/34px var(--hand); margin: 0; }
+.paper .hand + .hand { margin-top: 0; }
+.sig { display: flex; align-items: center; gap: 10px; margin-top: 12px; font: 700 20px/1 var(--hand); color: var(--ink); }
+.sig img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(29,35,71,0.25); }
+.unfold { animation: unfold .7s cubic-bezier(.2,.8,.2,1) both; transform-origin: 50% 0; }
+@keyframes unfold { from { transform: perspective(700px) rotateX(-75deg) scale(.6); opacity: 0; } }
+
+.lede { color: var(--muted); font-size: 15px; margin: 0; }
+.cta { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 28px; border: 0; border-radius: 999px; background: var(--brand); color: #fff;
+  font: 700 17px/1 var(--display); letter-spacing: 0.01em; box-shadow: 0 10px 30px rgba(250,89,1,0.35); }
+.cta:active { transform: translateY(1px); }
+.ghost { background: none; border: 0; color: var(--muted); font: 500 14px/1 var(--body); padding: 10px 0; text-decoration: underline; text-underline-offset: 3px; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+
+/* question */
+.q-wrap { display: flex; flex-direction: column; gap: 16px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 600 13px/1 var(--body); padding: 8px 11px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-variant-numeric: tabular-nums; }
+.chip.loss { color: var(--loss); border-color: rgba(255,59,78,0.35); }
+.chip.gain { color: var(--gain); border-color: rgba(47,210,122,0.35); }
+.chip.lamp { color: var(--lamp); border-color: rgba(255,176,102,0.35); }
+.interlude { padding: 16px 20px 16px 44px; }
+.interlude .hand { font-size: 20px; }
+.q-text { margin: 0; font: 700 25px/1.25 var(--display); text-wrap: balance; letter-spacing: -0.005em; }
+.q-ask { margin: -6px 0 0; color: var(--muted); font-size: 16px; }
+.opts { display: flex; flex-direction: column; gap: 10px; list-style: none; padding: 0; margin: 0; }
+.opt { position: relative; width: 100%; display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; text-align: left; padding: 15px 16px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; font: 500 16px/1.45 var(--body); color: var(--text); transition: background .15s, border-color .15s; }
+.opt:hover { background: var(--panel-2); border-color: #3a4580; }
+.opt .k { font: 700 21px/1 var(--hand); color: var(--lamp); padding-top: 1px; }
+.opt .loop { position: absolute; inset: -7px -6px; width: calc(100% + 12px); height: calc(100% + 14px); pointer-events: none; overflow: visible; }
+.opt .loop { opacity: 0; }
+.opt.picked .loop { opacity: 1; }
+.opt .loop path { fill: none; stroke: var(--brand); stroke-width: 3; stroke-linecap: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1400; stroke-dashoffset: 1400; }
+.opt.picked { border-color: transparent; background: var(--panel-2); }
+.opt.picked .loop path { animation: draw .42s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.q-foot { display: flex; justify-content: space-between; align-items: center; }
+.q-foot .small { font-size: 13px; color: var(--muted); }
+
+/* Tilt watches */
+.tilt { position: fixed; z-index: 5; right: max(6px, env(safe-area-inset-right, 0px)); bottom: 0; width: 118px; height: auto; pointer-events: none;
+  transform-origin: 50% 100%; animation: bob 3.2s ease-in-out infinite; }
+.tilt.hop { animation: hop .45s ease-out, bob 3.2s ease-in-out .45s infinite; }
+@keyframes bob { 50% { transform: translateY(-4px) rotate(-2deg); } }
+@keyframes hop { 40% { transform: translateY(-14px) rotate(3deg); } }
+
+/* result */
+.res-head { display: flex; flex-direction: column; gap: 6px; }
+.res-kicker { font: 500 15px/1.3 var(--body); color: var(--muted); margin: 0; }
+.res-type { margin: 0; font: 900 64px/0.95 var(--display); letter-spacing: -0.02em; }
+.res-line { margin: 4px 0 0; font: 600 20px/1.35 var(--display); color: var(--lamp); text-wrap: balance; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; }
+.panel h3, .locked h3 { margin: 0 0 10px; font: 700 17px/1.3 var(--display); }
+.mix svg { width: 100%; height: auto; display: block; }
+.mix p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.mirror { display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: center; }
+.mirror .face { width: 112px; height: 112px; border-radius: 14px; overflow: hidden; background: var(--panel-2); display: grid; place-items: center; }
+.mirror .face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
+.mirror p { margin: 0; }
+.mirror .who { font: 700 18px/1.3 var(--display); margin-bottom: 4px; }
+.mirror .note { color: var(--muted); font-size: 14px; }
+.mirror a { color: var(--lamp); font-weight: 600; font-size: 14px; }
+.shows { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.shows li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; }
+.shows li::before { content: ""; width: 8px; height: 18px; margin-top: 3px; border-radius: 2px; background: var(--loss); box-shadow: 0 -5px 0 -2px var(--loss), 0 5px 0 -2px var(--loss); }
+.stage { margin: 0; font-size: 15px; color: var(--text); }
+.readiness { display: flex; align-items: center; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 14px; }
+.readiness > span:first-child { display: flex; flex-shrink: 0; }
+.readiness i { display: inline-block; width: 10px; height: 18px; border-radius: 2px; background: var(--line); margin-right: 4px; }
+.readiness i.on { background: var(--gain); }
+
+.locked { position: relative; border-radius: var(--r-md); overflow: hidden; }
+.locked .content { padding: 22px 20px 22px 44px; }
+.locked.sealed .content { filter: blur(6px); user-select: none; pointer-events: none; max-height: 420px; overflow: hidden; }
+.gate { position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 18px; background: linear-gradient(180deg, rgba(10,12,28,0) 0%, rgba(10,12,28,0.72) 38%, rgba(10,12,28,0.96) 70%); }
+.gate form { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.gate h3 { margin: 0; font: 700 19px/1.3 var(--display); color: var(--text); }
+.gate p { margin: 0; color: var(--muted); font-size: 14px; }
+.gate input { width: 100%; min-height: 52px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 500 16px var(--body); padding: 0 14px; }
+.gate .err { color: var(--loss); font-size: 13px; min-height: 18px; }
+.rule { font: 700 22px/34px var(--hand); margin: 0; }
+.kv { display: grid; gap: 14px; margin-top: 18px; }
+.kv h4 { margin: 0 0 2px; font: 700 15px/1.3 var(--display); }
+.kv p { margin: 0; font-size: 15px; line-height: 1.5; }
+.week { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; counter-reset: d; }
+.week li { counter-increment: d; display: grid; grid-template-columns: 52px 1fr; gap: 8px; font-size: 15px; line-height: 1.45; }
+.week li::before { content: "Day " counter(d); font: 700 15px/1.45 var(--hand); color: var(--brand); }
+.next p { margin: 0 0 12px; }
+.share-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+.modal { position: fixed; inset: 0; z-index: 20; background: rgba(4,5,12,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.modal img { max-height: 72vh; width: auto; max-width: 100%; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+.modal p { margin: 0; color: var(--muted); font-size: 14px; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; }
+}
+</style>
+<style>[hidden]{display:none!important} img{max-width:100%} :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+
+<div class="sky" aria-hidden="true"></div>
+<div class="app">
+  <header class="bar">
+    <div class="brand"><img src="img/mark.webp" alt=""><div>Reset Traders<br><small>Reset Audit</small></div></div>
+    <div class="session" id="session" hidden><span id="qcount">1 of 12</span><svg id="candles" width="150" height="38" viewBox="0 0 150 38" aria-hidden="true"></svg></div>
+  </header>
+
+  <!-- intro -->
+  <section id="intro" class="stack" aria-label="Start">
+    <h1 class="res-type" style="font-size:40px;line-height:1.08">What's really running your trades?</h1>
+    <p class="lede">The Reset Audit. Twelve real trading moments, about 3 minutes. You get your hijack type, the fear underneath it and a stop rule written for you.</p>
+    <div class="door-scene" id="door" role="button" tabindex="0" aria-label="Pick up the page under the door">
+      <div class="door"></div><div class="gap"></div><div class="floor"></div><div class="slip"></div>
+      <div class="tap-hint">Someone slid a page under your door. Tap it.</div>
+    </div>
+    <div><button class="cta" id="pickup" type="button">Pick up the page</button></div>
+  </section>
+
+  <section id="note" class="stack" hidden aria-label="A note from Leo">
+    <div class="paper unfold">
+      <p class="hand">I don't know you. But I know that lean.</p>
+      <p class="hand">Twelve questions. Answer the way you actually trade, not the way you wish you did.</p>
+      <p class="hand">At the end you'll know what's really running your trades. And what to do about it.</p>
+      <div class="sig"><img src="img/leo.webp" alt="">Leo</div>
+    </div>
+    <p class="lede">About 3 minutes. Your answers stay on your device. Your result shows instantly, no signup.</p>
+    <div><button class="cta" id="start" type="button">Start the audit</button></div>
+  </section>
+
+  <!-- quiz -->
+  <section id="quiz" class="q-wrap" hidden aria-live="polite">
+    <div class="paper interlude" id="interlude" hidden><p class="hand" id="interlude-text"></p></div>
+    <div class="chips" id="chips"></div>
+    <h2 class="q-text" id="qtext"></h2>
+    <p class="q-ask" id="qask"></p>
+    <ul class="opts" id="opts"></ul>
+    <div class="q-foot"><button class="ghost" id="back" type="button">Back</button><span class="small" id="qsec"></span></div>
+  </section>
+
+  <!-- result -->
+  <section id="result" class="stack" hidden aria-label="Your Reset Profile">
+    <div class="res-head">
+      <p class="res-kicker" id="r-kicker">Your Reset Profile</p>
+      <h1 class="res-type" id="r-type">Rusher</h1>
+      <p class="res-line" id="r-line"></p>
+    </div>
+    <div class="panel mix"><h3>Your hijack mix</h3><svg id="mix" viewBox="0 0 360 210" role="img" aria-label="Hijack mix"></svg><p id="mix-note"></p></div>
+    <div class="panel mirror" id="mirror"></div>
+    <div class="panel"><h3>How it shows up</h3><ul class="shows" id="shows"></ul></div>
+    <div class="paper"><p class="hand" id="fear"></p><div class="sig"><img src="img/leo.webp" alt="">Leo</div></div>
+    <div class="panel" style="position:relative"><img id="sess-tilt" src="img/tilt_grin.webp" alt="" style="position:absolute;right:12px;top:-34px;width:74px;height:auto"><h3>The session you just traded</h3><svg id="sess" viewBox="0 0 340 120" role="img" aria-label="Your answers as a trading session" style="width:100%;height:auto;display:block"></svg><p class="stage" id="ready" style="color:var(--muted);font-size:14px;margin:8px 0 0"></p><p class="stage" id="stage" style="margin-top:12px"></p></div>
+
+    <div class="locked sealed" id="locked">
+      <div class="paper content">
+        <p class="hand" style="font-size:17px;opacity:.8">Your stop rule</p>
+        <p class="rule" id="rule"></p>
+        <div class="kv">
+          <div><h4>Your body's warning sign</h4><p id="body"></p></div>
+          <div><h4>Your nervous system default</h4><p id="nerve"></p></div>
+          <div><h4>Your 7-day reset</h4><ol class="week" id="week"></ol></div>
+        </div>
+      </div>
+      <div class="gate" id="gate">
+        <form id="gate-form" novalidate>
+          <h3 id="gate-title">Unlock your stop rule</h3>
+          <p id="gate-copy">Your personal stop rule, your body's warning sign, your nervous system default and a 7-day reset plan. We'll also email you a copy.</p>
+          <label for="email" class="sr" style="position:absolute;left:-9999px">Email</label>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" required>
+          <span class="err" id="err" role="alert"></span>
+          <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+          <button class="cta" type="submit" id="unlock">Unlock my full profile</button>
+          <p style="font-size:12px">Your answers stay on this device. We keep your email and your profile result.</p>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel next" id="next" hidden>
+      <h3>What's next</h3>
+      <p>Reset Yourself is our 21-day course built on this exact framework, with a version of every exercise for your type. Profile holders hear first when the founding cohort opens.</p>
+      <a class="ghost" href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">Follow @resettraders for the next Two Traders episode</a>
+    </div>
+
+    <div class="share-row">
+      <button class="cta" id="share" type="button">Make my story card</button>
+      <button class="ghost" id="retake" type="button">Retake the audit</button>
+    </div>
+  </section>
+
+  <footer style="margin-top:40px;padding:16px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;text-align:center">Educational content · Trading involves risk</footer>
+</div>
+<img class="tilt" id="tilt" src="img/tilt_whisper.webp" alt="" hidden>
+
+<div class="modal" id="modal" hidden role="dialog" aria-label="Your story card">
+  <img id="card-img" alt="Your Reset Audit story card">
+  <p>Press and hold the card to save it, then post it to your story and tag @resettraders.</p>
+  <button class="ghost" id="close-modal" type="button">Close</button>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const TYPES = {
+    R: { name: 'Rusher', line: 'You trade the clock, not the chart.',
+      shows: ['You enter before the candle closes, then tell yourself it was a read.', 'After a loss, your next trade comes faster than your first one did.', 'Sitting flat feels like money leaving.'],
+      fear: 'Underneath it is fear of falling behind. Every minute without a trade feels like you\'re losing ground. I know, because I was a Rusher too.',
+      mirror: { img: 'img/rohan.webp', who: 'You trade like Rohan.', note: 'Same lean, same speed. His story starts in Two Traders, Episode 1.', ep: 'Watch Two Traders' },
+      breaker: 'set a 10-minute timer and cut my next position to half size',
+      drill: 'Trade only on a closed candle. If it closed one second ago, wait for the next one.' },
+    P: { name: 'Performer', line: 'You trade to be seen winning.',
+      shows: ['You size up when someone is watching, even if it\'s just your group chat.', 'A red day feels like a public failure, even when nobody knows.', 'Wins get screenshotted. Losses get deleted.'],
+      fear: 'Underneath it is fear of being seen failing. The trade stops being about price and starts being about how it looks.',
+      mirror: { img: 'img/kabir.webp', who: 'You trade like Kabir.', note: 'The payout screenshot everyone saw. The trade nobody did. Two Traders, Episode 8.', ep: 'Watch Two Traders' },
+      breaker: 'close the P&L view and write one line: did I follow my process?',
+      drill: 'Log your red trades first, within 10 minutes, before anything else. And no posting results for 7 days.' },
+    C: { name: 'Competitor', line: 'You keep score. Against the market, and everyone else.',
+      shows: ['After a loss you have to win it back, and it has to be now.', 'You add size, switch instruments or open another account to prove a point.', 'Someone else\'s payout can ruin your whole day.'],
+      fear: 'Underneath it is fear of losing, to the market or to anyone. Every red trade feels like being beaten, and you can\'t leave a fight you lost.',
+      mirror: { img: '', who: 'You haven\'t met your character yet.', note: 'A Competitor walks into Two Traders soon. You\'ll recognise him.', ep: 'Follow the series' },
+      breaker: 'lock my next trade to the same size or smaller and close every chat and leaderboard',
+      drill: 'Size-after-loss rule: after any loss, your next trade is the same size or smaller. Write it on your monitor.' },
+    I: { name: 'Intellectualizer', line: 'You know everything. You execute nothing.',
+      shows: ['You check one more timeframe and miss the entry, then chase it.', 'After every loss you re-backtest the whole strategy.', 'You can explain your rules better than you follow them.'],
+      fear: 'Underneath it is fear of being wrong. As long as you\'re still analysing, you can\'t be wrong yet.',
+      mirror: { img: '', who: 'You haven\'t met your character yet.', note: 'An Intellectualizer joins Two Traders soon. He has notes on everything.', ep: 'Follow the series' },
+      breaker: 'allow myself three checks, then let my written plan decide',
+      drill: 'Write your entry checklist on one card. Three checks maximum. When all three are yes, you execute.' }
+  };
+  const BODY = {
+    jaw: { cue: 'my jaw tightens', note: 'Jaw tension usually means anger and restraint. You\'re holding something back, and it comes out in the next trade.' },
+    chest: { cue: 'my chest tightens or my heart speeds up', note: 'Chest tightness usually means fear and urgency. It\'s the first link in the fear, urgency, revenge chain.' },
+    stomach: { cue: 'my stomach drops', note: 'A sinking stomach usually means dread, often a feeling that this is unfair after all the work you\'ve put in.' },
+    neck: { cue: 'my shoulders creep up', note: 'Neck and shoulder tension usually means pressure you\'ve been carrying for a while, not just this trade.' },
+    none: { cue: 'I notice I feel nothing', note: 'Feeling nothing is a signal too. Numbness after a loss means the alarm is on mute, not off.' }
+  };
+  const NERVE = {
+    fight: { name: 'Fight', note: 'Under threat you move toward it: you widen stops, add size and go after the money.', act: 'widen a stop or take the next trade' },
+    flight: { name: 'Flight', note: 'Under threat you escape: you close early, shut the laptop and skip the review.', act: 'close the trade in panic or run from the review' },
+    freeze: { name: 'Freeze', note: 'Under threat you lock up: you watch price run through your stop and can\'t move.', act: 'freeze and let price run past my stop' },
+    fawn: { name: 'Fawn', note: 'Under threat you look outward: you ask someone else and follow their call instead of your plan.', act: 'hand the decision to someone else' }
+  };
+  const STAGE = {
+    first: 'You haven\'t started your first challenge yet. Fix this pattern now and you skip the expensive lessons.',
+    f12: 'One or two failed challenges is normal. The pattern above is usually the reason.',
+    f3: 'Three or more failed challenges is rarely a strategy problem. It\'s usually this.',
+    funded: 'Losing funded accounts is this same pattern with bigger stakes. Same fix.',
+    steady: 'You\'re already consistent. This is the hijack most likely to show up when the stakes rise.'
+  };
+  // a: answer text, w: weights, ok: the reset answer. Order is mixed on purpose.
+  const Q = [
+    { sec: 'Your session', chips: [['09:47'], ['−1R', 'loss'], ['XAUUSD']], text: 'You\'re down 1R. Four minutes later, a setup forms.', ask: 'Your first thought?', opts: [
+      { a: 'Let me check three more timeframes first.', w: { I: 2 } },
+      { a: 'Get in now, before it runs without me.', w: { R: 2 } },
+      { a: 'Log the loss. Wait for my next window.', ok: 1 },
+      { a: 'This one gets it back.', w: { C: 2 } },
+      { a: 'I can\'t post another red day.', w: { P: 2 } } ] },
+    { sec: 'Your session', chips: [['Challenge'], ['1% to target', 'gain'], ['4 days left', 'lamp']], text: 'You\'re 1% from passing with four days left.', ask: 'What do you do?', opts: [
+      { a: 'Tell my group I\'m basically funded.', w: { P: 2 } },
+      { a: 'Same size, same rules. Four days is plenty.', ok: 1 },
+      { a: 'Double the size and finish it today.', w: { R: 2 } },
+      { a: 'Stop and re-backtest everything first.', w: { I: 2 } },
+      { a: 'Check how fast everyone else passed.', w: { C: 2 } } ] },
+    { sec: 'Your session', chips: [['Missed entry'], ['+80 pips without you', 'gain']], text: 'You missed a clean entry by 30 seconds. Price runs 80 pips.', ask: 'Then you…', opts: [
+      { a: 'Chase it at market.', w: { R: 2 } },
+      { a: 'It burns that someone online caught it.', w: { C: 2 } },
+      { a: 'Spend the night working out why I hesitated.', w: { I: 2 } },
+      { a: 'Post the chart anyway. I called it.', w: { P: 2 } },
+      { a: 'Note it in my journal and move on.', ok: 1 } ] },
+    { sec: 'Your session', chips: [['Closed'], ['+2.3R', 'gain'], ['Best trade this month']], text: 'You just closed your best trade of the month.', ask: 'Next?', opts: [
+      { a: 'Close the platform. Done for today.', ok: 1 },
+      { a: 'Post the P&L before I even close the chart.', w: { P: 2 } },
+      { a: 'Wonder for an hour whether it was luck.', w: { I: 2 } },
+      { a: 'Jump into the next one while I\'m hot.', w: { R: 2 } },
+      { a: 'Compare it to the biggest win I saw this week.', w: { C: 2 } } ] },
+    { sec: 'Your session', chips: [['Open trade'], ['3 pips to stop', 'loss']], text: 'Price is creeping toward your stop.', ask: 'You…', opts: [
+      { a: 'Add to it. I know I\'m right.', w: { C: 2 } },
+      { a: 'Close it and look for a fresh entry. I can\'t sit through this.', w: { R: 2 } },
+      { a: 'Close early so it doesn\'t count as a full loss.', w: { P: 2 } },
+      { a: 'Let the stop do its job.', ok: 1 },
+      { a: 'Move the stop. Structure says the idea is still valid.', w: { I: 2 } } ] },
+    { sec: 'Your session', chips: [['Group chat'], ['Funded in 3 weeks', 'lamp']], text: 'A friend who started trading after you just got funded.', ask: 'Honestly?', opts: [
+      { a: 'Go quiet until I have a win to show.', w: { P: 2 } },
+      { a: 'Trade more. More trades, more chances to catch up.', w: { R: 2 } },
+      { a: 'Decide their strategy won\'t last.', w: { I: 1, C: 1 } },
+      { a: 'Good for them. Different race.', ok: 1 },
+      { a: 'It eats at me. I have to catch up, and fast.', w: { C: 2 } } ] },
+    { sec: 'Your session', chips: [['New strategy'], ['"92% win rate"', 'lamp']], text: 'You find a new strategy that looks perfect.', ask: 'You…', opts: [
+      { a: 'Watch everything, take notes, rarely trade it.', w: { I: 2 } },
+      { a: 'Learn it so I can talk about it.', w: { P: 2 } },
+      { a: 'Ignore it. I\'m still mastering mine.', ok: 1 },
+      { a: 'Only use it if the top traders do.', w: { C: 2 } },
+      { a: 'Test it live this week.', w: { R: 2 } } ] },
+    { sec: 'Your session', chips: [['22:00'], ['Red day', 'loss']], text: 'It\'s 10 PM after a red day.', ask: 'You…', opts: [
+      { a: 'Check what everyone else made today.', w: { C: 2 } },
+      { a: 'Journal, close the laptop, sleep.', ok: 1 },
+      { a: 'Open the charts again, just to look.', w: { R: 2 } },
+      { a: 'Avoid my trading group.', w: { P: 2 } },
+      { a: 'Write a long analysis, then break the same rule tomorrow.', w: { I: 2 } } ] },
+    { sec: 'Underneath', lead: 'Now the part nobody asks you about.', chips: [], text: 'Which sentence stings the most?', ask: 'Pick the one that lands, not the one that sounds best.', opts: [
+      { a: '"People will see you fail."', w: { P: 3 } },
+      { a: '"You got it wrong."', w: { I: 3 } },
+      { a: '"You\'re running out of time."', w: { R: 3 } },
+      { a: '"You got beaten."', w: { C: 3 } } ] },
+    { sec: 'Your body', lead: 'Your body knows before you do.', chips: [], text: 'After a loss, where do you feel it first?', ask: '', opts: [
+      { a: 'My chest. Tight, or my heart speeds up.', body: 'chest' },
+      { a: 'My jaw. I clench my teeth.', body: 'jaw' },
+      { a: 'My stomach. It drops.', body: 'stomach' },
+      { a: 'My shoulders and neck.', body: 'neck' },
+      { a: 'Nowhere. I feel nothing.', body: 'none' } ] },
+    { sec: 'Your body', chips: [['Open trade'], ['−0.8R in 2 minutes', 'loss']], text: 'A trade moves hard against you, fast.', ask: 'Your first move?', opts: [
+      { a: 'Stare at it. I can\'t move.', nerve: 'freeze' },
+      { a: 'Widen the stop or add to it.', nerve: 'fight' },
+      { a: 'Message someone and ask what to do.', nerve: 'fawn' },
+      { a: 'Close it and get away from the screen.', nerve: 'flight' } ] },
+    { sec: 'Where you are', lead: 'Last one. Where are you, really?', chips: [], text: 'Where are you right now?', ask: '', opts: [
+      { a: 'Preparing for my first challenge.', stage: 'first' },
+      { a: 'I\'ve failed one or two challenges.', stage: 'f12' },
+      { a: 'I\'ve failed three or more.', stage: 'f3' },
+      { a: 'Funded, but I keep losing accounts.', stage: 'funded' },
+      { a: 'Funded and consistent. Staying sharp.', stage: 'steady' } ] }
+  ];
+  const LETTERS = ['a', 'b', 'c', 'd', 'e'];
+  const LOOP = 'M7,55 C4,20 38,5 70,8 C93,10 98,38 95,60 C91,88 55,97 27,91 C8,86 2,68 9,40';
+  let cur = 0, ans = [], busy = false;
+
+  const show = id => ['intro', 'note', 'quiz', 'result'].forEach(s => $(s).hidden = s !== id);
+  const tilt = $('tilt');
+  function tiltState() {}
+  function drawCandles() {
+    const svg = $('candles'); let h = '';
+    for (let i = 0; i < 12; i++) {
+      const x = 6 + i * 12, has = ans[i] !== undefined, o = has ? Q[i].opts[ans[i]] : null;
+      let col = 'var(--line)', top = 14, bot = 26;
+      if (has) { const r = ((i * 53 + ans[i] * 17) % 11) / 11; col = 'var(--lamp)'; top = 7 + r * 9; bot = top + 9 + ((i * 29) % 5) * 2.4; }
+      const now = i === cur && !has;
+      h += `<line x1="${x}" x2="${x}" y1="${top - 4}" y2="${bot + 4}" stroke="${has ? col : 'var(--line)'}" stroke-width="1.5"/>`;
+      h += `<rect x="${x - 3.5}" y="${top}" width="7" height="${bot - top}" rx="1.5" fill="${has ? col : 'none'}" stroke="${now ? 'var(--lamp)' : (has ? col : 'var(--line)')}" stroke-width="1.5"/>`;
+    }
+    svg.innerHTML = h;
+  }
+  function renderQ() {
+    const q = Q[cur];
+    $('qcount').textContent = `${cur + 1} of ${Q.length}`;
+    $('qsec').textContent = q.sec;
+    $('interlude').hidden = !q.lead; if (q.lead) $('interlude-text').textContent = q.lead;
+    $('chips').innerHTML = q.chips.map(([t, c]) => `<span class="chip ${c || ''}">${t}</span>`).join('');
+    $('chips').hidden = !q.chips.length;
+    $('qtext').textContent = q.text;
+    $('qask').textContent = q.ask; $('qask').hidden = !q.ask;
+    $('opts').innerHTML = q.opts.map((o, i) => `<li><button class="opt${ans[cur] === i ? ' picked' : ''}" type="button" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${o.a}</span><svg class="loop" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${LOOP}"/></svg></button></li>`).join('');
+    $('back').style.visibility = cur === 0 ? 'hidden' : 'visible';
+    drawCandles(); tiltState();
+    const first = $('opts').querySelector('button'); if (first && document.activeElement && document.activeElement.classList.contains('opt')) first.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  }
+  $('opts').addEventListener('click', e => {
+    const b = e.target.closest('.opt'); if (!b || busy) return; busy = true;
+    const i = +b.dataset.i; ans[cur] = i;
+    $('opts').querySelectorAll('.opt').forEach(x => x.classList.remove('picked')); b.classList.add('picked');
+    const o = Q[cur].opts[i];
+    tilt.classList.remove('hop'); void tilt.offsetWidth; tilt.classList.add('hop');
+    drawCandles(); tiltState();
+    setTimeout(() => { busy = false; if (cur < Q.length - 1) { cur++; renderQ(); } else finish(); }, 520);
+  });
+  $('back').addEventListener('click', () => { if (cur > 0) { cur--; ans.length = cur; renderQ(); } });
+
+  const openNote = () => { show('note'); };
+  $('door').addEventListener('click', openNote); $('pickup').addEventListener('click', openNote);
+  $('door').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openNote(); } });
+  $('start').addEventListener('click', () => { cur = 0; ans = []; show('quiz'); $('session').hidden = false; tilt.hidden = false; renderQ(); });
+
+  // ---------- scoring ----------
+  let P = null;
+  function score() {
+    const t = { R: 0, P: 0, C: 0, I: 0 }; let okN = 0, body = 'chest', nerve = 'fight', stage = 'f12', root = 'R';
+    ans.forEach((oi, qi) => { const o = Q[qi].opts[oi]; if (o.w) Object.entries(o.w).forEach(([k, v]) => t[k] += v); if (o.ok) okN++; if (o.body) body = o.body; if (o.nerve) nerve = o.nerve; if (o.stage) stage = o.stage; if (qi === 8) root = Object.keys(o.w)[0]; });
+    const sum = Object.values(t).reduce((a, b) => a + b, 0) || 1;
+    const pct = {}; Object.keys(t).forEach(k => pct[k] = Math.round(t[k] / sum * 100));
+    const diff = 100 - Object.values(pct).reduce((a, b) => a + b, 0);
+    let top = Object.keys(t).sort((a, b) => t[b] - t[a] || (b === root) - (a === root))[0]; pct[top] += diff;
+    return { t, pct, top, root, okN, body, nerve, stage };
+  }
+  function mixSvg(p) {
+    const order = ['R', 'P', 'C', 'I'], base = 170, scale = 1.35, XS = [48, 136, 224, 312]; let h = `<line x1="12" x2="348" y1="${base}" y2="${base}" stroke="var(--line)" stroke-width="1"/>`;
+    order.forEach((k, i) => { const cx = XS[i], v = p.pct[k], bh = Math.max(4, v * scale), y = base - bh, hot = k === p.top, col = hot ? 'var(--brand)' : 'var(--loss)';
+      h += `<line x1="${cx}" x2="${cx}" y1="${y - 10}" y2="${base}" stroke="${col}" stroke-width="2" opacity="${hot ? 1 : .55}"/>`;
+      h += `<rect x="${cx - 17}" y="${y}" width="34" height="${bh}" rx="3" fill="${col}" opacity="${hot ? 1 : .55}"/>`;
+      h += `<text x="${cx}" y="${y - 16}" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="800" font-size="17" fill="var(--text)">${v}%</text>`;
+      h += `<text x="${cx}" y="${base + 22}" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600" font-size="12" fill="${hot ? 'var(--text)' : 'var(--muted)'}">${TYPES[k].name}</text>`; });
+    return h;
+  }
+  function sessSvg() {
+    const pts = [0]; const ups = [];
+    for (let i = 0; i < 8; i++) { const o = Q[i].opts[ans[i]], up = !!o.ok, len = 3 + ((i * 37 + ans[i] * 13) % 5); ups.push(up); pts.push(pts[i] + (up ? len : -len)); }
+    const mn = Math.min(...pts), mx = Math.max(...pts), span = Math.max(14, mx - mn), mid = (mx + mn) / 2, Y = v => 60 - (v - mid) / span * 84;
+    let h = `<line x1="8" x2="332" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="var(--line)" stroke-dasharray="4 5"/>`;
+    for (let i = 0; i < 8; i++) { const x = 26 + i * 41, a = Y(pts[i]), b = Y(pts[i + 1]), top = Math.min(a, b), bot = Math.max(a, b), col = ups[i] ? 'var(--gain)' : 'var(--loss)';
+      h += `<line x1="${x}" x2="${x}" y1="${(top - 6).toFixed(1)}" y2="${(bot + 6).toFixed(1)}" stroke="${col}" stroke-width="2"/><rect x="${x - 9}" y="${top.toFixed(1)}" width="18" height="${Math.max(4, bot - top).toFixed(1)}" rx="2" fill="${col}"/>`; }
+    return h;
+  }
+  function finish() {
+    P = score(); const T = TYPES[P.top], second = ['R', 'P', 'C', 'I'].filter(k => k !== P.top).sort((a, b) => P.pct[b] - P.pct[a])[0];
+    $('session').hidden = true; tilt.hidden = true;
+    $('r-kicker').textContent = P.okN >= 6 ? `Your Reset Profile. Your hijacks are mostly quiet. Under pressure, this is the one that wakes up.` : `Your Reset Profile. ${P.pct[P.top]}% of your hijack answers point here.`;
+    $('r-type').textContent = T.name; $('r-line').textContent = T.line;
+    $('mix').innerHTML = mixSvg(P);
+    $('mix-note').textContent = P.pct[second] >= 20 ? `Your backup hijack is the ${TYPES[second].name}. When the first one is under control, watch for it.` : `One hijack dominates. That makes it easier to catch.`;
+    const m = T.mirror;
+    $('mirror').innerHTML = `<div class="face">${m.img ? `<img src="${m.img}" alt="">` : `<svg viewBox="0 0 112 112" width="112" height="112" aria-hidden="true"><circle cx="56" cy="44" r="22" fill="#2a335f"/><path d="M16 112c4-30 20-42 40-42s36 12 40 42z" fill="#2a335f"/><text x="56" y="52" text-anchor="middle" font-family="Kalam, cursive" font-weight="700" font-size="26" fill="#a1a9c8">?</text></svg>`}</div>
+      <div><p class="who">${m.who}</p><p class="note">${m.note}</p><a href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">${m.ep}</a></div>`;
+    $('shows').innerHTML = T.shows.map(s => `<li><span>${s}</span></li>`).join('');
+    $('fear').textContent = T.fear;
+    $('stage').textContent = STAGE[P.stage];
+    $('sess').innerHTML = sessSvg();
+    $('sess-tilt').src = P.okN >= 6 ? 'img/tilt_sad.webp' : 'img/tilt_grin.webp';
+    $('ready').textContent = `Each candle is one of your eight trading moments. Green is the reset answer, red is a hijack. You went green ${P.okN} of 8 times. That's the number your 7 days should move.`;
+    const B = BODY[P.body], N = NERVE[P.nerve];
+    const rule = `When ${B.cue} after a loss, I ${T.breaker}, before I ${N.act}.`;
+    $('rule').textContent = rule.charAt(0).toUpperCase() + rule.slice(1);
+    $('body').textContent = B.note; $('nerve').textContent = `${N.name}. ${N.note}`;
+    const week = ['Set an alarm for your session open that asks one question: is this the setup, or is this urgency?', 'After every trade, note where you felt it in your body. Just the spot, nothing else.', 'Before every entry, run the 60-second ego check. Would I take this if my last trade was a win? Is my size the same as always?', T.drill, 'Practise the pause after a loss: notice the body, one box breath (4 in, hold 4, 4 out, hold 4), name the feeling, run the ego check, then decide.', 'Count how many times your stop rule fired this week and what happened when you followed it.', 'Retake this audit and compare. If the numbers moved, keep going. If they didn\'t, reply to the email and tell us where it broke.'];
+    $('week').innerHTML = week.map(w => `<li>${w}</li>`).join('');
+    $('gate-title').textContent = `Unlock your stop rule, ${T.name}`;
+    $('locked').classList.add('sealed'); $('gate').hidden = false; $('next').hidden = true;
+    show('result'); window.scrollTo(0, 0);
+  }
+
+  // ---------- email gate ----------
+  // Hook for the live site: set window.ResetAudit.onEmail = async (email, profile) => { ...save to Firebase / send email... }
+  window.ResetAudit = window.ResetAudit || { onEmail: async () => true };
+  $('gate-form').addEventListener('submit', async e => {
+    e.preventDefault(); const v = $('email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { $('err').textContent = 'Enter an email like name@gmail.com.'; return; }
+    $('err').textContent = ''; $('unlock').textContent = 'Unlocking…';
+    try { await window.ResetAudit.onEmail(v, { type: TYPES[P.top].name, pct: P.pct, body: P.body, nerve: P.nerve, stage: P.stage, rule: $('rule').textContent }); } catch (_) {}
+    $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; $('unlock').textContent = 'Unlock my full profile';
+  });
+  $('retake').addEventListener('click', () => { cur = 0; ans = []; show('note'); window.scrollTo(0, 0); });
+
+  // ---------- story card ----------
+  const loadImg = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
+  $('share').addEventListener('click', async () => {
+    try { await Promise.all(['900 200px Poppins', '700 60px Poppins', '600 40px Inter', '700 60px Kalam'].map(f => document.fonts.load(f))); } catch (_) {}
+    const T = TYPES[P.top], c = document.createElement('canvas'); c.width = 1080; c.height = 1920; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 1920); g.addColorStop(0, '#0d1029'); g.addColorStop(1, '#0a0c1c'); x.fillStyle = g; x.fillRect(0, 0, 1080, 1920);
+    const rg = x.createRadialGradient(540, 760, 0, 540, 760, 760); rg.addColorStop(0, 'rgba(250,89,1,0.22)'); rg.addColorStop(1, 'rgba(250,89,1,0)'); x.fillStyle = rg; x.fillRect(0, 0, 1080, 1920);
+    const [mark, tl] = await Promise.all([loadImg('img/mark.webp'), loadImg(P.okN >= 6 ? 'img/tilt_sad.webp' : 'img/tilt_grin.webp')]);
+    if (mark) x.drawImage(mark, 470, 210, 140, 140 * mark.height / mark.width);
+    x.textAlign = 'center'; x.fillStyle = '#a1a9c8'; x.font = '600 44px Inter, sans-serif'; x.fillText('My Reset Audit says I\'m a', 540, 520);
+    let fs = 200; x.font = `900 ${fs}px Poppins, sans-serif`; while (x.measureText(T.name).width > 960) { fs -= 6; x.font = `900 ${fs}px Poppins, sans-serif`; }
+    x.fillStyle = '#ffffff'; x.fillText(T.name, 540, 720);
+    x.fillStyle = '#ffb066'; x.font = '700 50px Poppins, sans-serif'; x.fillText(T.line, 540, 820);
+    const order = ['R', 'P', 'C', 'I'], base = 1400, CX = [180, 400, 620, 860];
+    x.strokeStyle = '#2a335f'; x.lineWidth = 3; x.beginPath(); x.moveTo(90, base); x.lineTo(990, base); x.stroke();
+    order.forEach((k, i) => { const cx = CX[i], v = P.pct[k], bh = Math.max(10, v * 4.2), y = base - bh, hot = k === P.top;
+      x.globalAlpha = hot ? 1 : 0.5; x.fillStyle = hot ? '#FA5901' : '#ff3b4e'; x.fillRect(cx - 4, y - 26, 8, bh + 26); x.beginPath(); x.roundRect ? x.roundRect(cx - 50, y, 100, bh, 8) : x.rect(cx - 50, y, 100, bh); x.fill(); x.globalAlpha = 1;
+      x.fillStyle = '#fff'; x.font = '800 52px Poppins, sans-serif'; x.fillText(v + '%', cx, y - 46);
+      x.fillStyle = hot ? '#fff' : '#a1a9c8'; x.font = '600 30px Inter, sans-serif'; x.fillText(TYPES[k].name, cx, base + 56); });
+    if (tl) { const tw = 380, th = tw * tl.height / tl.width; x.drawImage(tl, 1080 - tw - 40, 1920 - th - (P.okN >= 6 ? 60 : 0), tw, th); }
+    x.textAlign = 'left'; x.fillStyle = '#efe6d3'; x.font = '700 54px Kalam, cursive'; x.fillText('What\'s yours?', 110, 1600);
+    x.fillStyle = '#ffffff'; x.font = '600 40px Inter, sans-serif'; x.fillText('Take the Reset Audit', 110, 1680); x.fillStyle = '#FA5901'; x.font = '800 48px Poppins, sans-serif'; x.fillText('@resettraders', 110, 1760);
+    $('card-img').src = c.toDataURL('image/png'); $('modal').hidden = false;
+  });
+  $('close-modal').addEventListener('click', () => $('modal').hidden = true);
+  window.__audit = { Q, setAns: a => { ans = a.slice(); cur = Q.length - 1; finish(); }, score: () => score() };
+})();
+</script>
+<script type="module" src="audit-lead.js?v=20261109"></script>
+
+</body>
+</html>
