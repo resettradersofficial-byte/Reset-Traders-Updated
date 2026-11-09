@@ -9,14 +9,14 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-lite.js";
 
-// Same public web config as /firebase.js (not a secret; access is controlled by firestore.rules).
+// Public web config of the registered "ResetTraders" web app (not a secret; access is controlled by firestore.rules).
 const firebaseConfig = {
   apiKey: "AIzaSyBfZqEU-fJrOm0L9A5sFnexs9VUvbgHnQs",
   authDomain: "resettraders-ead44.firebaseapp.com",
   projectId: "resettraders-ead44",
   storageBucket: "resettraders-ead44.firebasestorage.app",
-  messagingSenderId: "981078061043",
-  appId: "1:981078061043:web:2dcd1109456477a93d126c"
+  messagingSenderId: "546098280910",
+  appId: "1:546098280910:web:c3aef977ac26198177939f"
 };
 const WORKER_URL = "https://audit-lead.resettradersofficial.workers.dev/";
 const UNLOCK_AFTER_MS = 6000;

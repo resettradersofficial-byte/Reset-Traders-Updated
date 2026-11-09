@@ -13,7 +13,7 @@ import {
   serverTimestamp, setDoc, Timestamp, updateDoc, where
 } from "firebase/firestore";
 
-const RULES = readFileSync(new URL("../../firestore.rules", import.meta.url), "utf8");
+const RULES = readFileSync(new URL(process.env.RULES_FILE || "../../firestore.rules", import.meta.url), "utf8");
 let env;
 
 const ADMIN = { uid: "admin1", email: "resettradersofficial@gmail.com" };
@@ -121,6 +121,24 @@ describe("payment flow (checkout account)", () => {
   test("student cannot change own plan", async () => {
     await assertFails(updateDoc(doc(as(INACTIVE), "users", INACTIVE.uid), { plan: "mentorship" }));
   });
+  test("student cannot add new fields such as Pro flags (live-rules hole)", async () => {
+    await assertFails(updateDoc(doc(as(INACTIVE), "users", INACTIVE.uid), { journalPro: true }));
+    await assertFails(setDoc(doc(as(ACTIVE), "users", ACTIVE.uid), { proUntil: Timestamp.fromMillis(Date.now() + 1e10) }, { merge: true }));
+  });
+  test("new buyer cannot pre-seed extra access fields", async () => {
+    await assertFails(setDoc(doc(as(NEWBIE), "users", NEWBIE.uid), { uid: NEWBIE.uid, email: NEWBIE.email, role: "student", access: { active: false, source: "checkout_started", expiresAt: Timestamp.fromMillis(Date.now() + 1e12) } }));
+  });
+  test("admin-revoked student can restart checkout (access stays inactive)", async () => {
+    const REVOKED = { uid: "stu_revoked", email: "revoked@example.com" };
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users", REVOKED.uid), { uid: REVOKED.uid, email: REVOKED.email, role: "student", plan: "course",
+        access: { active: false, source: "razorpay_webhook", plan: "course", grantedAt: Timestamp.now() }, createdAt: Timestamp.now() });
+    });
+    const db = as(REVOKED);
+    const existing = (await getDoc(doc(db, "users", REVOKED.uid))).data();
+    await assertSucceeds(checkoutProfileWrite(db, REVOKED, existing));
+    await assertFails(updateDoc(doc(db, "users", REVOKED.uid), { "access.active": true }));
+  });
   test("active student cannot downgrade-reset then regain (reset to inactive blocked while live)", async () => {
     await assertFails(setDoc(doc(as(ACTIVE), "users", ACTIVE.uid), { access: { active: false, source: "checkout_started" } }, { merge: true }));
   });
@@ -200,6 +218,12 @@ describe("student portal", () => {
   });
   test("inactive student cannot post doubts", async () => {
     await assertFails(addDoc(collection(as(INACTIVE), "doubts"), { uid: INACTIVE.uid, studentEmail: "", studentName: "", lessonId: "l1", lessonTitle: "", text: "x", createdAt: serverTimestamp() }));
+  });
+  test("doubts are size-limited and server-timestamped", async () => {
+    const db = as(ACTIVE);
+    const d = { uid: ACTIVE.uid, studentEmail: ACTIVE.email, studentName: "A", lessonId: "l1", lessonTitle: "L", createdAt: serverTimestamp() };
+    await assertFails(addDoc(collection(db, "doubts"), { ...d, text: "x".repeat(2001) }));
+    await assertFails(addDoc(collection(db, "doubts"), { ...d, text: "ok", createdAt: Timestamp.fromMillis(0) }));
   });
 });
 
