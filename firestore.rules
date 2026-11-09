@@ -173,7 +173,7 @@ service cloud.firestore {
     }
 
     function validAuditLead(d) {
-      return d.keys().hasOnly(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt"])
+      return d.keys().hasOnly(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt", "ref"])
         && d.keys().hasAll(["email", "type", "pct", "body", "nerve", "stage", "rule", "isRetake", "source", "createdAt"])
         && d.email is string
         && d.email.size() <= 254
@@ -186,6 +186,8 @@ service cloud.firestore {
         && d.rule is string && d.rule.size() <= 400
         && d.isRetake is bool
         && d.source in ["audit", "test"]
+        // optional: where the visitor came from (?ref=)
+        && (!("ref" in d) || d.ref in ["dm", "bio", "story", "reel"])
         && d.createdAt == request.time;
     }
 

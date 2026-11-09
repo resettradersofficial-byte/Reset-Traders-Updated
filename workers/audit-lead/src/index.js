@@ -11,6 +11,7 @@ const ALLOWED_ORIGINS = new Set([
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 const MAX_BODY_BYTES = 4096;
 const EMAIL_RE = /^[^\s@<>"'()\\,;:]+@[^\s@<>"'()\\,;:]+\.[^\s@<>"'()\\,;:]{2,}$/;
+const ALLOWED_REFS = ["dm", "bio", "story", "reel"];
 
 // Content mirrors audit/index.html (TYPES / BODY / NERVE / STAGE / week). Keep them in sync.
 const TYPES = {
@@ -95,8 +96,9 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 export function validate(payload) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return { error: "Bad request." };
-  const allowedTop = new Set(["email", "profile", "isRetake", "website"]);
+  const allowedTop = new Set(["email", "profile", "isRetake", "website", "ref"]);
   if (Object.keys(payload).some((k) => !allowedTop.has(k))) return { error: "Unexpected field." };
+  if (payload.ref !== undefined && !ALLOWED_REFS.includes(payload.ref)) return { error: "Invalid ref." };
 
   const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
   if (!email || email.length > 254 || !EMAIL_RE.test(email)) return { error: "Invalid email." };
@@ -120,6 +122,7 @@ export function validate(payload) {
 
   return {
     email,
+    ref: payload.ref || null,
     isRetake: payload.isRetake === true,
     profile: { type: p.type, body: p.body, nerve: p.nerve, stage: p.stage, pct: { R: pct.R, P: pct.P, C: pct.C, I: pct.I } }
   };
@@ -240,7 +243,7 @@ export default {
 
     // Hand the email to Apps Script in the background; the page never waits on Google.
     const message = buildEmail(result);
-    const work = sendViaAppsScript(env, message);
+    const work = sendViaAppsScript(env, result.ref ? { ...message, ref: result.ref } : message);
     if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(work);
     else await work;
     return json(202, { ok: true, queued: true }, origin);

@@ -270,6 +270,15 @@ describe("auditLeads", () => {
     await assertSucceeds(addDoc(collection(anon(), "auditLeads"), lead()));
     await assertSucceeds(addDoc(collection(anon(), "auditLeads"), lead({ source: "audit", isRetake: true })));
   });
+  test("ref is optional and limited to dm, bio, story, reel", async () => {
+    const db = anon();
+    for (const ref of ["dm", "bio", "story", "reel"]) {
+      await assertSucceeds(addDoc(collection(db, "auditLeads"), lead({ ref })));
+    }
+    for (const ref of ["DM", "ads", "", "x".repeat(50), 1, null, true]) {
+      await assertFails(addDoc(collection(db, "auditLeads"), lead({ ref })));
+    }
+  });
   test("invalid leads are rejected", async () => {
     const db = anon();
     const { rule, ...noRule } = lead();

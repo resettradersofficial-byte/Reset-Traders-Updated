@@ -12,7 +12,8 @@ const TYPES = ["Rusher", "Performer", "Competitor", "Intellectualizer"];
 const EMAIL_RE = /^[^\s@<>"'()\\,;:]+@[^\s@<>"'()\\,;:]+\.[^\s@<>"'()\\,;:]{2,}$/;
 const MAX_HTML = 60000;
 const LOG_SHEET = "Sends";
-const HEADERS = ["Time", "Email", "Type", "Retake", "Status", "Error", "Subject", "HTML (failed only)"];
+const HEADERS = ["Time", "Email", "Type", "Retake", "Status", "Error", "Subject", "HTML (failed only)", "Ref"];
+const ALLOWED_REFS = ["dm", "bio", "story", "reel"];
 
 function doPost(e) {
   let msg;
@@ -50,8 +51,9 @@ function tokenOk_(given) {
 }
 
 function validate_(msg) {
-  const allowed = ["to", "subject", "html", "token"];
+  const allowed = ["to", "subject", "html", "token", "ref"];
   if (Object.keys(msg).some(function (k) { return allowed.indexOf(k) === -1; })) return { error: "unexpected field" };
+  if (msg.ref !== undefined && ALLOWED_REFS.indexOf(msg.ref) === -1) return { error: "bad ref" };
   const to = typeof msg.to === "string" ? msg.to.trim().toLowerCase() : "";
   if (!to || to.length > 254 || !EMAIL_RE.test(to)) return { error: "bad to" };
   const subject = typeof msg.subject === "string" ? msg.subject : "";
@@ -59,7 +61,7 @@ function validate_(msg) {
   if (!m) return { error: "bad subject" };
   const html = typeof msg.html === "string" ? msg.html : "";
   if (!html || html.length > MAX_HTML) return { error: "bad html" };
-  return { to: to, subject: subject, html: html, type: m[1], retake: Boolean(m[2]) };
+  return { to: to, subject: subject, html: html, type: m[1], retake: Boolean(m[2]), ref: msg.ref || "" };
 }
 
 function send_(m) {
@@ -91,6 +93,10 @@ function logSheet_() {
     sh.appendRow(HEADERS);
     sh.setFrozenRows(1);
     sh.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
+  } else if (sh.getLastColumn() < HEADERS.length) {
+    // Sheet created before newer columns existed: add the missing headers at the end.
+    const start = sh.getLastColumn() + 1;
+    sh.getRange(1, start, 1, HEADERS.length - start + 1).setValues([HEADERS.slice(start - 1)]).setFontWeight("bold");
   }
   return sh;
 }
@@ -99,7 +105,8 @@ function log_(m, result) {
   logSheet_().appendRow([
     new Date(), m.to, m.type, m.retake ? "yes" : "no",
     result.ok ? "sent" : "failed", result.ok ? "" : result.error, m.subject,
-    result.ok ? "" : m.html
+    result.ok ? "" : m.html,
+    m.ref || ""
   ]);
 }
 

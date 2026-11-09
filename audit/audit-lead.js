@@ -25,6 +25,10 @@ const TAKEN_KEY = "rt_audit_taken";
 const db = getFirestore(initializeApp(firebaseConfig, "audit"));
 const params = new URLSearchParams(location.search);
 const source = params.get("test") === "1" ? "test" : "audit";
+// Where the visitor came from (?ref=dm etc.). Anything outside this list is ignored.
+const ALLOWED_REFS = ["dm", "bio", "story", "reel"];
+const refParam = String(params.get("ref") || "").trim().toLowerCase();
+const ref = ALLOWED_REFS.includes(refParam) ? refParam : null;
 
 function takenBefore() {
   try { return localStorage.getItem(TAKEN_KEY) === "1"; } catch (_) { return false; }
@@ -44,6 +48,7 @@ async function saveLead(email, profile, isRetake) {
     rule: String(profile.rule || "").slice(0, 400),
     isRetake,
     source,
+    ...(ref ? { ref } : {}),
     createdAt: serverTimestamp()
   });
 }
@@ -55,6 +60,7 @@ async function sendEmail(email, profile, isRetake) {
     body: JSON.stringify({
       email,
       isRetake,
+      ...(ref ? { ref } : {}),
       website: "",
       profile: { type: profile.type, pct: profile.pct, body: profile.body, nerve: profile.nerve, stage: profile.stage, rule: profile.rule }
     })
