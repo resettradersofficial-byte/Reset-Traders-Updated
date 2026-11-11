@@ -107,25 +107,25 @@ const PROFILES = {
     kicker: 'Hijack 01 · Rohan', name: 'The Rusher', line: 'You trade the clock, not the chart.',
     desc: 'You enter before the candle closes, then tell yourself it was a read. After a loss, your next trade comes faster than your first one did. Sitting flat feels like money leaving.',
     fear: 'Underneath it is fear of falling behind. Rohan knows this one: his story starts in Two Traders, Episode 1.',
-    img: 'assets/characters/rohan.webp', model: 'assets/3d/rohan.glb'
+    img: 'assets/characters/rohan.webp', alt: 'Rohan, the Rusher', model: 'assets/3d/rohan.glb'
   },
   performer: {
     kicker: 'Hijack 02 · Kabir', name: 'The Performer', line: 'You trade to be seen winning.',
     desc: 'You size up when someone is watching, even if it\'s just your group chat. A red day feels like a public failure, even when nobody knows. Wins get screenshotted. Losses get deleted.',
-    fear: 'Underneath it is fear of being seen failing. Kabir\'s 3D character is on the way.',
-    img: 'assets/characters/kabir-300.webp', soon: true
+    fear: 'Underneath it is fear of being seen failing. Kabir knows this one: the payout screenshot everyone saw, in Two Traders, Episode 8.',
+    img: 'assets/characters/kabir.webp', alt: 'Kabir, the Performer', model: 'assets/3d/kabir.glb'
   },
   competitor: {
     kicker: 'Hijack 03', name: 'The Competitor', line: 'You keep score. Against the market, and everyone else.',
     desc: 'After a loss you have to win it back, and it has to be now. You add size, switch instruments or open another account to prove a point. Someone else\'s payout can ruin your whole day.',
     fear: 'Underneath it is fear of losing. A Competitor walks into Two Traders soon.',
-    svg: 'competitor', soon: true
+    img: 'assets/characters/competitor.webp', alt: 'The Competitor', model: 'assets/3d/competitor.glb'
   },
   intellectualizer: {
     kicker: 'Hijack 04', name: 'The Intellectualizer', line: 'You know everything. You execute nothing.',
     desc: 'You check one more timeframe and miss the entry, then chase it. After every loss you re-backtest the whole strategy. You can explain your rules better than you follow them.',
     fear: 'Underneath it is fear of being wrong. An Intellectualizer joins Two Traders soon.',
-    svg: 'intellectualizer', soon: true
+    img: 'assets/characters/intellectualizer.webp', alt: 'The Intellectualizer', model: 'assets/3d/intellectualizer.glb'
   }
 };
 const dlg = $('#profile');
@@ -133,10 +133,6 @@ const visual = $('#pf-visual');
 const pfImg = $('#pf-img');
 let avatar = null;
 let opener = null;
-function svgFor(kind) {
-  const src = document.querySelector(`.sil[data-hijack="${kind}"] svg`);
-  return src ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src.outerHTML.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg" fill="#000"')) : '';
-}
 function openProfile(kind, from) {
   const p = PROFILES[kind];
   if (!p || !dlg) return;
@@ -146,8 +142,8 @@ function openProfile(kind, from) {
   $('#pf-line').textContent = p.line;
   $('#pf-desc').textContent = p.desc;
   $('#pf-fear').textContent = p.fear;
-  pfImg.src = p.img || svgFor(p.svg);
-  pfImg.alt = p.soon ? '' : `${p.kicker.split('· ')[1] || ''}, ${p.name}`;
+  pfImg.src = p.img;
+  pfImg.alt = p.soon ? '' : p.alt;
   visual.classList.toggle('soon', Boolean(p.soon));
   visual.classList.remove('gl-on');
   $('#pf-badge').hidden = !p.soon;

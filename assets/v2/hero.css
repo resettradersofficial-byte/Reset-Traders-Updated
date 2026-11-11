@@ -203,7 +203,7 @@ dialog.profile::backdrop { background: rgba(5, 4, 8, .74); -webkit-backdrop-filt
 .pf-visual.gl-on #pf-gl { opacity: 1; }
 .pf-visual.gl-on #pf-img { opacity: 0; }
 .pf-visual .badge { top: 16px; left: 16px; }
-.pf-drag { position: absolute; bottom: 12px; left: 0; right: 0; margin: 0; text-align: center; color: var(--muted); font: 500 12.5px var(--body); pointer-events: none; }
+.pf-drag { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); margin: 0; padding: 4px 10px; border-radius: 999px; background: rgba(13, 12, 16, .72); color: var(--muted); font: 500 12.5px var(--body); white-space: nowrap; pointer-events: none; }
 .pf-text { display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: clamp(24px, 4vw, 44px); }
 .pf-kicker { margin: 0; font: 700 12px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--hijack); }
 .pf-text h2 { font-size: clamp(30px, 3.6vw, 44px); }
