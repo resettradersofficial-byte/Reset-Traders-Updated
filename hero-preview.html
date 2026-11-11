@@ -10,8 +10,20 @@
 <link rel="icon" href="audit/img/mark.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500&family=Kalam:wght@400&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/characters/tilt.webp" imagesrcset="assets/characters/tilt-300.webp 300w, assets/characters/tilt.webp 571w" imagesizes="(min-width: 900px) 300px, 45vw" fetchpriority="high">
+<script>
+  (function () {
+    var r = 'intl';
+    try {
+      var q = new URLSearchParams(location.search).get('region');
+      var s = localStorage.getItem('rt-region');
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      r = (q === 'in' || q === 'intl') ? q : (s === 'in' || s === 'intl') ? s : (/Calcutta|Kolkata/.test(tz) ? 'in' : 'intl');
+    } catch (e) {}
+    document.documentElement.setAttribute('data-region', r);
+  })();
+</script>
 <link rel="stylesheet" href="assets/v2/tokens.css">
 <link rel="stylesheet" href="assets/v2/hero.css">
 <script type="importmap">
@@ -30,7 +42,7 @@
       <span class="mark"><img src="audit/img/mark.webp" alt="" width="160" height="182"></span>
       <span class="brand-name">Reset Traders</span>
     </a>
-    <nav class="nav-links" aria-label="Sections"><a href="#hijacks">Hijacks</a></nav>
+    <nav class="nav-links" aria-label="Sections"><a href="#hijacks">Hijacks</a><a href="#how">How it works</a><a href="#reset">Personal Reset</a><a href="#faq">FAQ</a></nav>
     <a class="btn btn-sm" data-scare href="audit/?ref=site-nav"><span class="long">Take the 3-min audit</span><span class="short">Take the audit</span></a>
   </div>
 </header>
@@ -120,6 +132,7 @@
         <p class="hint" aria-hidden="true">← drag or scroll →</p>
       </div>
       <p class="lede">Four hijacks. Under pressure every trader runs one of them. Most never find out which.</p>
+      <aside class="leo-inline" data-leo aria-label="A note from Leo"><p>I was the Rusher. Three losses, then the fourth trade, every time.</p><span class="sig">Leo</span></aside>
       <div class="rail" tabindex="0" role="group" aria-label="The four hijacks">
         <article class="card on">
           <div class="pic"><img src="assets/characters/rohan-300.webp" srcset="assets/characters/rohan-300.webp 300w, assets/characters/rohan.webp 618w" sizes="(min-width: 900px) 260px, 70vw" alt="Rohan, the Rusher, staring at his screen" width="618" height="760" loading="lazy"></div>
@@ -145,6 +158,116 @@
       <div class="hj-cta"><a class="btn" href="audit/?ref=site-hijacks">Find yours in 3 minutes <span class="arr" aria-hidden="true">→</span></a></div>
     </div>
   </section>
+  <section class="ladder" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 id="how-title">Three steps, and most people only need the first.</h2>
+      <p class="lede">Start free. Go deeper only if it fits.</p>
+      <ol class="steps">
+        <li class="step">
+          <span class="step-n" aria-hidden="true">1</span>
+          <h3>The 3-min audit</h3>
+          <p class="step-price">Free</p>
+          <p>12 real trading moments. Your hijack, your stop rule and a 7-day reset.</p>
+          <a class="link" href="audit/?ref=site-how">Take the audit <span aria-hidden="true">→</span></a>
+        </li>
+        <li class="step step-hot">
+          <span class="step-n" aria-hidden="true">2</span>
+          <h3>Your Personal Reset</h3>
+          <p class="step-price"><span class="only-in">₹19,999</span><span class="only-intl">$247</span> <small>founding price</small></p>
+          <p>The video course built on your hijack, with a version of every exercise for your type.</p>
+          <a class="link" href="#reset">See what's inside <span aria-hidden="true">→</span></a>
+        </li>
+        <li class="step">
+          <span class="step-n" aria-hidden="true">3</span>
+          <h3>Elite Mentorship</h3>
+          <p class="step-price">By application</p>
+          <p>1:1 work on your hijack, with your own trades. A short form, then a call.</p>
+          <a class="link" href="#elite">How to apply <span aria-hidden="true">→</span></a>
+        </li>
+      </ol>
+      <p class="not-ready"><b>Not ready for the course?</b> Journal Pro monthly lets you log a trade in 20 seconds, tag the hijack and see what it cost you each week. <span class="badge">Coming soon</span></p>
+    </div>
+  </section>
+
+  <section class="reset" id="reset" aria-labelledby="reset-title">
+    <div class="wrap reset-grid">
+      <div class="reset-copy">
+        <p class="kicker">Your Personal Reset</p>
+        <h2 id="reset-title">The fix, built on your hijack.</h2>
+        <p class="lede">The video course that takes your audit result and turns it into rules you follow under pressure.</p>
+        <!-- The three "inside" points are drafts: replace them with the client's own. -->
+        <ul class="inside">
+          <li><b>12 video modules,</b> plus pre-course and post-course work: from the first second of the hijack to a rule set you trust.</li>
+          <li><b>A version of every exercise for your type,</b> so a Rusher and an Intellectualizer never get the same drill.</li>
+          <li><b>Journal Pro free</b> for 6 months for the founding 100, then 3 months, to catch the hijack between sessions.</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <span class="badge badge-hot">Founding 100</span>
+        <p class="price"><span class="only-in">₹19,999</span><span class="only-intl">$247</span></p>
+        <p class="price-std">then <span class="only-in">₹24,999</span><span class="only-intl">$297</span> standard</p>
+        <p class="price-pay"><span class="only-in">Pay in ₹ with UPI, cards or net banking</span><span class="only-intl">Priced in USD</span></p>
+        <a class="btn btn-block" href="audit/?ref=site-reset">Start with the audit <span class="arr" aria-hidden="true">→</span></a>
+        <p class="fine">Founding seats go to the audit list first. Checkout opens soon.</p>
+        <button type="button" class="link region-switch" data-region-toggle><span class="only-in">Show prices in $</span><span class="only-intl">Show prices in ₹</span></button>
+        <aside class="leo-inline leo-on-paper" data-leo aria-label="A note from Leo"><p>I wish this had existed in my first year.</p><span class="sig">Leo</span></aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="elite" id="elite" aria-labelledby="elite-title">
+    <div class="wrap">
+      <div class="elite-in">
+        <div>
+          <p class="kicker">Elite Mentorship</p>
+          <h2 id="elite-title">Work on your hijack, one to one.</h2>
+          <p class="lede">By application only. A short form, then a call. If it's not a fit, we'll say so.</p>
+        </div>
+        <button type="button" class="btn" data-apply>Apply for Elite <span class="arr" aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap faq-in">
+      <div>
+        <h2 id="faq-title">Straight answers.</h2>
+        <aside class="leo-inline" data-leo aria-label="A note from Leo"><p>Still unsure? Comment AUDIT on any of our reels and I'll send you the link.</p><span class="sig">Leo</span></aside>
+      </div>
+      <!-- Draft questions: replace with the four questions people ask most in DMs. -->
+      <div class="faq-list">
+        <details><summary>Is the audit really free?</summary><p>Yes. Twelve questions, about three minutes. Your answers stay on your phone. If you want your full result and the 7-day reset by email, we keep your email and your result, nothing else.</p></details>
+        <details><summary>Do you give signals or trade calls?</summary><p>No. You probably have a strategy already. This is about the person running it: what takes over after a loss, and the rule that stops it.</p></details>
+        <details><summary>I trade Indian F&amp;O or a prop-firm challenge. Is this for me?</summary><p>Yes. The hijack is the same in both. Expiry days and daily drawdown limits are only where it shows up. Prices come in rupees for India and in dollars everywhere else.</p></details>
+        <details><summary>I bought The Trader Reset. Where are my lessons?</summary><p>Right where they were. Use Student login at the bottom of this page with the email you bought with. Your access hasn't changed.</p></details>
+        <details><summary>What does Elite cost?</summary><p>Elite is by application only. If the form looks like a fit, you get the full details on the call.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="start" aria-labelledby="final-title">
+    <div class="wrap final-in">
+      <img class="final-tilt" src="assets/characters/tilt-300.webp" alt="" width="300" height="473" loading="lazy">
+      <h2 id="final-title">Find your hijack in 3 minutes.</h2>
+      <a class="btn btn-lg" data-scare href="audit/?ref=site-final">Take the 3-min audit <span class="arr" aria-hidden="true">→</span></a>
+      <p class="fine">12 questions · about 3 minutes · free</p>
+      <aside class="leo-inline" data-leo aria-label="A note from Leo"><p>This is where I'd start.</p><span class="sig">Leo</span></aside>
+    </div>
+  </section>
+
+  <!-- Sections that go live once their real content exists (skeleton 05, 05b, 05c).
+       Kept inert here so nothing empty shows. -->
+  <template id="later-sections">
+    <section class="proof" id="method" aria-labelledby="method-title">
+      <!-- 05 Proof of process: method overview, risk rules framework, a sample Personal Reset page. No P&L. -->
+    </section>
+    <section class="stories" id="stories" aria-labelledby="stories-title">
+      <!-- 05b Student stories: real students, written consent, photo or 30 s video, a quote about what changed (no P&L), first name and city, hijack. -->
+    </section>
+    <section class="reviews" id="reviews" aria-labelledby="reviews-title">
+      <!-- 05c Reviews: live Trustpilot widget, unfiltered, with "Read all reviews on Trustpilot". -->
+    </section>
+  </template>
 </main>
 
 <dialog class="profile" id="profile" aria-labelledby="pf-title">
@@ -170,8 +293,76 @@
   </div>
 </dialog>
 
+<dialog class="profile apply" id="apply" aria-labelledby="apply-title">
+  <div class="pf-in">
+    <form class="apply-form" id="apply-form" novalidate>
+      <p class="pf-kicker">Elite Mentorship</p>
+      <h2 id="apply-title">Apply for Elite</h2>
+      <p class="pf-desc">Takes two minutes. We read every application. If it looks like a fit, you'll get a message to book a call.</p>
+      <div class="field-row">
+        <label>Your name<input name="name" autocomplete="name" required maxlength="80"></label>
+        <label>Email<input name="email" type="email" autocomplete="email" required maxlength="120"></label>
+      </div>
+      <div class="field-row">
+        <label>WhatsApp or phone (optional)<input name="phone" type="tel" autocomplete="tel" maxlength="30"></label>
+        <label>Where do you trade?
+          <select name="market">
+            <option>Indian markets (F&amp;O, stocks)</option>
+            <option>Prop-firm challenge or funded account</option>
+            <option>Own capital, international markets</option>
+            <option>Other</option>
+          </select>
+        </label>
+      </div>
+      <div class="field-row">
+        <label>How long have you traded?
+          <select name="experience">
+            <option>Less than a year</option>
+            <option>1 to 3 years</option>
+            <option>More than 3 years</option>
+          </select>
+        </label>
+        <label>Your audit result
+          <select name="hijack">
+            <option>Haven't taken it yet</option>
+            <option>Rusher</option>
+            <option>Performer</option>
+            <option>Competitor</option>
+            <option>Intellectualizer</option>
+            <option>Steady, or a blend</option>
+          </select>
+        </label>
+      </div>
+      <label>What keeps going wrong?<textarea name="problem" required maxlength="1500" placeholder="The pattern you keep repeating, in your own words"></textarea></label>
+      <label>Why now? (optional)<textarea name="why" maxlength="1000"></textarea></label>
+      <button class="btn btn-block" type="submit">Send application</button>
+      <p class="apply-msg" id="apply-msg" role="status"></p>
+    </form>
+    <button type="button" class="pf-x" data-close aria-label="Close">×</button>
+  </div>
+</dialog>
+
 <footer class="foot">
-  <div class="wrap"><p>Educational content · Trading involves risk</p></div>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="./" aria-label="Reset Traders home"><span class="mark"><img src="audit/img/mark.webp" alt="" width="160" height="182" loading="lazy"></span><span class="brand-name">Reset Traders</span></a>
+      <a class="foot-handle" href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">@resettraders</a>
+    </div>
+    <nav class="foot-col" aria-label="Start here">
+      <a href="audit/?ref=site-footer">Audit</a>
+      <a href="#elite" data-apply>Apply</a>
+      <a href="#how">How it works</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <nav class="foot-col" aria-label="Legal and account">
+      <a href="legal.html#terms">Terms</a>
+      <a href="legal.html#refunds">Refunds</a>
+      <a href="legal.html#privacy">Privacy</a>
+      <a href="index.html">Student login</a>
+    </nav>
+    <p class="risk">Educational content · Trading involves risk</p>
+    <p class="fine">Trading involves risk of loss. Education only, not personalized advice.</p>
+  </div>
 </footer>
 </body>
 </html>

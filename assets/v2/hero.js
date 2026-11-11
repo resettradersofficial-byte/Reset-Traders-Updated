@@ -7,7 +7,10 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const note = $('#leo-note');
 try {
   const forced = new URLSearchParams(location.search).has('leo');
-  if (localStorage.getItem('rt-leo-hero') && !forced) note.hidden = true;
+  if (localStorage.getItem('rt-leo-hero') && !forced) {
+    note.hidden = true;
+    document.querySelectorAll('[data-leo]').forEach((n) => { n.hidden = true; });
+  }
   else localStorage.setItem('rt-leo-hero', '1');
 } catch (_) { /* private mode: show it */ }
 $('#leo-x')?.addEventListener('click', () => { note.hidden = true; });
@@ -207,6 +210,67 @@ if (film) {
     }, { once: true });
   }
 }
+
+/* ---------- India / international prices ---------- */
+function setRegion(region) {
+  if (region !== 'in' && region !== 'intl') return;
+  document.documentElement.dataset.region = region;
+  try { localStorage.setItem('rt-region', region); } catch (_) { /* private mode */ }
+}
+document.querySelectorAll('[data-region-toggle]').forEach((b) => b.addEventListener('click', () => {
+  setRegion(document.documentElement.dataset.region === 'intl' ? 'in' : 'intl');
+}));
+
+/* ---------- Elite application ---------- */
+// To collect applications in a Google Sheet: make a Google Form with these questions, then paste
+// its ".../formResponse" URL and each question's "entry.123..." ID here. Until then it opens an email.
+const ELITE_FORM = {
+  action: '',
+  entries: { name: '', email: '', phone: '', market: '', experience: '', hijack: '', problem: '', why: '' }
+};
+const CONTACT_EMAIL = 'resettradersofficial@gmail.com';
+const applyDlg = $('#apply');
+const applyForm = $('#apply-form');
+const applyMsg = $('#apply-msg');
+function say(text, state) { applyMsg.textContent = text; applyMsg.dataset.state = state; }
+function openApply(e) {
+  if (e) e.preventDefault();
+  if (!applyDlg) return;
+  document.body.classList.add('modal-open');
+  applyDlg.showModal();
+}
+applyDlg?.addEventListener('close', () => document.body.classList.remove('modal-open'));
+applyDlg?.addEventListener('click', (e) => { if (e.target === applyDlg || e.target.closest('[data-close]')) applyDlg.close(); });
+document.querySelectorAll('[data-apply]').forEach((el) => el.addEventListener('click', openApply));
+if (location.hash === '#apply') openApply();
+applyForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {};
+  for (const [k, v] of new FormData(applyForm).entries()) data[k] = String(v || '').trim().slice(0, 2000);
+  if (!data.name || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email || '') || (data.problem || '').length < 10) {
+    say('Add your name, a valid email, and a line or two on what keeps going wrong.', 'error');
+    return;
+  }
+  const button = applyForm.querySelector('button[type="submit"]');
+  button.disabled = true;
+  if (ELITE_FORM.action && ELITE_FORM.entries.email) {
+    const body = new FormData();
+    Object.entries(ELITE_FORM.entries).forEach(([k, id]) => { if (id) body.append(id, data[k] || ''); });
+    try {
+      await fetch(ELITE_FORM.action, { method: 'POST', mode: 'no-cors', body });
+      applyForm.reset();
+      say("Application sent. We read every one. If it's a fit, you'll get a message to book a call.", 'ok');
+    } catch (_) {
+      say('That didn\'t go through. Email ' + CONTACT_EMAIL + ' instead.', 'error');
+    }
+    button.disabled = false;
+    return;
+  }
+  const lines = ['Name: ' + data.name, 'Email: ' + data.email, 'WhatsApp / phone: ' + (data.phone || '-'), 'Where I trade: ' + data.market, 'Experience: ' + data.experience, 'Audit result: ' + data.hijack, '', 'What keeps going wrong:', data.problem, '', 'Why now:', data.why || '-'];
+  window.location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('Elite application: ' + data.name) + '&body=' + encodeURIComponent(lines.join('\n'));
+  say("Your email app should open with the application filled in. Send it and you're done.", 'ok');
+  button.disabled = false;
+});
 
 /* ---------- 3D Tilt: only where it will run well ---------- */
 const conn = navigator.connection;
