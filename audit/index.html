@@ -29,17 +29,21 @@
    The progress bar is your trading session: every answer prints a candle. */
 :root {
   color-scheme: dark;
-  --night: #0a0c1c;
-  --panel: #131834;
-  --panel-2: #1a2146;
-  --line: #2a335f;
-  --text: #eef0f8;
-  --muted: #a1a9c8;
-  --paper: #efe6d3;
-  --paper-2: #e4d8bf;
-  --ink: #1d2347;
-  --brand: #FA5901;
-  --lamp: #ffb066;
+  --night: #0d0c10;
+  --panel: #18161d;
+  --panel-2: #211e28;
+  --line: #2e2a35;
+  --text: #f4f0ea;
+  --muted: #c4bfca;
+  --paper: #f4f0ea;
+  --paper-2: #e9e2d6;
+  --ink: #16141b;
+  --brand: #ff5544;       /* the hijack */
+  --hijack-soft: #ff8f80;
+  --cta: #9bbcff;         /* the way out: every button */
+  --on-cta: #0d0c10;
+  --logo: #e11d2a;
+  --lamp: #ffc857;        /* small watch-out markers only */
   --cold: #7fb2ff;
   --loss: #ff3b4e;
   --gain: #2fd27a;
@@ -55,19 +59,19 @@ body { margin: 0; background: var(--night); color: var(--text); font: 400 16px/1
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--night); }
 .sky { position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background:
-    radial-gradient(60% 40% at 18% 8%, rgba(255,176,102,0.10), transparent 70%),
+    radial-gradient(60% 40% at 18% 8%, rgba(255,85,68,0.09), transparent 70%),
     radial-gradient(55% 45% at 85% 20%, rgba(127,178,255,0.10), transparent 70%),
-    linear-gradient(180deg, #0c0f24 0%, var(--night) 55%); }
+    linear-gradient(180deg, #141218 0%, var(--night) 55%); }
 .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; min-height: 100%;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 96px;
   display: flex; flex-direction: column; gap: 22px; }
 button { font: inherit; color: inherit; cursor: pointer; }
-:focus-visible { outline: 3px solid var(--lamp); outline-offset: 3px; border-radius: 6px; }
+:focus-visible { outline: 3px solid var(--cta); outline-offset: 3px; border-radius: 6px; }
 
 /* top bar */
 .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
 .brand { display: flex; align-items: center; gap: 10px; font: 700 15px/1 var(--display); letter-spacing: 0.01em; }
-.brand img { width: 26px; height: auto; }
+.brand img { width: 30px; height: auto; padding: 6px 7px; border-radius: 8px; background: var(--logo); }
 .brand small { font: 500 13px/1 var(--body); color: var(--muted); }
 .session { display: flex; align-items: center; gap: 10px; }
 .session span { font: 500 12px/1 var(--body); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -86,7 +90,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   animation: slip-in 1.3s cubic-bezier(.2,.8,.2,1) .5s both; }
 .slip::after { content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px; border-radius: 50%; background: var(--brand); }
 @keyframes slip-in { from { transform: perspective(300px) rotateX(58deg) rotateZ(-6deg) translate(0, -70px); opacity: 0; } 20% { opacity: 1; } }
-.tap-hint { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; font: 400 15px/1 var(--hand); color: var(--lamp); animation: pulse 2.2s ease-in-out 2s infinite both; }
+.tap-hint { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; font: 400 15px/1 var(--hand); color: var(--text); animation: pulse 2.2s ease-in-out 2s infinite both; }
 @keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
 /* paper = Leo */
@@ -101,8 +105,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes unfold { from { transform: perspective(700px) rotateX(-75deg) scale(.6); opacity: 0; } }
 
 .lede { color: var(--muted); font-size: 15px; margin: 0; }
-.cta { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 28px; border: 0; border-radius: 999px; background: var(--brand); color: #fff;
-  font: 700 17px/1 var(--display); letter-spacing: 0.01em; box-shadow: 0 10px 30px rgba(250,89,1,0.35); }
+.cta { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 28px; border: 0; border-radius: 999px; background: var(--cta); color: var(--on-cta);
+  font: 700 17px/1 var(--display); letter-spacing: 0.01em; box-shadow: 0 10px 30px rgba(155,188,255,0.35); transition: transform .2s cubic-bezier(.2,.8,.2,1), background-color .2s; }
+.cta:hover { background: #b2cbff; transform: translateY(-1px); }
 .cta:active { transform: translateY(1px); }
 .ghost { background: none; border: 0; color: var(--muted); font: 500 14px/1 var(--body); padding: 10px 0; text-decoration: underline; text-underline-offset: 3px; }
 .stack { display: flex; flex-direction: column; gap: 14px; }
@@ -122,7 +127,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .opt { position: relative; width: 100%; display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; text-align: left; padding: 15px 16px;
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px; font: 500 16px/1.45 var(--body); color: var(--text); transition: background .15s, border-color .15s; }
 .opt:hover { background: var(--panel-2); border-color: #3a4580; }
-.opt .k { font: 700 21px/1 var(--hand); color: var(--lamp); padding-top: 1px; }
+.opt .k { font: 700 21px/1 var(--hand); color: var(--hijack-soft); padding-top: 1px; }
 .opt .loop { position: absolute; inset: -7px -6px; width: calc(100% + 12px); height: calc(100% + 14px); pointer-events: none; overflow: visible; }
 .opt .loop { opacity: 0; }
 .opt.picked .loop { opacity: 1; }
@@ -144,7 +149,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .res-head { display: flex; flex-direction: column; gap: 6px; }
 .res-kicker { font: 500 15px/1.3 var(--body); color: var(--muted); margin: 0; }
 .res-type { margin: 0; font: 900 64px/0.95 var(--display); letter-spacing: -0.02em; }
-.res-line { margin: 4px 0 0; font: 600 20px/1.35 var(--display); color: var(--lamp); text-wrap: balance; }
+.res-line { margin: 4px 0 0; font: 600 20px/1.35 var(--display); color: var(--brand); text-wrap: balance; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; }
 .panel h3, .locked h3 { margin: 0 0 10px; font: 700 17px/1.3 var(--display); }
 .mix svg { width: 100%; height: auto; display: block; }
@@ -154,18 +159,28 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .problem h3 { color: var(--brand); }
 .problem-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .problem-list li { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; font-size: 15px; line-height: 1.4; color: var(--text); }
-.problem-list b { font: 700 12px/1.4 var(--display); text-transform: uppercase; letter-spacing: .06em; color: var(--lamp); }
+.problem-list b { font: 700 12px/1.4 var(--display); text-transform: uppercase; letter-spacing: .06em; color: var(--hijack-soft); }
 .problem .fix-pointer { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
 .identity { display: flex; flex-direction: column; gap: 12px; }
-.id-face { position: relative; height: clamp(250px, 74vw, 340px); border-radius: var(--r-md); overflow: hidden; display: grid; place-items: end center; border: 1px solid var(--line); background: radial-gradient(60% 60% at 50% 80%, rgba(250, 89, 1, .26), transparent 70%), var(--panel); }
+.id-face { position: relative; height: clamp(250px, 74vw, 340px); border-radius: var(--r-md); overflow: hidden; display: grid; place-items: end center; border: 1px solid var(--line); background: radial-gradient(60% 60% at 50% 80%, rgba(255, 85, 68, .24), transparent 70%), var(--panel); }
 .id-face img { height: 100%; width: auto; max-width: 94%; object-fit: contain; object-position: bottom; }
 .id-face svg { height: 84%; width: auto; filter: drop-shadow(0 0 2px rgba(255, 59, 78, .6)); }
 .id-badge { position: absolute; top: 12px; left: 12px; padding: 5px 11px; border-radius: 999px; border: 1px dashed var(--line); background: rgba(10, 12, 28, .75); color: var(--text); font: 600 11px var(--display); letter-spacing: .12em; text-transform: uppercase; }
 .id-mirror p { margin: 0; }
 .id-mirror .who { font: 700 19px/1.3 var(--display); margin-bottom: 4px; }
 .id-mirror .note { color: var(--muted); font-size: 14px; }
-.id-mirror a { color: var(--lamp); font-weight: 600; font-size: 14px; }
+.id-mirror a { color: var(--cta); font-weight: 600; font-size: 14px; }
 .where-group + .where-group { margin-top: 14px; }
+.offer { border-color: rgba(155, 188, 255, .45); background: linear-gradient(180deg, rgba(155, 188, 255, .08), transparent 60%), var(--panel); }
+.offer-kicker { margin: 0 0 6px; font: 700 11.5px/1.4 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--cta); }
+.offer h3 { font-size: 22px; margin-bottom: 8px; }
+.offer-copy { margin: 0; color: var(--muted); font-size: 15px; }
+.offer-price { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 10px; }
+.offer-price .big { font: 800 40px/1 var(--display); letter-spacing: -.02em; }
+.offer-price .was { color: var(--muted); font-size: 14px; }
+.offer-list { margin: 0 0 14px; padding: 0 0 0 18px; display: grid; gap: 6px; font-size: 14.5px; }
+.offer-status { margin: 0 0 4px; padding: 10px 12px; border-radius: 12px; background: rgba(47, 210, 122, .1); border: 1px solid rgba(47, 210, 122, .35); font-size: 14px; }
+.offer .ghost { display: block; }
 .where-group h4 { margin: 0 0 8px; font: 700 12px/1.4 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .mirror { display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: center; }
 .mirror .face { width: 112px; height: 112px; border-radius: 14px; overflow: hidden; background: var(--panel-2); display: grid; place-items: center; }
@@ -173,7 +188,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .mirror p { margin: 0; }
 .mirror .who { font: 700 18px/1.3 var(--display); margin-bottom: 4px; }
 .mirror .note { color: var(--muted); font-size: 14px; }
-.mirror a { color: var(--lamp); font-weight: 600; font-size: 14px; }
+.mirror a { color: var(--cta); font-weight: 600; font-size: 14px; }
 .shows { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .shows li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; }
 .shows li::before { content: ""; width: 8px; height: 18px; margin-top: 3px; border-radius: 2px; background: var(--loss); box-shadow: 0 -5px 0 -2px var(--loss), 0 5px 0 -2px var(--loss); }
@@ -303,9 +318,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
       </div>
     </div>
 
-    <div class="panel next" id="next" hidden>
-      <h3>What's next</h3>
-      <p>Reset Yourself is our 21-day course built on this exact framework, with a version of every exercise for your type. Profile holders hear first when the founding cohort opens.</p>
+    <div class="panel next offer" id="next" hidden>
+      <p class="offer-kicker">Your Personal Reset · founding 100</p>
+      <h3>The fix, built on your result</h3>
+      <p class="offer-copy">Your Personal Reset is our video course built on this exact framework, with a version of every exercise for the <span id="offer-type">Rusher</span>.</p>
+      <div class="offer-price"><span class="big" id="offer-price">₹19,999</span><span class="was" id="offer-std">then ₹24,999</span></div>
+      <ul class="offer-list">
+        <li>Built around your hijack and your stop rule</li>
+        <li><b>Bonus:</b> Journal Pro free for 6 months for the founding 100, then 3 months</li>
+        <li id="offer-pay">Pay in ₹ with UPI, cards or net banking</li>
+      </ul>
+      <p class="offer-status">You're on the founding list. We'll email you first when seats open.</p>
+      <button class="ghost" id="offer-region" type="button">Show prices in $</button>
       <a class="ghost" href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">Follow @resettraders for the next Two Traders episode</a>
     </div>
 
@@ -456,7 +480,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
   const LOOP = 'M7,55 C4,20 38,5 70,8 C93,10 98,38 95,60 C91,88 55,97 27,91 C8,86 2,68 9,40';
   let cur = 0, ans = [], busy = false;
 
-  const show = id => ['intro', 'note', 'quiz', 'result'].forEach(s => $(s).hidden = s !== id);
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rise = (el, i = 0, d = 340) => {
+    if (!calm && el && el.animate) el.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: d, delay: i * 55, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+  };
+  const show = id => {
+    ['intro', 'note', 'quiz', 'result'].forEach(s => $(s).hidden = s !== id);
+    if (id === 'result') [...$('result').children].slice(0, 6).forEach((el, i) => rise(el, i, 420));
+    else rise($(id));
+  };
   const tilt = $('tilt');
   function tiltState() {}
   function drawCandles() {
@@ -481,6 +513,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     $('qtext').textContent = q.text;
     $('qask').textContent = q.ask; $('qask').hidden = !q.ask;
     $('opts').innerHTML = q.opts.map((o, i) => `<li><button class="opt${ans[cur] === i ? ' picked' : ''}" type="button" data-i="${i}"><span class="k">${LETTERS[i]}</span><span>${o.a}</span><svg class="loop" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${LOOP}"/></svg></button></li>`).join('');
+    rise($('qtext'), 0, 280); [...$('opts').children].forEach((li, i) => rise(li, i + 1, 280));
     $('back').style.visibility = cur === 0 ? 'hidden' : 'visible';
     drawCandles(); tiltState();
     const first = $('opts').querySelector('button'); if (first && document.activeElement && document.activeElement.classList.contains('opt')) first.focus({ preventScroll: true });
@@ -760,6 +793,28 @@ button { font: inherit; color: inherit; cursor: pointer; }
   }
   window.addEventListener('resize', () => { if (!$('result').hidden) fitHeadline($('r-type')); });
 
+  // ---------- Personal Reset offer (shown after unlock) ----------
+  const OFFER = {
+    in: { price: '₹19,999', std: 'then ₹24,999', pay: 'Pay in ₹ with UPI, cards or net banking', other: 'Show prices in $' },
+    intl: { price: '$247', std: 'then $297', pay: 'Priced in USD', other: 'Show prices in ₹' }
+  };
+  function offerRegion() {
+    try { const saved = localStorage.getItem('rt-region'); if (saved === 'in' || saved === 'intl') return saved; } catch (_) {}
+    return /Calcutta|Kolkata/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '') ? 'in' : 'intl';
+  }
+  function renderOffer(region) {
+    const r = region || offerRegion();
+    const o = OFFER[r];
+    $('offer-type').textContent = TYPES[P.ruleType || P.top].name;
+    $('offer-price').textContent = o.price; $('offer-std').textContent = o.std; $('offer-pay').textContent = o.pay;
+    $('offer-region').textContent = o.other; $('offer-region').dataset.region = r;
+  }
+  $('offer-region').addEventListener('click', () => {
+    const r = $('offer-region').dataset.region === 'in' ? 'intl' : 'in';
+    try { localStorage.setItem('rt-region', r); } catch (_) {}
+    renderOffer(r);
+  });
+
   // ---------- email gate ----------
   // Hook for the live site: set window.ResetAudit.onEmail = async (email, profile) => { ...save to Firebase / send email... }
   window.ResetAudit = window.ResetAudit || { onEmail: async () => true };
@@ -768,7 +823,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { $('err').textContent = 'Enter an email like name@gmail.com.'; return; }
     $('err').textContent = ''; $('unlock').textContent = 'Unlocking…';
     try { await window.ResetAudit.onEmail(v, { type: TYPES[P.top].name, pct: P.pct, body: P.body, nerve: P.nerve, stage: P.stage, rule: $('rule').textContent, level: P.level, root: TYPES[P.root].name, leads: P.leads.map(k => TYPES[k].name), patterns: P.patterns.slice() }); } catch (_) {}
-    $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; $('unlock').textContent = 'Unlock my full profile';
+    $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; renderOffer(); $('unlock').textContent = 'Unlock my full profile';
     saveToHash(true);
   });
   $('retake').addEventListener('click', () => { cur = 0; ans = []; show('note'); window.scrollTo(0, 0); });
@@ -778,30 +833,30 @@ button { font: inherit; color: inherit; cursor: pointer; }
   $('share').addEventListener('click', async () => {
     try { await Promise.all(['900 200px Poppins', '700 60px Poppins', '600 40px Inter', '700 60px Kalam'].map(f => document.fonts.load(f))); } catch (_) {}
     const T = TYPES[P.top], c = document.createElement('canvas'); c.width = 1080; c.height = 1920; const x = c.getContext('2d');
-    const g = x.createLinearGradient(0, 0, 0, 1920); g.addColorStop(0, '#0d1029'); g.addColorStop(1, '#0a0c1c'); x.fillStyle = g; x.fillRect(0, 0, 1080, 1920);
-    const rg = x.createRadialGradient(540, 760, 0, 540, 760, 760); rg.addColorStop(0, 'rgba(250,89,1,0.22)'); rg.addColorStop(1, 'rgba(250,89,1,0)'); x.fillStyle = rg; x.fillRect(0, 0, 1080, 1920);
+    const g = x.createLinearGradient(0, 0, 0, 1920); g.addColorStop(0, '#141218'); g.addColorStop(1, '#0d0c10'); x.fillStyle = g; x.fillRect(0, 0, 1080, 1920);
+    const rg = x.createRadialGradient(540, 760, 0, 540, 760, 760); rg.addColorStop(0, 'rgba(255,85,68,0.24)'); rg.addColorStop(1, 'rgba(255,85,68,0)'); x.fillStyle = rg; x.fillRect(0, 0, 1080, 1920);
     const [mark, tl] = await Promise.all([loadImg('img/mark.webp'), loadImg(P.okN >= 6 ? 'img/tilt_sad.webp' : 'img/tilt_grin.webp')]);
     if (mark) x.drawImage(mark, 470, 210, 140, 140 * mark.height / mark.width);
     const steady = P.level === 'steady', head = resultHeadline(P), big = head.big;
     const fit = (txt, weight, size, max) => { let s = size; x.font = `${weight} ${s}px Poppins, sans-serif`; while (x.measureText(txt).width > max && s > 20) { s -= 2; x.font = `${weight} ${s}px Poppins, sans-serif`; } };
-    x.textAlign = 'center'; x.fillStyle = '#a1a9c8'; x.font = '600 44px Inter, sans-serif';
+    x.textAlign = 'center'; x.fillStyle = '#c4bfca'; x.font = '600 44px Inter, sans-serif';
     const intro = steady ? 'My Reset Audit says I\'m' : P.shape === 'blend' ? 'My Reset Audit says I\'m a mix of' : P.shape === 'split' ? 'My Reset Audit says my hijacks are' : `My Reset Audit says I'm ${article(T.name)}`;
     x.fillText(intro, 540, 520);
     fit(big, 900, 200, 960); x.fillStyle = '#ffffff'; x.fillText(big, 540, 720);
     const sub = steady ? `Under pressure, I watch for the ${T.name}.` : head.line;
-    fit(sub, 700, 50, 980); x.fillStyle = '#ffb066'; x.fillText(sub, 540, 820);
-    x.fillStyle = '#a1a9c8'; x.font = '600 34px Inter, sans-serif'; x.fillText('My 8 trading moments', 540, 1000);
+    fit(sub, 700, 50, 980); x.fillStyle = '#ff5544'; x.fillText(sub, 540, 820);
+    x.fillStyle = '#c4bfca'; x.font = '600 34px Inter, sans-serif'; x.fillText('My 8 trading moments', 540, 1000);
     const keys = ['OK', ...ORDER], base = 1400, CX = [150, 345, 540, 735, 930];
     x.strokeStyle = '#2a335f'; x.lineWidth = 3; x.beginPath(); x.moveTo(70, base); x.lineTo(1010, base); x.stroke();
     keys.forEach((k, i) => { const cx = CX[i], v = k === 'OK' ? Math.round(P.okN / MOMENTS * 100) : P.pct[k], bh = Math.max(10, v * 2.8), y = base - bh;
       const hot = k === 'OK' ? steady : (P.leads.includes(k) && !steady);
-      x.globalAlpha = hot || k === 'OK' ? 1 : 0.5; x.fillStyle = k === 'OK' ? '#2fd27a' : (hot ? '#FA5901' : '#ff3b4e');
+      x.globalAlpha = hot || k === 'OK' ? 1 : 0.5; x.fillStyle = k === 'OK' ? '#2fd27a' : '#ff5544';
       x.beginPath(); x.roundRect ? x.roundRect(cx - 45, y, 90, bh, 8) : x.rect(cx - 45, y, 90, bh); x.fill(); x.globalAlpha = 1;
       x.fillStyle = '#fff'; x.font = '800 46px Poppins, sans-serif'; x.fillText(v + '%', cx, y - 24);
       x.fillStyle = hot ? '#fff' : '#a1a9c8'; x.font = '600 26px Inter, sans-serif'; x.fillText(k === 'OK' ? 'Reset' : TYPES[k].name, cx, base + 50); });
     if (tl) { const tw = 380, th = tw * tl.height / tl.width; x.drawImage(tl, 1080 - tw - 40, 1920 - th - (P.okN >= 6 ? 60 : 0), tw, th); }
-    x.textAlign = 'left'; x.fillStyle = '#efe6d3'; x.font = '700 54px Kalam, cursive'; x.fillText('What\'s yours?', 110, 1600);
-    x.fillStyle = '#ffffff'; x.font = '600 40px Inter, sans-serif'; x.fillText('Take the Reset Audit', 110, 1680); x.fillStyle = '#FA5901'; x.font = '800 48px Poppins, sans-serif'; x.fillText('@resettraders', 110, 1760);
+    x.textAlign = 'left'; x.fillStyle = '#f4f0ea'; x.font = '700 54px Kalam, cursive'; x.fillText('What\'s yours?', 110, 1600);
+    x.fillStyle = '#ffffff'; x.font = '600 40px Inter, sans-serif'; x.fillText('Take the Reset Audit', 110, 1680); x.fillStyle = '#9bbcff'; x.font = '800 48px Poppins, sans-serif'; x.fillText('@resettraders', 110, 1760);
     await showCard(c, big);
   });
   $('close-modal').addEventListener('click', () => $('modal').hidden = true);
@@ -853,7 +908,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const a = r.split('').map(Number);
     if (a.some((v, i) => v >= Q[i].opts.length)) return;
     ans = a; cur = Q.length - 1; finish();
-    if (h.get('u') === '1') { $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; }
+    if (h.get('u') === '1') { $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; renderOffer(); }
     saveToHash(h.get('u') === '1');
   }
   $('retake').addEventListener('click', clearHash);
