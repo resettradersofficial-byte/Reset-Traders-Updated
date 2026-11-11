@@ -176,6 +176,38 @@ document.querySelectorAll('[data-hijack]').forEach((el) => {
 const meet = location.hash.match(/^#meet-([a-z]+)$/);
 if (meet && PROFILES[meet[1]]) openProfile(meet[1]);
 
+/* ---------- Intro film: poster first, plays only on tap, captions on ---------- */
+// When the film exists: src = 'assets/video/intro.mp4', captions = 'assets/video/intro.vtt',
+// length = '1:30', shape = 'wide' (16:9) or 'tall' (a 9:16 reel).
+const INTRO = { src: '', captions: '', length: '1:30', shape: 'wide' };
+const film = $('#film');
+if (film) {
+  if (INTRO.shape === 'tall') film.dataset.shape = 'tall';
+  if (INTRO.src) {
+    film.dataset.state = 'ready';
+    $('#film-soon').hidden = true;
+    $('#film-play').hidden = false;
+    $('#film-time').textContent = INTRO.length;
+    $('#film-play').addEventListener('click', () => {
+      const video = document.createElement('video');
+      video.src = INTRO.src;
+      video.controls = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.setAttribute('controlslist', 'nodownload');
+      if (INTRO.captions) {
+        const track = document.createElement('track');
+        Object.assign(track, { kind: 'captions', srclang: 'en', label: 'English', src: INTRO.captions, default: true });
+        video.appendChild(track);
+      }
+      film.appendChild(video);
+      film.dataset.state = 'playing';
+      video.play().catch(() => { /* the visitor can press play on the controls */ });
+      video.focus();
+    }, { once: true });
+  }
+}
+
 /* ---------- 3D Tilt: only where it will run well ---------- */
 const conn = navigator.connection;
 const saveData = Boolean(conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || '')));

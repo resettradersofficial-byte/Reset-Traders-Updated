@@ -87,6 +87,32 @@
     </div>
   </section>
 
+  <section class="intro" id="intro" aria-labelledby="intro-title">
+    <div class="wrap">
+      <div class="intro-head">
+        <h2 id="intro-title">Meet Tilt, the voice after a loss.</h2>
+        <p class="lede">Ninety seconds on who he is, and the moment he takes over a trade.</p>
+      </div>
+      <!-- Intro film slot: put the file at assets/video/intro.mp4 (and captions at assets/video/intro.vtt),
+           then set INTRO.src in assets/v2/hero.js. Until then the poster says it is coming. -->
+      <div class="film" id="film" data-state="soon">
+        <div class="film-poster" aria-hidden="true">
+          <img src="assets/characters/tilt.webp" srcset="assets/characters/tilt-300.webp 300w, assets/characters/tilt.webp 571w" sizes="(min-width: 900px) 340px, 50vw" alt="" width="571" height="900" loading="lazy">
+          <span class="film-title">Two Traders · The hijack</span>
+        </div>
+        <button type="button" class="film-play" id="film-play" hidden aria-label="Play the intro film (90 seconds, with captions)">
+          <span class="film-play-icon" aria-hidden="true"></span>
+          <span class="film-time" id="film-time">1:30</span>
+        </button>
+        <div class="film-soon" id="film-soon">
+          <span class="badge">Film coming soon</span>
+          <p>The intro film is in the edit. <a class="link" href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">Follow @resettraders</a> to see it first.</p>
+        </div>
+      </div>
+      <div class="intro-cta"><a class="btn" data-scare href="audit/?ref=site-intro">Take the 3-min audit <span class="arr" aria-hidden="true">→</span></a></div>
+    </div>
+  </section>
+
   <section class="hijacks" id="hijacks" aria-labelledby="hj-title">
     <div class="wrap">
       <div class="hj-head">
