@@ -321,7 +321,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <div class="panel next offer" id="next" hidden>
       <p class="offer-kicker">Your Personal Reset · founding 100</p>
       <h3>The fix, built on your result</h3>
-      <p class="offer-copy">Your Personal Reset is our video course built on this exact framework. Everyone learns the same core drills. As <span id="offer-type">a Rusher</span>, you start with the lessons and the counter for your hijack.</p>
+      <p class="offer-copy">Your Personal Reset is our video course built on this exact framework, with drills made to counter the <span id="offer-type">Rusher</span> in you.</p>
       <div class="offer-price"><span class="big" id="offer-price">₹19,999</span><span class="was" id="offer-std">then ₹24,999</span></div>
       <ul class="offer-list">
         <li>Built around your hijack and your stop rule</li>
@@ -805,8 +805,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   function renderOffer(region) {
     const r = region || offerRegion();
     const o = OFFER[r];
-    const offerName = TYPES[P.ruleType || P.top].name;
-    $('offer-type').textContent = `${article(offerName)} ${offerName}`;
+    $('offer-type').textContent = TYPES[P.ruleType || P.top].name;
     $('offer-price').textContent = o.price; $('offer-std').textContent = o.std; $('offer-pay').textContent = o.pay;
     $('offer-region').textContent = o.other; $('offer-region').dataset.region = r;
   }
