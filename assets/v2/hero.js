@@ -28,7 +28,7 @@ function scare(on) {
   scared = Math.max(0, scared + (on ? 1 : -1));
   const isScared = scared > 0;
   bubble.classList.toggle('alarm', isScared);
-  bubbleText.textContent = isScared ? LINES.fear : LINES.idle;
+  bubbleText.textContent = isScared ? LINES.fear : (whisper >= 0 ? WHISPERS[whisper][1] : LINES.idle);
   tilt3d?.flinch(isScared);
 }
 document.querySelectorAll('[data-scare]').forEach((el) => {
@@ -38,11 +38,41 @@ document.querySelectorAll('[data-scare]').forEach((el) => {
   el.addEventListener('blur', () => scare(false));
 });
 
+/* ---------- Tap Tilt: he whispers each hijack's urge, and that hijack lights up ---------- */
+// Works the same with a mouse, a finger or the keyboard, so phones get a reaction too.
+const WHISPERS = [
+  ['rusher', "Quick, get back in. You're missing it."],
+  ['performer', 'Post the win. Let them see it.'],
+  ['competitor', 'They made more than you. Size up.'],
+  ['intellectualizer', 'Check one more timeframe first.']
+];
+let whisper = -1;
+let callTimer = 0;
+const tiltEl = $('#tilt');
+function whisperNext() {
+  if (scared) return;
+  whisper = (whisper + 1) % WHISPERS.length;
+  const [kind, line] = WHISPERS[whisper];
+  bubbleText.textContent = line;
+  document.querySelectorAll('.sil').forEach((s) => s.classList.toggle('called', s.dataset.hijack === kind));
+  tilt3d?.hop();
+  $('#tap-hint')?.remove();
+  clearTimeout(callTimer);
+  callTimer = setTimeout(() => document.querySelectorAll('.sil.called').forEach((s) => s.classList.remove('called')), 2200);
+}
+tiltEl.addEventListener('click', whisperNext);
+tiltEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); whisperNext(); }
+});
+
 /* ---------- Entrance and scroll (GSAP) ---------- */
 function motion() {
   const { gsap, ScrollTrigger } = window;
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
+  // Phones: ignore the address bar showing and hiding, and follow the finger more closely.
+  ScrollTrigger.config({ ignoreMobileResize: true });
+  const touch = matchMedia('(pointer: coarse)').matches;
   const mm = gsap.matchMedia();
   mm.add('(prefers-reduced-motion: no-preference)', () => {
     gsap.timeline({ defaults: { ease: 'power3.out' } })
@@ -53,7 +83,7 @@ function motion() {
       .from('#leo-note', { y: 18, rotation: -9, opacity: 0, duration: 0.6 }, 1.45);
 
     // As the hero scrolls away, the four hijacks step out from behind Tilt.
-    const span = { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: 0.6 };
+    const span = { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: touch ? 0.3 : 0.6 };
     gsap.utils.toArray('.sil').forEach((el) => {
       const side = Number(el.dataset.side);
       const far = el.hasAttribute('data-far');

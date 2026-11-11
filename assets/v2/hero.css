@@ -74,7 +74,11 @@ h1 .line { display: block; }
 .s-performer { right: -5%; bottom: 5%; width: 38%; }
 .sil-name { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); white-space: nowrap; font: 600 11px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); opacity: 0; }
 
-.tilt { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; width: 50%; aspect-ratio: 571 / 900; max-height: 100%; z-index: 2; }
+.tilt { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; width: 50%; aspect-ratio: 571 / 900; max-height: 100%; z-index: 2; cursor: pointer; border-radius: 24px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; will-change: transform; }
+.sil { will-change: transform; touch-action: manipulation; }
+.sil.called img, .sil.called svg { filter: brightness(0) drop-shadow(0 0 2px rgba(255, 85, 68, 1)) drop-shadow(0 0 26px rgba(255, 85, 68, .55)); }
+.sil.called .sil-name { opacity: 1 !important; color: var(--hijack); }
+.btn, .link, .card-hit, .note-x, .pf-x { touch-action: manipulation; }
 .tilt::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -3%; height: 8%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .7), transparent); z-index: -1; }
 .tilt-poster { width: 100%; height: 100%; object-fit: contain; object-position: bottom; filter: drop-shadow(0 0 28px rgba(255, 72, 48, .45)); transition: opacity .7s var(--ease); }
 #tilt-gl { position: absolute; left: -40%; top: -20%; width: 180%; height: 124%; opacity: 0; pointer-events: none; transition: opacity .7s var(--ease); }
@@ -91,6 +95,8 @@ h1 .line { display: block; }
   transition: background-color .25s, color .25s;
 }
 .bubble.alarm { background: var(--hijack); border-color: var(--hijack); color: var(--bg); }
+.tap-hint { position: absolute; right: 9%; top: calc(14% + 66px); font: 400 16px/1 var(--hand); color: var(--muted); pointer-events: none; animation: tap-pulse 2.4s ease-in-out 2.2s infinite both; }
+@keyframes tap-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 .leo-note {
   position: absolute; left: 0; top: 6%; max-width: 200px; margin: 0;
   padding: 12px 40px 12px 14px; border-radius: 3px; transform: rotate(-3deg);
@@ -104,6 +110,8 @@ h1 .line { display: block; }
 .note-x:hover { color: var(--ink); }
 @media (max-width: 899px) {
   .tilt { width: 44%; }
+  .nav { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(13, 12, 16, .96); }
+  .tap-hint { right: 4%; top: calc(2% + 62px); font-size: 14px; }
   .bubble { right: 0; top: 2%; max-width: 150px; font-size: 12.5px; padding: 9px 11px; }
   .leo-note { max-width: 132px; font-size: 15px; padding: 9px 34px 9px 11px; }
   .note-x { width: 40px; height: 40px; }
@@ -175,3 +183,7 @@ dialog.profile::backdrop { background: rgba(5, 4, 8, .74); -webkit-backdrop-filt
   .pf-actions .btn { width: 100%; }
 }
 body.modal-open { overflow: hidden; }
+dialog.profile[open] .pf-in { animation: pf-rise .42s cubic-bezier(.2, .8, .2, 1) both; }
+dialog.profile[open]::backdrop { animation: pf-fade .3s ease both; }
+@keyframes pf-rise { from { opacity: 0; transform: translateY(28px) scale(.98); } }
+@keyframes pf-fade { from { opacity: 0; } }

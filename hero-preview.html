@@ -69,13 +69,14 @@
           </button>
         </div>
 
-        <div class="tilt" id="tilt">
+        <div class="tilt" id="tilt" role="button" tabindex="0" aria-label="Tap Tilt to hear what he whispers">
           <img class="tilt-poster" id="tilt-poster" src="assets/characters/tilt.webp" srcset="assets/characters/tilt-300.webp 300w, assets/characters/tilt.webp 571w" sizes="(min-width: 900px) 300px, 45vw" alt="Tilt, the hijack: a small fire imp with horns" width="571" height="900" fetchpriority="high">
           <canvas id="tilt-gl" aria-hidden="true"></canvas>
         </div>
 
         <div class="talk" id="talk">
-          <p class="bubble" id="bubble"><span id="bubble-text">Just one more trade. You'll win it back.</span></p>
+          <p class="bubble" id="bubble" aria-live="polite"><span id="bubble-text">Just one more trade. You'll win it back.</span></p>
+          <span class="tap-hint" id="tap-hint" aria-hidden="true">tap him</span>
           <aside class="leo-note" id="leo-note" aria-label="A note from Leo">
             <p>I used to hear him too.</p>
             <span class="sig">Leo</span>

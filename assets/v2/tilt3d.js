@@ -11,8 +11,10 @@ const easeOut = (t) => 1 - (1 - t) ** 3;
 
 export async function mountTilt({ canvas, box, reduce = false, url = 'assets/3d/tilt.glb' }) {
   const small = window.innerWidth < 700;
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.5 : 1.75));
+  // Phones: fewer pixels and no extra smoothing on sharp screens, so it stays fluid.
+  const dpr = window.devicePixelRatio || 1;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: dpr < 2, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(dpr, small ? 1.25 : 1.75));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -63,7 +65,7 @@ export async function mountTilt({ canvas, box, reduce = false, url = 'assets/3d/
   });
 
   // Embers rising from his flames.
-  const COUNT = small ? 40 : 90;
+  const COUNT = small ? 28 : 90;
   const seeds = new Float32Array(COUNT * 4);
   for (let i = 0; i < COUNT * 4; i++) seeds[i] = Math.random();
   const emberGeo = new THREE.BufferGeometry();
@@ -119,6 +121,7 @@ export async function mountTilt({ canvas, box, reduce = false, url = 'assets/3d/
   }, { passive: true });
 
   let afraid = false;
+  let hopAt = -1e9;
   const state = { lean: 0 };
   let visible = true;
   new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }).observe(box);
@@ -149,10 +152,13 @@ export async function mountTilt({ canvas, box, reduce = false, url = 'assets/3d/
       rig.rotation.y = look.x * 0.55 - state.lean * 0.25;
       rig.rotation.x = look.y * 0.16 - state.lean * 0.16;
       rig.rotation.z = Math.sin(t * 0.9) * 0.02 + (afraid ? Math.sin(t * 38) * 0.012 : 0);
-      rig.position.y = Math.sin(t * 1.6) * 0.03;
+      const hopT = (now - hopAt) / 480;
+      const hopK = hopT >= 0 && hopT < 1 ? Math.sin(hopT * Math.PI) : 0;
+      rig.position.y = Math.sin(t * 1.6) * 0.03 + hopK * 0.16;
       rig.position.z = -state.lean * 0.45;
       const breathe = 1 + Math.sin(t * 1.6) * 0.008;
       rig.scale.setScalar(breathe * lerp(1, 0.93, state.lean));
+      rig.scale.y *= 1 + hopK * 0.05;
     }
 
     renderer.render(scene, camera);
@@ -164,6 +170,10 @@ export async function mountTilt({ canvas, box, reduce = false, url = 'assets/3d/
   requestAnimationFrame(frame);
 
   return {
+    hop() {
+      hopAt = performance.now();
+      if (reduce) requestAnimationFrame(frame);
+    },
     flinch(on) {
       afraid = Boolean(on);
       if (reduce) requestAnimationFrame(frame);
