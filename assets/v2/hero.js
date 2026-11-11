@@ -116,16 +116,16 @@ const PROFILES = {
     img: 'assets/characters/kabir.webp', alt: 'Kabir, the Performer', model: 'assets/3d/kabir.glb'
   },
   competitor: {
-    kicker: 'Hijack 03', name: 'The Competitor', line: 'You keep score. Against the market, and everyone else.',
+    kicker: 'Hijack 03 · Arjun', name: 'The Competitor', line: 'You keep score. Against the market, and everyone else.',
     desc: 'After a loss you have to win it back, and it has to be now. You add size, switch instruments or open another account to prove a point. Someone else\'s payout can ruin your whole day.',
-    fear: 'Underneath it is fear of losing. A Competitor walks into Two Traders soon.',
-    img: 'assets/characters/competitor.webp', alt: 'The Competitor', model: 'assets/3d/competitor.glb'
+    fear: 'Underneath it is fear of losing. Arjun walks into Two Traders soon.',
+    img: 'assets/characters/competitor.webp', alt: 'Arjun, the Competitor', model: 'assets/3d/competitor.glb'
   },
   intellectualizer: {
-    kicker: 'Hijack 04', name: 'The Intellectualizer', line: 'You know everything. You execute nothing.',
+    kicker: 'Hijack 04 · Meera', name: 'The Intellectualizer', line: 'You know everything. You execute nothing.',
     desc: 'You check one more timeframe and miss the entry, then chase it. After every loss you re-backtest the whole strategy. You can explain your rules better than you follow them.',
-    fear: 'Underneath it is fear of being wrong. An Intellectualizer joins Two Traders soon.',
-    img: 'assets/characters/intellectualizer.webp', alt: 'The Intellectualizer', model: 'assets/3d/intellectualizer.glb'
+    fear: 'Underneath it is fear of being wrong. Meera joins Two Traders soon.',
+    img: 'assets/characters/intellectualizer.webp', alt: 'Meera, the Intellectualizer', model: 'assets/3d/intellectualizer.glb'
   }
 };
 const dlg = $('#profile');
