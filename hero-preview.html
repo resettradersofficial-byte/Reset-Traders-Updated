@@ -50,23 +50,23 @@
       </div>
 
       <div class="stage" id="stage">
-        <div class="back" aria-hidden="true">
-          <figure class="sil s-rusher" data-side="-1" data-far>
+        <div class="back">
+          <button type="button" class="sil s-rusher" data-side="-1" data-far data-hijack="rusher" aria-label="Meet the Rusher">
             <img src="assets/characters/rohan-300.webp" srcset="assets/characters/rohan-300.webp 300w, assets/characters/rohan.webp 618w" sizes="(min-width: 900px) 180px, 28vw" alt="" width="618" height="760">
-            <span class="sil-name">Rusher</span>
-          </figure>
-          <figure class="sil s-competitor" data-side="-1">
-            <svg viewBox="0 0 200 240"><path d="M100 20c-30 0-50 22-50 50 0 20 9 36 24 45-34 8-58 32-66 70h184c-8-38-32-62-66-70 15-9 24-25 24-45 0-28-20-50-50-50z"/><path d="M58 48l14-26 12 14 16-22 14 20 14-14 12 28z"/></svg>
-            <span class="sil-name">Competitor</span>
-          </figure>
-          <figure class="sil s-intel" data-side="1">
-            <svg viewBox="0 0 200 240"><path d="M104 18c-28 0-48 20-48 48 0 21 10 37 26 46-30 9-52 32-60 73h156c-8-41-30-64-60-73 16-9 26-25 26-46 0-28-14-48-40-48z"/><circle cx="104" cy="16" r="14"/></svg>
-            <span class="sil-name">Intellectualizer</span>
-          </figure>
-          <figure class="sil s-performer" data-side="1" data-far>
+            <span class="sil-name" aria-hidden="true">Rusher</span>
+          </button>
+          <button type="button" class="sil s-competitor" data-side="-1" data-hijack="competitor" aria-label="Meet the Competitor">
+            <svg viewBox="0 0 200 240" aria-hidden="true"><path d="M100 20c-30 0-50 22-50 50 0 20 9 36 24 45-34 8-58 32-66 70h184c-8-38-32-62-66-70 15-9 24-25 24-45 0-28-20-50-50-50z"/><path d="M58 48l14-26 12 14 16-22 14 20 14-14 12 28z"/></svg>
+            <span class="sil-name" aria-hidden="true">Competitor</span>
+          </button>
+          <button type="button" class="sil s-intel" data-side="1" data-hijack="intellectualizer" aria-label="Meet the Intellectualizer">
+            <svg viewBox="0 0 200 240" aria-hidden="true"><path d="M104 18c-28 0-48 20-48 48 0 21 10 37 26 46-30 9-52 32-60 73h156c-8-41-30-64-60-73 16-9 26-25 26-46 0-28-14-48-40-48z"/><circle cx="104" cy="16" r="14"/></svg>
+            <span class="sil-name" aria-hidden="true">Intellectualizer</span>
+          </button>
+          <button type="button" class="sil s-performer" data-side="1" data-far data-hijack="performer" aria-label="Meet the Performer">
             <img src="assets/characters/kabir-300.webp" alt="" width="300" height="305">
-            <span class="sil-name">Performer</span>
-          </figure>
+            <span class="sil-name" aria-hidden="true">Performer</span>
+          </button>
         </div>
 
         <div class="tilt" id="tilt">
@@ -96,22 +96,22 @@
       <div class="rail" tabindex="0" role="group" aria-label="The four hijacks">
         <article class="card on">
           <div class="pic"><img src="assets/characters/rohan-300.webp" srcset="assets/characters/rohan-300.webp 300w, assets/characters/rohan.webp 618w" sizes="(min-width: 900px) 260px, 70vw" alt="Rohan, the Rusher, staring at his screen" width="618" height="760" loading="lazy"></div>
-          <h3>The Rusher</h3>
+          <h3><button type="button" class="card-hit" data-hijack="rusher">The Rusher</button></h3>
           <p>You trade the clock, not the chart.</p>
         </article>
         <article class="card">
           <div class="pic soon"><img src="assets/characters/kabir-300.webp" alt="" width="300" height="305" loading="lazy"><span class="badge">Coming soon</span></div>
-          <h3>The Performer</h3>
+          <h3><button type="button" class="card-hit" data-hijack="performer">The Performer</button></h3>
           <p>You trade to be seen winning.</p>
         </article>
         <article class="card">
           <div class="pic soon"><svg viewBox="0 0 200 240" aria-hidden="true"><path d="M100 20c-30 0-50 22-50 50 0 20 9 36 24 45-34 8-58 32-66 70h184c-8-38-32-62-66-70 15-9 24-25 24-45 0-28-20-50-50-50z"/><path d="M58 48l14-26 12 14 16-22 14 20 14-14 12 28z"/></svg><span class="badge">Coming soon</span></div>
-          <h3>The Competitor</h3>
+          <h3><button type="button" class="card-hit" data-hijack="competitor">The Competitor</button></h3>
           <p>You keep score against everyone.</p>
         </article>
         <article class="card">
           <div class="pic soon"><svg viewBox="0 0 200 240" aria-hidden="true"><path d="M104 18c-28 0-48 20-48 48 0 21 10 37 26 46-30 9-52 32-60 73h156c-8-41-30-64-60-73 16-9 26-25 26-46 0-28-14-48-40-48z"/><circle cx="104" cy="16" r="14"/></svg><span class="badge">Coming soon</span></div>
-          <h3>The Intellectualizer</h3>
+          <h3><button type="button" class="card-hit" data-hijack="intellectualizer">The Intellectualizer</button></h3>
           <p>You know everything. You execute nothing.</p>
         </article>
       </div>
@@ -119,6 +119,29 @@
     </div>
   </section>
 </main>
+
+<dialog class="profile" id="profile" aria-labelledby="pf-title">
+  <div class="pf-in">
+    <div class="pf-visual" id="pf-visual">
+      <img id="pf-img" src="assets/characters/rohan.webp" alt="" width="618" height="760">
+      <canvas id="pf-gl" aria-label="Drag to turn the character"></canvas>
+      <span class="badge" id="pf-badge" hidden>Character coming soon</span>
+      <p class="pf-drag" id="pf-drag" hidden>Drag to turn him</p>
+    </div>
+    <div class="pf-text">
+      <p class="pf-kicker" id="pf-kicker">Hijack 01 · Rohan</p>
+      <h2 id="pf-title">The Rusher</h2>
+      <p class="pf-line" id="pf-line"></p>
+      <p class="pf-desc" id="pf-desc"></p>
+      <p class="pf-fear" id="pf-fear"></p>
+      <div class="pf-actions">
+        <a class="btn" data-scare href="audit/?ref=site-profile">Take the 3-min audit to find yours <span class="arr" aria-hidden="true">→</span></a>
+        <button type="button" class="link pf-close" data-close>Close</button>
+      </div>
+    </div>
+    <button type="button" class="pf-x" data-close aria-label="Close">×</button>
+  </div>
+</dialog>
 
 <footer class="foot">
   <div class="wrap"><p>Educational content · Trading involves risk</p></div>
