@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reset Traders · Trading psychology for Indian and prop-firm traders</title>
+<meta name="description" content="Your strategy isn't the problem. Your hijack is. Take the free 3-minute Reset Audit and find the urge that takes over after a loss.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d0c10">
+<link rel="icon" href="audit/img/mark.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/characters/tilt.webp" imagesrcset="assets/characters/tilt-300.webp 300w, assets/characters/tilt.webp 571w" imagesizes="(min-width: 900px) 300px, 45vw" fetchpriority="high">
+<link rel="stylesheet" href="assets/v2/tokens.css">
+<link rel="stylesheet" href="assets/v2/hero.css">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+<script type="module" src="assets/v2/hero.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="./" aria-label="Reset Traders home">
+      <span class="mark"><img src="audit/img/mark.webp" alt="" width="160" height="182"></span>
+      <span class="brand-name">Reset Traders</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections"><a href="#hijacks">Hijacks</a></nav>
+    <a class="btn btn-sm" data-scare href="audit/?ref=site-nav"><span class="long">Take the 3-min audit</span><span class="short">Take the audit</span></a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow" data-in>Trading psychology for Indian and prop-firm traders</p>
+        <h1 id="hero-title" data-in><span class="line">Your strategy isn't the problem.</span> <span class="line hot">Your hijack is.</span></h1>
+        <p class="sub" data-in>A hijack is the urge that takes the wheel in the ten seconds after a loss. The free audit names yours in 12 questions and gives you one rule to stop it.</p>
+        <div class="actions" data-in>
+          <a class="btn" id="cta" data-scare href="audit/?ref=site-hero">Take the 3-min audit <span class="arr" aria-hidden="true">→</span></a>
+          <a class="link" href="#hijacks">Meet the 4 hijacks <span aria-hidden="true">↓</span></a>
+        </div>
+        <p class="fact" data-in>12 questions · about 3 minutes · free</p>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="back" aria-hidden="true">
+          <figure class="sil s-rusher" data-side="-1" data-far>
+            <img src="assets/characters/rohan-300.webp" srcset="assets/characters/rohan-300.webp 300w, assets/characters/rohan.webp 618w" sizes="(min-width: 900px) 180px, 28vw" alt="" width="618" height="760">
+            <span class="sil-name">Rusher</span>
+          </figure>
+          <figure class="sil s-competitor" data-side="-1">
+            <svg viewBox="0 0 200 240"><path d="M100 20c-30 0-50 22-50 50 0 20 9 36 24 45-34 8-58 32-66 70h184c-8-38-32-62-66-70 15-9 24-25 24-45 0-28-20-50-50-50z"/><path d="M58 48l14-26 12 14 16-22 14 20 14-14 12 28z"/></svg>
+            <span class="sil-name">Competitor</span>
+          </figure>
+          <figure class="sil s-intel" data-side="1">
+            <svg viewBox="0 0 200 240"><path d="M104 18c-28 0-48 20-48 48 0 21 10 37 26 46-30 9-52 32-60 73h156c-8-41-30-64-60-73 16-9 26-25 26-46 0-28-14-48-40-48z"/><circle cx="104" cy="16" r="14"/></svg>
+            <span class="sil-name">Intellectualizer</span>
+          </figure>
+          <figure class="sil s-performer" data-side="1" data-far>
+            <img src="assets/characters/kabir-300.webp" alt="" width="300" height="305">
+            <span class="sil-name">Performer</span>
+          </figure>
+        </div>
+
+        <div class="tilt" id="tilt">
+          <img class="tilt-poster" id="tilt-poster" src="assets/characters/tilt.webp" srcset="assets/characters/tilt-300.webp 300w, assets/characters/tilt.webp 571w" sizes="(min-width: 900px) 300px, 45vw" alt="Tilt, the hijack: a small fire imp with horns" width="571" height="900" fetchpriority="high">
+          <canvas id="tilt-gl" aria-hidden="true"></canvas>
+        </div>
+
+        <div class="talk" id="talk">
+          <p class="bubble" id="bubble"><span id="bubble-text">Just one more trade. You'll win it back.</span></p>
+          <aside class="leo-note" id="leo-note" aria-label="A note from Leo">
+            <p>I used to hear him too.</p>
+            <span class="sig">Leo</span>
+            <button type="button" class="note-x" id="leo-x" aria-label="Close Leo's note">×</button>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hijacks" id="hijacks" aria-labelledby="hj-title">
+    <div class="wrap">
+      <div class="hj-head">
+        <h2 id="hj-title">Which one runs your trades?</h2>
+        <p class="hint" aria-hidden="true">← drag or scroll →</p>
+      </div>
+      <p class="lede">Four hijacks. Under pressure every trader runs one of them. Most never find out which.</p>
+      <div class="rail" tabindex="0" role="group" aria-label="The four hijacks">
+        <article class="card on">
+          <div class="pic"><img src="assets/characters/rohan-300.webp" srcset="assets/characters/rohan-300.webp 300w, assets/characters/rohan.webp 618w" sizes="(min-width: 900px) 260px, 70vw" alt="Rohan, the Rusher, staring at his screen" width="618" height="760" loading="lazy"></div>
+          <h3>The Rusher</h3>
+          <p>You trade the clock, not the chart.</p>
+        </article>
+        <article class="card">
+          <div class="pic soon"><img src="assets/characters/kabir-300.webp" alt="" width="300" height="305" loading="lazy"><span class="badge">Coming soon</span></div>
+          <h3>The Performer</h3>
+          <p>You trade to be seen winning.</p>
+        </article>
+        <article class="card">
+          <div class="pic soon"><svg viewBox="0 0 200 240" aria-hidden="true"><path d="M100 20c-30 0-50 22-50 50 0 20 9 36 24 45-34 8-58 32-66 70h184c-8-38-32-62-66-70 15-9 24-25 24-45 0-28-20-50-50-50z"/><path d="M58 48l14-26 12 14 16-22 14 20 14-14 12 28z"/></svg><span class="badge">Coming soon</span></div>
+          <h3>The Competitor</h3>
+          <p>You keep score against everyone.</p>
+        </article>
+        <article class="card">
+          <div class="pic soon"><svg viewBox="0 0 200 240" aria-hidden="true"><path d="M104 18c-28 0-48 20-48 48 0 21 10 37 26 46-30 9-52 32-60 73h156c-8-41-30-64-60-73 16-9 26-25 26-46 0-28-14-48-40-48z"/><circle cx="104" cy="16" r="14"/></svg><span class="badge">Coming soon</span></div>
+          <h3>The Intellectualizer</h3>
+          <p>You know everything. You execute nothing.</p>
+        </article>
+      </div>
+      <div class="hj-cta"><a class="btn" href="audit/?ref=site-hijacks">Find yours in 3 minutes <span class="arr" aria-hidden="true">→</span></a></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap"><p>Educational content · Trading involves risk</p></div>
+</footer>
+</body>
+</html>
