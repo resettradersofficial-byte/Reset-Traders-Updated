@@ -362,24 +362,24 @@ button { font: inherit; color: inherit; cursor: pointer; }
       shows: ['You enter before the candle closes, then tell yourself it was a read.', 'After a loss, your next trade comes faster than your first one did.', 'Sitting flat feels like money leaving.'],
       fear: 'Underneath it is fear of falling behind. Every minute without a trade feels like you\'re losing ground. I know, because I was a Rusher too.',
       mirror: { img: 'img/rohan.webp', big: 'img/rohan-big.webp', alt: 'Rohan', who: 'You trade like Rohan.', note: 'Same lean, same speed. His story starts in Two Traders, Episode 1.', ep: 'Watch Two Traders' },
-      breaker: 'set a 10-minute timer and cut my next position to half size',
+      breaker: 'take my hands off the mouse and do one box breath (4 in, hold 4, 4 out, hold 4)',
       drill: 'Trade only on a closed candle. If it closed one second ago, wait for the next one.' },
     P: { name: 'Performer', line: 'You trade to be seen winning.',
       shows: ['You size up when someone is watching, even if it\'s just your group chat.', 'A red day feels like a public failure, even when nobody knows.', 'Wins get screenshotted. Losses get deleted.'],
       fear: 'Underneath it is fear of being seen failing. The trade stops being about price and starts being about how it looks.',
-      mirror: { img: 'img/kabir.webp', big: 'img/kabir.webp', alt: 'Kabir', who: 'You trade like Kabir.', note: 'The payout screenshot everyone saw. The trade nobody did. Two Traders, Episode 8.', ep: 'Watch Two Traders' },
+      mirror: { img: 'img/kabir.webp', big: 'img/kabir-big.webp', alt: 'Kabir', who: 'You trade like Kabir.', note: 'The payout screenshot everyone saw. The trade nobody did. Two Traders, Episode 8.', ep: 'Watch Two Traders' },
       breaker: 'close the P&L view and write one line: did I follow my process?',
       drill: 'Log your red trades first, within 10 minutes, before anything else. And no posting results for 7 days.' },
     C: { name: 'Competitor', line: 'You keep score. Against the market, and everyone else.',
       shows: ['After a loss you have to win it back, and it has to be now.', 'You add size, switch instruments or open another account to prove a point.', 'Someone else\'s payout can ruin your whole day.'],
       fear: 'Underneath it is fear of losing, to the market or to anyone. Every red trade feels like being beaten, and you can\'t leave a fight you lost.',
-      mirror: { img: '', who: 'You haven\'t met your character yet.', note: 'A Competitor walks into Two Traders soon. You\'ll recognise him.', ep: 'Follow the series' },
+      mirror: { img: 'img/competitor.webp', big: 'img/competitor-big.webp', alt: 'The Competitor', who: 'You trade like the Competitor.', note: 'Checks everyone else\'s payout before the chart. Joins Two Traders soon.', ep: 'Follow the series' },
       breaker: 'lock my next trade to the same size or smaller and close every chat and leaderboard',
       drill: 'Size-after-loss rule: after any loss, your next trade is the same size or smaller. Write it on your monitor.' },
     I: { name: 'Intellectualizer', line: 'You know everything. You execute nothing.',
       shows: ['You check one more timeframe and miss the entry, then chase it.', 'After every loss you re-backtest the whole strategy.', 'You can explain your rules better than you follow them.'],
       fear: 'Underneath it is fear of being wrong. As long as you\'re still analysing, you can\'t be wrong yet.',
-      mirror: { img: '', who: 'You haven\'t met your character yet.', note: 'An Intellectualizer joins Two Traders soon. He has notes on everything.', ep: 'Follow the series' },
+      mirror: { img: 'img/intellectualizer.webp', big: 'img/intellectualizer-big.webp', alt: 'The Intellectualizer', who: 'You trade like the Intellectualizer.', note: 'A notebook full of tabs, and the entry already gone. Joins Two Traders soon.', ep: 'Follow the series' },
       breaker: 'allow myself three checks, then let my written plan decide',
       drill: 'Write your entry checklist on one card. Three checks maximum. When all three are yes, you execute.' }
   };
@@ -914,7 +914,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   $('retake').addEventListener('click', clearHash);
 
   // Warm the character pictures during the quiz so the result card never shows an empty frame.
-  ['img/leo.webp', 'img/rohan.webp', 'img/kabir.webp', 'img/tilt_grin.webp', 'img/tilt_sad.webp'].forEach(src => { const i = new Image(); i.src = src; });
+  ['img/leo.webp', 'img/rohan.webp', 'img/kabir.webp', 'img/competitor.webp', 'img/intellectualizer.webp', 'img/tilt_grin.webp', 'img/tilt_sad.webp'].forEach(src => { const i = new Image(); i.src = src; });
   window.__audit = { Q, setAns: a => { ans = a.slice(); cur = Q.length - 1; finish(); }, score: () => score() };
   restoreFromHash();
 })();

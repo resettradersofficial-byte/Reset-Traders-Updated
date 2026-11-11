@@ -19,7 +19,7 @@ const TYPES = {
   Rusher: {
     line: "You trade the clock, not the chart.",
     fear: "Underneath it is fear of falling behind. Every minute without a trade feels like you're losing ground. I know, because I was a Rusher too.",
-    breaker: "set a 10-minute timer and cut my next position to half size",
+    breaker: "take my hands off the mouse and do one box breath (4 in, hold 4, 4 out, hold 4)",
     drill: "Trade only on a closed candle. If it closed one second ago, wait for the next one."
   },
   Performer: {
