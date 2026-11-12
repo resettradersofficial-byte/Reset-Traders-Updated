@@ -184,6 +184,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* Pitch: one cost number, the film button, the founding price */
 .cost-kicker { color: var(--brand); }
 .cost-hero { margin: 4px 0 16px; }
+.cost-rows { display: grid; gap: 4px; }
+.cost-rows .cost-hero + .cost-hero { padding-top: 14px; border-top: 1px solid var(--line); }
 .cost-big { display: block; font: 900 clamp(44px, 13vw, 60px)/1 var(--display); letter-spacing: -.03em; color: var(--brand); text-shadow: 0 0 40px rgba(255, 85, 68, .3); }
 .cost-cap { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.4; }
 .deal { margin: 22px 0 12px; display: grid; gap: 6px; }
@@ -418,7 +420,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <!-- After unlock: what the hijack costs, and one button to the film. Nothing else. -->
     <div class="panel next offer" id="next" hidden>
       <p class="offer-kicker cost-kicker" id="cost-title">What the Rusher costs you</p>
-      <p class="cost-hero"><span class="cost-big" id="cost-big">₹2,00,000</span><span class="cost-cap" id="cost-cap">lost by the average Indian F&amp;O trader in three years · SEBI, 2024</span></p>
+      <div class="cost-rows" id="cost-rows"><p class="cost-hero"><span class="cost-big">₹2,00,000</span><span class="cost-cap">lost by the average Indian F&amp;O trader in three years · SEBI, 2024</span></p></div>
       <button class="cta film-open" id="film-open" type="button"><span class="film-open-play" aria-hidden="true"></span>Watch what Tilt costs you <small class="film-len" id="film-len">30 s</small></button>
     </div>
 
@@ -915,9 +917,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
     return /Calcutta|Kolkata/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '') ? 'in' : 'intl';
   }
   // One cost number on the page; the film carries the rest and the offer.
+  const PROP = ['78.7%', 'of failed prop-firm challenges broke the daily loss limit: one bad day · one firm’s own data'];
   const COST = {
-    in: ['₹2,00,000', 'lost by the average Indian F&O trader in three years · SEBI, 2024'],
-    intl: ['78.7%', 'of failed challenges at one prop firm broke the daily loss limit · the firm’s own data']
+    in: [['₹2,00,000', 'lost by the average Indian F&O trader in three years · SEBI, 2024'], PROP],
+    intl: [PROP]
   };
   const FILM = {
     in: { money: 'In India I took about ₹2 lakh per trader. On average.', moneySrc: '93% of F&O traders lost · SEBI, FY22–FY24', time: 'And years. Most of them keep feeding me.', lossK: 'What Tilt costs the average trader', loss: '₹2,00,000', ratio: 'About a tenth of what keeping him costs.' },
@@ -933,8 +936,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const k = P.ruleType || P.top, name = TYPES[k].name, n = P.hijackN, calmLevel = P.level === 'steady';
     $('cost-title').textContent = `What the ${name} costs you`;
     $('offer-title').textContent = `The way out of the ${name}`;
-    $('cost-big').textContent = COST[r][0];
-    $('cost-cap').textContent = COST[r][1];
+    $('cost-rows').innerHTML = COST[r].map(([big, cap]) => `<p class="cost-hero"><span class="cost-big">${esc(big)}</span><span class="cost-cap">${esc(cap)}</span></p>`).join('');
     $('offer-price').textContent = o.price; $('offer-std').textContent = o.was;
     $('offer-region').textContent = o.other; $('offer-region').dataset.region = r;
     const f = FILM[r];
