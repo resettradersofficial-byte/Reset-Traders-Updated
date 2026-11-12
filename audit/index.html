@@ -193,6 +193,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .deal-now { font: 800 40px/1 var(--display); letter-spacing: -.02em; }
 .deal-tag { padding: 4px 9px; border-radius: 999px; background: rgba(155, 188, 255, .16); color: var(--cta); font: 700 11px/1.2 var(--display); letter-spacing: .12em; text-transform: uppercase; }
 .offer-switch { font-size: 13px; }
+/* The film page */
+.pitch-back { align-self: flex-start; font-size: 14px; }
+.pf-sc.on .pf-shake { animation: pf-up .5s cubic-bezier(.2, .8, .2, 1) backwards, pf-shake .28s linear .5s 4; }
+@keyframes pf-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px) rotate(-2deg); } 75% { transform: translateX(6px) rotate(2deg); } }
+.pf-end { align-content: end; padding-bottom: 0; }
+.pf-end-leo { position: static !important; width: 46%; height: auto; }
+.pf-note-end { position: absolute; left: 6%; top: 12%; max-width: 60%; }
+.offer-pack { margin: 6px 0 0; padding: 0 0 0 18px; display: grid; gap: 6px; font-size: 15px; }
+#offer h3 { font-size: 22px; margin: 0 0 6px; }
 .film-open { width: 100%; margin: 14px 0 6px; padding: 0 18px; gap: 10px; white-space: nowrap; font: 700 15px/1.2 var(--display); }
 .film-len { padding: 3px 8px; border-radius: 999px; background: rgba(13, 12, 16, .14); font: 700 12px/1 var(--display); }
 .film-open-play { width: 0; height: 0; border-style: solid; border-width: 7px 0 7px 11px; border-color: transparent transparent transparent var(--on-cta); }
@@ -298,6 +307,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .kv { display: grid; gap: 14px; margin-top: 18px; }
 .kv h4 { margin: 0 0 2px; font: 700 15px/1.3 var(--display); }
 .kv p { margin: 0; font-size: 15px; line-height: 1.5; }
+.plan-title { margin: 0 0 12px; font: 800 24px/1.15 var(--display); letter-spacing: -.01em; color: var(--ink); }
+.week-wrap { margin-top: 8px; padding-top: 14px; border-top: 1px dashed rgba(22, 20, 27, .25); }
+.week-title { margin: 0; font: 800 21px/1.2 var(--display); color: var(--ink); }
+.week-sub { margin: 2px 0 10px; font: 400 16px/1.3 var(--hand); color: var(--brand); }
 .week { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; counter-reset: d; }
 .week li { counter-increment: d; display: grid; grid-template-columns: 52px 1fr; gap: 8px; font-size: 15px; line-height: 1.45; }
 .week li::before { content: "Day " counter(d); font: 700 15px/1.45 var(--hand); color: var(--brand); }
@@ -374,18 +387,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <div class="panel problem"><h3 id="problem-title">The problem</h3><ul class="problem-list" id="problem"></ul><p class="fix-pointer">The fix is your stop rule, below. The full breakdown comes by email when you unlock it.</p></div>
     <div class="panel mix"><h3>Your 8 trading moments</h3><svg id="mix" viewBox="0 0 360 210" role="img" aria-label="Share of your 8 trading moments: reset answers and each hijack"></svg><p id="mix-note"></p></div>
     <div class="panel" id="where-panel"><h3>Where it shows up</h3><div id="where"></div></div>
-    <div class="panel"><h3 id="shows-title">The evidence: your answers</h3><ul class="shows" id="shows"></ul></div>
     <div class="paper"><p class="hand" id="fear"></p><div class="sig"><img src="img/leo.webp" alt="">Leo</div></div>
     <div class="panel" style="position:relative"><img id="sess-tilt" src="img/tilt_grin.webp" alt="" style="position:absolute;right:12px;top:-34px;width:74px;height:auto"><h3 style="padding-right:80px">The session you just traded</h3><svg id="sess" viewBox="0 0 340 120" role="img" aria-label="Your answers as a trading session" style="width:100%;height:auto;display:block"></svg><p class="stage" id="ready" style="color:var(--muted);font-size:14px;margin:8px 0 0"></p><p class="stage" id="stage" style="margin-top:12px"></p></div>
 
     <div class="locked sealed" id="locked">
       <div class="paper content">
+        <h3 class="plan-title">Your Reset plan</h3>
         <p class="hand" style="font-size:17px;opacity:.8">Your stop rule</p>
         <p class="rule" id="rule"></p>
         <div class="kv">
           <div><h4>Your body's warning sign</h4><p id="body"></p></div>
           <div><h4>Your nervous system default</h4><p id="nerve"></p></div>
-          <div><h4>Your 7-day reset</h4><ol class="week" id="week"></ol></div>
+          <div class="week-wrap"><h3 class="week-title">Your 7-day reset</h3><p class="week-sub">One small job a day. Start tomorrow.</p><ol class="week" id="week"></ol></div>
         </div>
       </div>
       <div class="gate" id="gate">
@@ -402,42 +415,50 @@ button { font: inherit; color: inherit; cursor: pointer; }
       </div>
     </div>
 
-    <!-- The pitch, shown after unlock: one cost number, the film (which carries the detail and the offer),
-         and the founding price. Kept short on purpose. -->
+    <!-- After unlock: what the hijack costs, and one button to the film. Nothing else. -->
     <div class="panel next offer" id="next" hidden>
       <p class="offer-kicker cost-kicker" id="cost-title">What the Rusher costs you</p>
       <p class="cost-hero"><span class="cost-big" id="cost-big">₹2,00,000</span><span class="cost-cap" id="cost-cap">lost by the average Indian F&amp;O trader in three years · SEBI, 2024</span></p>
-      <button class="cta film-open" id="film-open" type="button" aria-controls="pitch-film" aria-expanded="false"><span class="film-open-play" aria-hidden="true"></span>Watch what Tilt costs you <small class="film-len" id="film-len">30 s</small></button>
-
-      <div class="pfilm" id="pitch-film" hidden>
-        <div class="pf-screen" id="pf-screen" data-state="idle" aria-hidden="true">
-          <div class="pf-sc" data-d="3.4"><img class="pf-tilt pf-mid" src="img/tilt_grin.webp" alt="" width="360" height="429"><p class="pf-say"><span data-t="intro"></span></p></div>
-          <div class="pf-sc" data-d="3.8"><img class="pf-char" id="pf-char" src="img/rohan-big.webp" alt="" width="553" height="680"><span class="pf-count" id="pf-count">8/8</span><p class="pf-say pf-say-r"><span data-t="moments"></span></p></div>
-          <div class="pf-sc" data-d="4.2"><img class="pf-tilt pf-left" src="img/tilt_grin.webp" alt="" width="360" height="429"><p class="pf-say pf-say-r"><span data-t="money"></span></p><p class="pf-chip" data-t="moneySrc"></p></div>
-          <div class="pf-sc" data-d="3.4"><img class="pf-tilt pf-left" src="img/tilt_whisper.webp" alt="" width="248" height="281"><p class="pf-say pf-say-r"><span data-t="time"></span></p></div>
-          <div class="pf-sc" data-d="3.8"><img class="pf-leo" src="img/leo-big.webp" alt="" width="547" height="680"><p class="pf-note"><span>I lost years to Tilt too. So I built the way out.</span><b class="sig">Leo</b></p></div>
-          <div class="pf-sc" data-d="4.4"><div class="pf-cards"><p class="pf-card"><b>Your Personal Reset</b><span data-t="course"></span></p><p class="pf-card"><b>Journal Pro</b><span>6 months free for the founding 100.</span></p></div><img class="pf-tilt pf-corner" src="img/tilt_whisper.webp" alt="" width="248" height="281"><p class="pf-say pf-say-top"><span>A journal? Now you'll write me down.</span></p></div>
-          <div class="pf-sc" data-d="3.6"><div class="pf-chips"><p class="pf-chip pf-chip-big">Same trader, same edge: 80% passed with a stop rule, 39% without.</p></div><p class="pf-note pf-note-low"><span>Built on research, not motivation.</span><b class="sig">Leo</b></p></div>
-          <div class="pf-sc pf-deal" data-d="5"><p class="pf-vs-k" data-t="lossK"></p><p class="pf-loss" data-t="loss"></p><p class="pf-vs-k pf-vs-fix">The fix · founding 100</p><p class="pf-price"><s data-t="was"></s> <b data-t="now"></b></p><p class="pf-vs-note" data-t="ratio"></p></div>
-          <div class="pf-sc" data-d="3"><img class="pf-tilt pf-mid pf-frozen" src="img/tilt_sad.webp" alt="" width="360" height="420"><p class="pf-say"><span>Founding 100 only. Maybe you'll miss it.</span></p></div>
-          <div class="pf-sc pf-end" data-d="0"><p class="pf-end-k">Your Personal Reset + Journal Pro</p><p class="pf-end-price"><s data-t="was"></s> <b data-t="now"></b></p><p class="pf-end-s">You're on the founding list. We'll email you first when seats open.</p></div>
-          <div class="pf-bar"><span id="pf-bar"></span></div>
-        </div>
-        <div class="pf-ctl">
-          <button type="button" class="ghost" id="pf-play">Pause</button>
-          <button type="button" class="ghost" id="pf-close">Close</button>
-        </div>
-        <ol class="sr-only" id="pf-words" aria-label="The film, in words"></ol>
-      </div>
-
-      <p class="deal"><span class="deal-name">Your Personal Reset + Journal Pro</span><span class="deal-row"><s class="deal-was" id="offer-std">₹24,999</s><span class="deal-now" id="offer-price">₹19,999</span><span class="deal-tag">Founding 100</span></span></p>
-      <p class="offer-status">You're on the founding list. We'll email you first when seats open.</p>
-      <button class="ghost offer-switch" id="offer-region" type="button">Show prices in $</button>
+      <button class="cta film-open" id="film-open" type="button"><span class="film-open-play" aria-hidden="true"></span>Watch what Tilt costs you <small class="film-len" id="film-len">30 s</small></button>
     </div>
 
     <div class="share-row">
       <button class="cta" id="share" type="button">Make my story card</button>
       <button class="ghost" id="retake" type="button">Retake the audit</button>
+    </div>
+  </section>
+
+  <!-- The next page: Tilt's film first, then the offer, which appears when the film ends. -->
+  <section id="pitch" class="stack" hidden aria-label="What Tilt costs you">
+    <button type="button" class="ghost pitch-back" id="pitch-back">← Back to my result</button>
+    <div class="pfilm" id="pitch-film">
+      <div class="pf-screen" id="pf-screen" data-state="idle" aria-hidden="true">
+        <div class="pf-sc pf-hook" data-d="3.2"><img class="pf-tilt pf-mid pf-shake" src="img/tilt_whisper.webp" alt="" width="248" height="281"><p class="pf-say"><span>Close this. The ending is bad for me.</span></p></div>
+        <div class="pf-sc" data-d="3.8"><img class="pf-char" id="pf-char" src="img/rohan-big.webp" alt="" width="553" height="680"><span class="pf-count" id="pf-count">8/8</span><p class="pf-say pf-say-r"><span data-t="moments"></span></p></div>
+        <div class="pf-sc" data-d="4.2"><img class="pf-tilt pf-left" src="img/tilt_grin.webp" alt="" width="360" height="429"><p class="pf-say pf-say-r"><span data-t="money"></span></p><p class="pf-chip" data-t="moneySrc"></p></div>
+        <div class="pf-sc" data-d="3.4"><img class="pf-tilt pf-left" src="img/tilt_whisper.webp" alt="" width="248" height="281"><p class="pf-say pf-say-r"><span data-t="time"></span></p></div>
+        <div class="pf-sc" data-d="3.8"><img class="pf-leo" src="img/leo-big.webp" alt="" width="547" height="680"><p class="pf-note"><span>I lost years to Tilt too. So I built the way out.</span><b class="sig">Leo</b></p></div>
+        <div class="pf-sc" data-d="4.4"><div class="pf-cards"><p class="pf-card"><b>Your Personal Reset</b><span data-t="course"></span></p><p class="pf-card"><b>Journal Pro</b><span>6 months free for the founding 100.</span></p></div><img class="pf-tilt pf-corner" src="img/tilt_whisper.webp" alt="" width="248" height="281"><p class="pf-say pf-say-top"><span>A journal? Now you'll write me down.</span></p></div>
+        <div class="pf-sc" data-d="3.6"><div class="pf-chips"><p class="pf-chip pf-chip-big">Same trader, same edge: 80% passed with a stop rule, 39% without.</p></div><p class="pf-note pf-note-low"><span>Built on research, not motivation.</span><b class="sig">Leo</b></p></div>
+        <div class="pf-sc pf-deal" data-d="5"><p class="pf-vs-k" data-t="lossK"></p><p class="pf-loss" data-t="loss"></p><p class="pf-vs-k pf-vs-fix">The fix · founding 100</p><p class="pf-price"><s data-t="was"></s> <b data-t="now"></b></p><p class="pf-vs-note" data-t="ratio"></p></div>
+        <div class="pf-sc" data-d="3"><img class="pf-tilt pf-mid pf-frozen" src="img/tilt_sad.webp" alt="" width="360" height="420"><p class="pf-say"><span>Founding 100 only. Maybe you'll miss it.</span></p></div>
+        <div class="pf-sc pf-end" data-d="0"><img class="pf-end-leo" src="img/leo.webp" alt="" width="289" height="360"><p class="pf-note pf-note-end"><span>Your way out is right below.</span><b class="sig">Leo</b></p></div>
+        <div class="pf-bar"><span id="pf-bar"></span></div>
+      </div>
+      <div class="pf-ctl"><button type="button" class="ghost" id="pf-play">Pause</button></div>
+      <ol class="sr-only" id="pf-words" aria-label="The film, in words"></ol>
+    </div>
+
+    <div class="panel offer" id="offer" hidden>
+      <p class="offer-kicker">Your Personal Reset · founding 100</p>
+      <h3 id="offer-title">The way out of the Rusher</h3>
+      <ul class="offer-pack">
+        <li><b>12 video modules</b> with drills made to counter your hijack</li>
+        <li><b>Journal Pro</b> free for 6 months for the founding 100</li>
+      </ul>
+      <p class="deal"><span class="deal-row"><s class="deal-was" id="offer-std">₹24,999</s><span class="deal-now" id="offer-price">₹19,999</span><span class="deal-tag">Founding 100</span></span></p>
+      <p class="offer-status">You're on the founding list. We'll email you first when seats open.</p>
+      <button class="ghost offer-switch" id="offer-region" type="button">Show prices in $</button>
     </div>
   </section>
 
@@ -587,7 +608,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (!calm && el && el.animate) el.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: d, delay: i * 55, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
   };
   const show = id => {
-    ['intro', 'note', 'quiz', 'result'].forEach(s => $(s).hidden = s !== id);
+    ['intro', 'note', 'quiz', 'result', 'pitch'].forEach(s => $(s).hidden = s !== id);
     if (id === 'result') [...$('result').children].slice(0, 6).forEach((el, i) => rise(el, i, 420));
     else rise($(id));
   };
@@ -861,17 +882,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
     $('id-face').innerHTML = big ? `<img src="${big}" alt="${esc(m.alt || '')}">` : `${SIL_SVG}<span class="id-badge">Character coming soon</span>`;
     $('mirror').innerHTML = `<p class="who">${m.who}</p><p class="note">${m.note}</p><a href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">${m.ep}</a>`;
     $('problem-title').textContent = steady ? 'Your risk' : 'The problem';
-    $('shows-title').textContent = steady && !P.picks.length ? 'What your answers show' : 'The evidence: your answers';
-    // "What your answers show": every hijack choice, quoted back with what that specific choice says.
-    const tag = p => Object.keys(p.o.w).map(k => TYPES[k].name).join(' + ');
-    const read = p => `<li><span><b>${esc(Q[p.qi].text)} · ${esc(tag(p))}</b>You chose “${esc(p.o.a)}” ${esc(READS[`${p.qi}:${p.oi}`] || '')}</span></li>`;
-    const rank = p => P.leads.some(k => p.o.w[k]) ? 0 : 1;
-    let items = [...P.picks].sort((a, b) => rank(a) - rank(b) || a.qi - b.qi).map(read);
-    if (steady) {
-      if (!P.picks.length) items.push(`<li class="ok"><span>You picked the reset answer in all 8 moments.</span></li>`);
-      WATCH[P.top].forEach(w => items.push(`<li class="watch"><span><b>Under pressure, watch for</b>${esc(w)}</span></li>`));
-    }
-    $('shows').innerHTML = items.join('');
     // The fear paragraph follows what actually stung (q9), not the behaviour type.
     $('fear').textContent = R.fear;
     $('stage').textContent = STAGE[P.stage];
@@ -922,6 +932,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const o = OFFER[r];
     const k = P.ruleType || P.top, name = TYPES[k].name, n = P.hijackN, calmLevel = P.level === 'steady';
     $('cost-title').textContent = `What the ${name} costs you`;
+    $('offer-title').textContent = `The way out of the ${name}`;
     $('cost-big').textContent = COST[r][0];
     $('cost-cap').textContent = COST[r][1];
     $('offer-price').textContent = o.price; $('offer-std').textContent = o.was;
@@ -929,7 +940,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const f = FILM[r];
     const T = {
       intro: `So you found me. The ${name}.`,
-      moments: calmLevel ? `Only ${n} of 8 moments. I'm patient.` : `You gave me ${n} of your 8 moments.`,
+      moments: calmLevel ? `Still here? Only ${n} of 8 moments. I'm patient.` : `Still here? You gave me ${n} of your 8 moments.`,
       money: f.money, moneySrc: f.moneySrc, time: f.time,
       course: `12 video modules. Drills made to counter the ${name}.`,
       lossK: f.lossK, loss: f.loss, ratio: f.ratio, was: o.was, now: o.price
@@ -948,12 +959,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
   // ---------- Pitch film: a clock moves through the scenes; CSS animates each one ----------
   const pf = (() => {
-    const wrap = $('pitch-film'), screen = $('pf-screen'), btn = $('pf-play'), openBtn = $('film-open');
+    const screen = $('pf-screen'), btn = $('pf-play'), openBtn = $('film-open');
     const scenes = [...screen.querySelectorAll('.pf-sc')];
     const ends = []; scenes.reduce((s, sc) => { const e = s + Number(sc.dataset.d || 0); ends.push(e); return e; }, 0);
     const total = ends[ends.length - 2];
     $('film-len').textContent = `${Math.round(total)} s`;
-    let t = 0, playing = false, last = 0, cur = -1, raf = 0;
+    let t = 0, playing = false, last = 0, cur = -1, raf = 0, onEnd = () => {};
     const set = state => { screen.dataset.state = state; btn.textContent = state === 'playing' ? 'Pause' : state === 'ended' ? 'Replay' : 'Play'; };
     const sceneAt = time => time >= total ? scenes.length - 1 : ends.findIndex(e => time < e);
     function render() {
@@ -964,19 +975,29 @@ button { font: inherit; color: inherit; cursor: pointer; }
     function tick(now) {
       if (!playing) return;
       t += (now - last) / 1000; last = now;
-      if (t >= total) { t = total; playing = false; render(); set('ended'); return; }
+      if (t >= total) { t = total; playing = false; render(); set('ended'); onEnd(); return; }
       render(); raf = requestAnimationFrame(tick);
     }
     function play() { if (t >= total) { t = 0; cur = -1; scenes.forEach(s => s.classList.remove('on')); void screen.offsetWidth; } playing = true; last = performance.now(); set('playing'); render(); raf = requestAnimationFrame(tick); }
     function pause() { playing = false; cancelAnimationFrame(raf); if (t < total) set('paused'); }
+    // The film opens on its own page. The offer appears when it ends (and stays visible on later visits).
+    const SEEN = 'rt-pitch-seen';
+    const offer = $('offer');
+    const seen = () => { try { return localStorage.getItem(SEEN) === '1'; } catch (_) { return false; } };
+    function revealOffer() {
+      if (!offer.hidden) return;
+      offer.hidden = false; rise(offer, 0, 520);
+      try { localStorage.setItem(SEEN, '1'); } catch (_) {}
+      setTimeout(() => offer.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' }), 350);
+    }
+    onEnd = revealOffer;
     openBtn.addEventListener('click', () => {
-      const opening = wrap.hidden;
-      wrap.hidden = !opening; openBtn.setAttribute('aria-expanded', String(opening));
-      if (opening) { t = 0; cur = -1; scenes.forEach(s => s.classList.remove('on')); play(); wrap.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' }); }
-      else pause();
+      show('pitch'); window.scrollTo(0, 0);
+      offer.hidden = !seen();
+      t = 0; cur = -1; scenes.forEach(sc => sc.classList.remove('on')); play();
     });
     btn.addEventListener('click', () => (playing ? pause() : play()));
-    $('pf-close').addEventListener('click', () => { pause(); wrap.hidden = true; openBtn.setAttribute('aria-expanded', 'false'); openBtn.focus(); });
+    $('pitch-back').addEventListener('click', () => { pause(); show('result'); $('next').scrollIntoView({ block: 'center' }); openBtn.focus({ preventScroll: true }); });
     if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { if (!e.isIntersecting && playing) pause(); }, { threshold: 0.25 }).observe(screen);
     const api = { seek(x) { pause(); t = x; render(); screen.classList.add('pf-static'); }, total };
     if (new URLSearchParams(location.search).has('debug')) window.__pfilm = api;
