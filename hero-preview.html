@@ -142,6 +142,86 @@
     </div>
   </section>
 
+  <!-- Tilt's side of the story: a 30-second motion comic built from the cast stills, played by hero.js.
+       Without JS the end card shows; with reduced motion it waits for Play and only fades. -->
+  <section class="story" id="story" aria-labelledby="story-title">
+    <div class="wrap">
+      <p class="kicker">Tilt's side of the story</p>
+      <h2 id="story-title">Tilt would like a word.</h2>
+      <div class="screen" id="screen" data-state="idle">
+        <div class="sc sc-1" data-hold="1.5">
+          <img class="fig fig-tilt fig-thaw" src="assets/characters/tilt-300.webp" srcset="assets/characters/tilt-300.webp 300w, assets/characters/tilt.webp 571w" sizes="(min-width: 900px) 260px, 34vw" alt="" width="571" height="900" loading="lazy">
+          <p class="say say-tilt"><span>Fine. You paused me. Enjoy it.</span></p>
+        </div>
+        <div class="sc sc-2" data-hold="1.5">
+          <img class="fig fig-big" src="assets/characters/tilt_grin.webp" alt="" width="360" height="429" loading="lazy">
+          <p class="say say-tilt"><span>Before that breath, I ran every trade.</span></p>
+        </div>
+        <div class="sc sc-cast" data-hold="1.3">
+          <img class="fig fig-cast" src="assets/characters/rohan.webp" alt="" width="618" height="760" loading="lazy">
+          <img class="fig fig-imp" src="assets/characters/tilt_whisper.webp" alt="" width="248" height="281" loading="lazy">
+          <span class="tag">Rohan · the Rusher</span>
+          <p class="say say-tilt"><span>Rohan lost three. I said one more.</span></p>
+        </div>
+        <div class="sc sc-cast" data-hold="1.3">
+          <img class="fig fig-cast" src="assets/characters/kabir.webp" alt="" width="685" height="760" loading="lazy">
+          <img class="fig fig-imp" src="assets/characters/tilt_whisper.webp" alt="" width="248" height="281" loading="lazy">
+          <span class="tag">Kabir · the Performer</span>
+          <p class="say say-tilt"><span>Kabir won. I said post it, then size up.</span></p>
+        </div>
+        <div class="sc sc-cast" data-hold="1.3">
+          <img class="fig fig-cast" src="assets/characters/competitor.webp" alt="" width="783" height="760" loading="lazy">
+          <img class="fig fig-imp" src="assets/characters/tilt_whisper.webp" alt="" width="248" height="281" loading="lazy">
+          <span class="tag">Arjun · the Competitor</span>
+          <p class="say say-tilt"><span>Arjun saw a bigger payout. I said double.</span></p>
+        </div>
+        <div class="sc sc-cast" data-hold="1.3">
+          <img class="fig fig-cast" src="assets/characters/intellectualizer.webp" alt="" width="605" height="760" loading="lazy">
+          <img class="fig fig-imp" src="assets/characters/tilt_whisper.webp" alt="" width="248" height="281" loading="lazy">
+          <span class="tag">Meera · the Intellectualizer</span>
+          <p class="say say-tilt"><span>Meera had a plan. I said check one more timeframe.</span></p>
+        </div>
+        <div class="sc sc-ten" data-hold="1.3">
+          <span class="ten-big" aria-hidden="true">10</span>
+          <p class="say say-tilt"><span>Ten seconds after a loss. That's all I ever needed.</span></p>
+        </div>
+        <div class="sc sc-leo" data-hold="1.8">
+          <img class="fig fig-leo" src="assets/characters/leo-big.webp" alt="" width="547" height="680" loading="lazy">
+          <img class="fig fig-imp fig-imp-left" src="assets/characters/tilt.webp" alt="" width="571" height="900" loading="lazy">
+          <p class="say say-tilt"><span>Then this one figured me out.</span></p>
+          <p class="say say-leo"><span>Hands off the mouse. One box breath.</span><span class="sig">Leo</span></p>
+        </div>
+        <div class="sc sc-sad" data-hold="1.2">
+          <svg class="box-draw" viewBox="0 0 240 240" aria-hidden="true" focusable="false"><path d="M20 220V20H220V220H20" pathLength="1"/></svg>
+          <img class="fig fig-sad" src="assets/characters/tilt_sad.webp" alt="" width="360" height="420" loading="lazy">
+          <p class="say say-tilt"><span>Sixteen seconds? I can't last sixteen seconds.</span></p>
+        </div>
+        <div class="sc sc-end on" data-hold="0">
+          <img class="fig fig-end" src="assets/characters/tilt_whisper.webp" alt="" width="248" height="281" loading="lazy">
+          <p class="say say-tilt"><span>Go on, then. Find out which one of me you've got.</span></p>
+          <a class="btn" data-scare href="audit/?ref=site-story">Take the 3-min audit <span class="arr" aria-hidden="true">→</span></a>
+        </div>
+        <div class="screen-bar" aria-hidden="true"><span id="screen-progress"></span></div>
+        <button type="button" class="screen-ctl" id="screen-ctl" aria-label="Play Tilt's story">
+          <span class="ctl-icon" aria-hidden="true"></span><span class="ctl-text" id="screen-ctl-text">Play · 30 s</span>
+        </button>
+      </div>
+      <!-- Screen readers get the whole story as text. -->
+      <ol class="sr-only" aria-label="Tilt's story, in words">
+        <li>Tilt: Fine. You paused me. Enjoy it.</li>
+        <li>Tilt: Before that breath, I ran every trade.</li>
+        <li>Tilt: Rohan lost three. I said one more.</li>
+        <li>Tilt: Kabir won. I said post it, then size up.</li>
+        <li>Tilt: Arjun saw a bigger payout. I said double.</li>
+        <li>Tilt: Meera had a plan. I said check one more timeframe.</li>
+        <li>Tilt: Ten seconds after a loss. That's all I ever needed.</li>
+        <li>Tilt: Then this one figured me out. Leo: Hands off the mouse. One box breath.</li>
+        <li>Tilt: Sixteen seconds? I can't last sixteen seconds.</li>
+        <li>Tilt: Go on, then. Find out which one of me you've got.</li>
+      </ol>
+    </div>
+  </section>
+
   <section class="intro" id="intro" aria-labelledby="intro-title">
     <div class="wrap">
       <div class="intro-head">

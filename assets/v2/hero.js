@@ -116,7 +116,7 @@ if (buddy && 'IntersectionObserver' in window) {
   const watch = new IntersectionObserver((entries) => {
     entries.forEach((e) => { if (e.isIntersecting) buddyEnter(e.target.id); });
   }, { rootMargin: '-50% 0px -50% 0px' });
-  ['hero', 'ten', 'intro', 'hijacks', 'how', 'reset', 'elite', 'faq', 'start'].forEach((id) => { const el = document.getElementById(id); if (el) watch.observe(el); });
+  ['hero', 'ten', 'story', 'intro', 'hijacks', 'how', 'reset', 'elite', 'faq', 'start'].forEach((id) => { const el = document.getElementById(id); if (el) watch.observe(el); });
 }
 
 /* ---------- The ten seconds: one clock, 0 to 16 s, driven by scroll ---------- */
@@ -147,11 +147,99 @@ function renderTen(t) {
   ten.classList.toggle('done', t >= 16);
 }
 
+/* ---------- Tilt's side of the story: a 30-second motion comic ---------- */
+// One paused GSAP timeline. It plays when the screen is in view (not with reduced motion),
+// pauses when it leaves, and the button plays, pauses or replays it.
+const FROZEN = 'grayscale(1) sepia(1) hue-rotate(178deg) saturate(1.5) brightness(0.85) drop-shadow(0px 0px 0px rgba(255,72,48,0))';
+const LIT = 'grayscale(0) sepia(0) hue-rotate(0deg) saturate(1) brightness(1) drop-shadow(0px 0px 26px rgba(255,72,48,0.5))';
+function buildStory(gsap) {
+  const screen = $('#screen');
+  if (!screen) return;
+  const scenes = [...screen.querySelectorAll('.sc')];
+  const ctl = $('#screen-ctl');
+  const ctlText = $('#screen-ctl-text');
+  const bar = $('#screen-progress');
+  const m = reduce ? 0 : 1; // reduced motion: fades only, nothing moves
+  // Words appear one after another inside each bubble.
+  screen.querySelectorAll('.say > span:first-child').forEach((s) => {
+    s.innerHTML = s.textContent.split(/(\s+)/).map((w) => (/^\s+$/.test(w) ? w : `<span class="w">${w}</span>`)).join('');
+  });
+  scenes.forEach((s) => s.classList.remove('on'));
+  gsap.set(scenes, { autoAlpha: 0 });
+  const tl = gsap.timeline({
+    paused: true,
+    onUpdate: () => { bar.style.width = (tl.progress() * 100).toFixed(2) + '%'; },
+    onComplete: () => setState('ended')
+  });
+  scenes.forEach((sc, i) => {
+    const last = i === scenes.length - 1;
+    const figs = sc.querySelectorAll('.fig');
+    const says = sc.querySelectorAll('.say');
+    tl.addLabel('s' + i);
+    tl.to(sc, { autoAlpha: 1, duration: 0.35 });
+    if (figs.length) tl.from(figs, { y: 46 * m, opacity: 0, duration: 0.6, stagger: 0.14, ease: 'power3.out' }, '<');
+    const tag = sc.querySelector('.tag');
+    if (tag) tl.from(tag, { opacity: 0, x: -14 * m, duration: 0.4 }, '<0.2');
+    // Scene-specific moves
+    if (sc.classList.contains('sc-1')) tl.fromTo(sc.querySelector('.fig-thaw'), { filter: FROZEN }, { filter: LIT, duration: 1.1, ease: 'power1.inOut' }, '<0.3');
+    if (sc.classList.contains('sc-2')) tl.from(sc.querySelector('.fig-big'), { scale: 1 - 0.18 * m, transformOrigin: '50% 100%', duration: 0.9, ease: 'back.out(2.4)' }, '<');
+    if (sc.classList.contains('sc-cast')) tl.from(sc.querySelector('.fig-imp'), { x: 40 * m, rotation: 12 * m, duration: 0.6, ease: 'back.out(2)' }, '<0.25');
+    if (sc.classList.contains('sc-ten')) {
+      const n = sc.querySelector('.ten-big');
+      const c = { v: 10 };
+      tl.from(n, { scale: 1 + 0.3 * m, opacity: 0, duration: 0.5, ease: 'power3.out' }, '<');
+      tl.to(c, { v: 0, duration: 2, ease: 'none', onUpdate: () => { n.textContent = String(Math.ceil(c.v)); } }, '<0.4');
+    }
+    if (sc.classList.contains('sc-leo')) tl.from(sc.querySelector('.fig-leo'), { x: 60 * m, duration: 0.7, ease: 'power3.out' }, '<');
+    if (sc.classList.contains('sc-sad')) {
+      tl.fromTo(sc.querySelector('.box-draw path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.8, ease: 'none' }, '<');
+      tl.from(sc.querySelector('.fig-sad'), { scale: 1 + 0.15 * m, transformOrigin: '50% 100%', duration: 1.8, ease: 'power2.out' }, '<');
+    }
+    // Bubbles pop, then their words appear. Leo's note comes after Tilt's line.
+    says.forEach((say, k) => {
+      const at = k === 0 ? '<0.3' : '+=0.35';
+      tl.from(say, { scale: 1 - 0.35 * m, opacity: 0, duration: 0.4, ease: 'back.out(2.2)', transformOrigin: say.classList.contains('say-leo') ? '50% 0%' : '0% 100%' }, at);
+      tl.from(say.querySelectorAll('.w, .sig'), { opacity: 0, y: 6 * m, duration: 0.2, stagger: 0.045 }, '<0.1');
+    });
+    const btn = sc.querySelector('.btn');
+    if (btn) tl.from(btn, { opacity: 0, y: 14 * m, duration: 0.45 }, '+=0.2');
+    if (!last) {
+      tl.to({}, { duration: Number(sc.dataset.hold) || 2.4 });
+      tl.to(sc, { autoAlpha: 0, duration: 0.35 });
+    }
+  });
+  if (new URLSearchParams(location.search).has('debug')) window.__story = tl; // jump to a moment while testing
+  const secs = Math.round(tl.duration());
+  const LABEL = { idle: `Play · ${secs} s`, playing: 'Pause', paused: 'Play', ended: 'Replay' };
+  let state = 'idle';
+  let userPaused = false;
+  function setState(s) {
+    state = s;
+    screen.dataset.state = s;
+    ctlText.textContent = LABEL[s];
+    ctl.setAttribute('aria-label', s === 'playing' ? "Pause Tilt's story" : s === 'ended' ? "Replay Tilt's story" : "Play Tilt's story");
+  }
+  setState('idle');
+  ctl.addEventListener('click', () => {
+    if (state === 'playing') { tl.pause(); userPaused = true; setState('paused'); return; }
+    if (state === 'ended') tl.restart(); else tl.play();
+    userPaused = false;
+    setState('playing');
+  });
+  if (!reduce && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !userPaused && (state === 'idle' || state === 'paused')) { tl.play(); setState('playing'); }
+      if (!e.isIntersecting && state === 'playing') { tl.pause(); setState('paused'); }
+    }, { threshold: 0.6 }).observe(screen);
+  }
+}
+
 /* ---------- Entrance and scroll (GSAP) ---------- */
 function motion() {
   const { gsap, ScrollTrigger } = window;
   if (!gsap || !ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
+  buildStory(gsap);
   // Phones: ignore the address bar showing and hiding, and follow the finger more closely.
   ScrollTrigger.config({ ignoreMobileResize: true });
   const touch = matchMedia('(pointer: coarse)').matches;

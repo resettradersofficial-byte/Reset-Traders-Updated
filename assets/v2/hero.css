@@ -405,3 +405,65 @@ dialog.apply { width: min(640px, 100% - 32px); }
 
 /* ---------- Red to paper: the course section rises as a curved sheet that flattens (--arc set by hero.js) ---------- */
 .reset { --arc: 0; border-radius: 50% 50% 0 0 / calc(var(--arc) * 20svh) calc(var(--arc) * 20svh) 0 0; box-shadow: 0 -30px 80px -30px rgba(244, 240, 234, calc(var(--arc) * .35)); }
+
+/* ---------- Tilt's side of the story: a motion comic on a "screen" ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.story { padding: clamp(72px, 10vw, 120px) 0; border-top: 1px solid var(--line); }
+.story h2 { margin-bottom: 26px; }
+.screen { position: relative; aspect-ratio: 16 / 9; border-radius: 26px; overflow: hidden; border: 1px solid var(--line); background: radial-gradient(55% 70% at 50% 78%, rgba(255, 72, 48, .24), transparent 70%), #08070b; isolation: isolate; }
+.screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; background: radial-gradient(120% 90% at 50% 40%, transparent 60%, rgba(0, 0, 0, .55)); }
+.sc { position: absolute; inset: 0; visibility: hidden; opacity: 0; }
+.sc.on { visibility: visible; opacity: 1; }
+.fig { position: absolute; bottom: 0; height: auto; pointer-events: none; }
+.fig-tilt { left: 50%; width: min(26%, 260px); margin-left: calc(min(26%, 260px) / -2); filter: drop-shadow(0 0 26px rgba(255, 72, 48, .5)); }
+.fig-big { left: 50%; width: min(34%, 300px); margin-left: calc(min(34%, 300px) / -2); bottom: 4%; filter: drop-shadow(0 0 30px rgba(255, 72, 48, .55)); }
+.fig-cast { left: 14%; height: 92%; width: auto; }
+.fig-imp { left: calc(14% + 26%); bottom: 34%; width: min(15%, 140px); filter: drop-shadow(0 0 18px rgba(255, 72, 48, .6)); }
+.fig-leo { right: 12%; height: 92%; width: auto; }
+.fig-imp-left { left: 14%; bottom: 0; width: min(18%, 170px); }
+.fig-sad { left: 50%; width: min(26%, 230px); margin-left: calc(min(26%, 230px) / -2); bottom: 16%; }
+.fig-end { left: 50%; width: min(16%, 150px); margin-left: calc(min(16%, 150px) / -2); bottom: auto; top: 10%; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .45)); }
+.tag { position: absolute; left: 14%; top: 8%; padding: 5px 11px; border-radius: 999px; background: rgba(13, 12, 16, .8); border: 1px solid var(--line); color: var(--muted); font: 700 11.5px var(--display); letter-spacing: .12em; text-transform: uppercase; }
+.say { position: absolute; margin: 0; max-width: min(42%, 340px); padding: 12px 16px; font: 700 clamp(14px, 1.6vw, 20px)/1.3 var(--display); }
+.say .w { display: inline-block; white-space: pre; }
+.say-tilt { background: var(--hijack); color: var(--bg); border-radius: 20px 20px 20px 5px; }
+.sc-1 .say, .sc-2 .say, .sc-ten .say, .sc-sad .say { left: 50%; top: 12%; transform: translateX(-50%); text-align: center; border-radius: 20px; }
+.sc-1 .say { max-width: min(60%, 420px); }
+.sc-cast .say { right: 8%; top: 30%; }
+.sc-leo .say-tilt { left: calc(14% + 15%); top: 18%; }
+.say-leo { right: calc(12% + 30%); top: 44%; max-width: min(34%, 280px); background: var(--note); color: var(--ink); border-radius: 3px; transform: rotate(-2deg); font: 400 clamp(16px, 1.8vw, 22px)/1.25 var(--hand); box-shadow: 0 16px 32px -14px rgba(0, 0, 0, .7); }
+.say-leo .sig { display: block; margin-top: 4px; color: var(--hijack-on-paper); font-size: .85em; }
+.ten-big { position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%); font: 800 clamp(120px, 24vw, 300px)/1 var(--display); letter-spacing: -.05em; color: var(--hijack); text-shadow: 0 0 60px rgba(255, 72, 48, .45); }
+.box-draw { position: absolute; left: 50%; top: 56%; width: min(46%, 380px); transform: translate(-50%, -50%); overflow: visible; }
+.box-draw path { fill: none; stroke: var(--cta); stroke-width: 5; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.sc-sad .fig-sad { filter: grayscale(1) sepia(1) hue-rotate(178deg) saturate(1.5) brightness(.85); }
+.sc-end { display: grid; place-content: center; justify-items: center; gap: 18px; padding: 18% 8% 6%; text-align: center; }
+.sc-end .say { position: static; max-width: 480px; border-radius: 20px; }
+.screen-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; z-index: 6; background: rgba(255, 255, 255, .08); }
+.screen-bar span { display: block; height: 100%; width: 0; background: var(--cta); }
+.screen-ctl { position: absolute; left: 14px; bottom: 14px; z-index: 7; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 14px 8px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(13, 12, 16, .82); color: var(--text); font: 700 13px var(--display); cursor: pointer; touch-action: manipulation; }
+.screen-ctl:hover { border-color: var(--cta); }
+.ctl-icon { width: 20px; height: 20px; display: grid; place-items: center; }
+.ctl-icon::before { content: ""; border-style: solid; border-width: 6px 0 6px 10px; border-color: transparent transparent transparent var(--cta); margin-left: 3px; }
+.screen[data-state="playing"] .ctl-icon::before { width: 10px; height: 12px; border: 0; margin: 0; background: linear-gradient(90deg, var(--cta) 0 35%, transparent 35% 65%, var(--cta) 65%); }
+.screen[data-state="ended"] .ctl-icon::before { width: 12px; height: 12px; border: 2px solid var(--cta); border-right-color: transparent; border-radius: 50%; margin: 0; }
+@media (max-width: 699px) {
+  .screen { aspect-ratio: 4 / 5; border-radius: 20px; }
+  .fig-tilt { width: 44%; margin-left: -22%; }
+  .fig-big { width: 60%; margin-left: -30%; }
+  .fig-cast { left: 2%; height: 64%; }
+  .fig-imp { left: 46%; bottom: 40%; width: 24%; }
+  .sc-cast .say { left: 8%; right: 8%; top: 14%; max-width: none; }
+  .tag { left: 8%; top: auto; bottom: 66%; display: none; }
+  .fig-leo { right: 0; height: 62%; }
+  .sc-leo .fig-imp-left { left: 4%; bottom: 0; width: 30%; }
+  .sc-leo .say-tilt { left: 8%; top: 9%; max-width: 70%; }
+  .say-leo { right: 6%; left: auto; top: 25%; max-width: 62%; }
+  .sc-1 .say, .sc-2 .say, .sc-ten .say, .sc-sad .say { max-width: 84%; width: max-content; top: 9%; }
+  .fig-sad { width: 46%; margin-left: -23%; bottom: 14%; }
+  .box-draw { width: 74%; top: 58%; }
+  .fig-end { width: 30%; margin-left: -15%; top: 6%; }
+  .sc-end { padding: 32% 8% 16%; }
+  .sc-end .btn { width: 100%; }
+  .ten-big { font-size: 46vw; }
+}
