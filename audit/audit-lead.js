@@ -36,6 +36,17 @@ function takenBefore() {
 function markTaken() {
   try { localStorage.setItem(TAKEN_KEY, "1"); } catch (_) {}
 }
+// The visitor's own email, kept on their device so the offer page can reserve a seat
+// without asking again (also after a reload of a saved result link).
+const EMAIL_KEY = "rt_audit_email";
+function rememberEmail(email) {
+  try { localStorage.setItem(EMAIL_KEY, email); } catch (_) {}
+}
+function knownEmail() {
+  try { return localStorage.getItem(EMAIL_KEY) || ""; } catch (_) { return ""; }
+}
+const EMAIL_RE = /^[^\s@A-Z]+@[^\s@A-Z]+\.[^\s@A-Z]{2,}$/; // same check as the database rule
+const TYPES = ["Rusher", "Performer", "Competitor", "Intellectualizer"];
 
 async function saveLead(email, profile, isRetake) {
   await addDoc(collection(db, "auditLeads"), {
@@ -80,6 +91,7 @@ window.ResetAudit.onEmail = async (rawEmail, profile) => {
   const email = String(rawEmail || "").trim().toLowerCase();
   const isRetake = takenBefore();
   markTaken();
+  rememberEmail(email);
   const work = Promise.allSettled([
     saveLead(email, profile, isRetake),
     sendEmail(email, profile, isRetake)
@@ -89,4 +101,16 @@ window.ResetAudit.onEmail = async (rawEmail, profile) => {
   // Never keep the visitor waiting: unlock after 6 s even if the network is slow. The requests keep running.
   await Promise.race([work, new Promise((resolve) => setTimeout(resolve, UNLOCK_AFTER_MS))]);
   return true;
+};
+
+// Founding-seat reservation from the offer page. product: "reset" (the course) or "journal" (Journal Pro).
+// Resolves true when saved; throws when it could not be saved so the page can say so.
+window.ResetAudit.knownEmail = knownEmail;
+window.ResetAudit.reserve = async ({ product, type, region, email }) => {
+  const e = String(email || knownEmail()).trim().toLowerCase();
+  if (!EMAIL_RE.test(e) || e.length > 254) throw new Error("email");
+  if (!["reset", "journal"].includes(product) || !TYPES.includes(type) || !["in", "intl"].includes(region)) throw new Error("bad input");
+  rememberEmail(e);
+  const ref = await addDoc(collection(db, "reservations"), { email: e, product, type, region, source, createdAt: serverTimestamp() });
+  return ref.id;
 };

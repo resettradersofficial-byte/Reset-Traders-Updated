@@ -207,6 +207,27 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // Founding-seat reservations from the audit's offer page: public create-only, every field checked.
+    // product: "reset" = Your Personal Reset, "journal" = Journal Pro (the skip-the-course offer).
+    function validReservation(d) {
+      return d.keys().hasOnly(["email", "product", "type", "region", "source", "createdAt"])
+        && d.keys().hasAll(["email", "product", "type", "region", "source", "createdAt"])
+        && d.email is string
+        && d.email.size() <= 254
+        && d.email.matches("^[^\\s@A-Z]+@[^\\s@A-Z]+\\.[^\\s@A-Z]{2,}$")
+        && d.product in ["reset", "journal"]
+        && d.type in ["Rusher", "Performer", "Competitor", "Intellectualizer"]
+        && d.region in ["in", "intl"]
+        && d.source in ["audit", "test"]
+        && d.createdAt == request.time;
+    }
+
+    match /reservations/{reservationId} {
+      allow create: if validReservation(request.resource.data);
+      allow read, delete: if isAdmin();
+      allow update: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

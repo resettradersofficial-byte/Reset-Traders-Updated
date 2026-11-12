@@ -334,3 +334,34 @@ describe("auditLeads", () => {
     await assertFails(deleteDoc(doc(anon(), "auditLeads", id)));
   });
 });
+
+const reservation = (over = {}) => ({
+  email: "lead@example.com", product: "reset", type: "Competitor", region: "in",
+  source: "test", createdAt: serverTimestamp(), ...over
+});
+
+describe("reservations", () => {
+  test("anyone can reserve the course or Journal Pro", async () => {
+    await assertSucceeds(addDoc(collection(anon(), "reservations"), reservation()));
+    await assertSucceeds(addDoc(collection(anon(), "reservations"), reservation({ product: "journal", region: "intl", source: "audit" })));
+  });
+  test("every field is checked", async () => {
+    for (const bad of [
+      { product: "elite" }, { product: "" }, { type: "Hero" }, { region: "us" }, { source: "web" },
+      { email: "Not An Email" }, { email: "a@b" }, { email: "x".repeat(250) + "@example.com" },
+      { createdAt: Timestamp.fromMillis(0) }, { price: 19999 }, { paid: true }
+    ]) await assertFails(addDoc(collection(anon(), "reservations"), reservation(bad)));
+    const { email, ...noEmail } = reservation();
+    await assertFails(addDoc(collection(anon(), "reservations"), noEmail));
+  });
+  test("visitors cannot read, change or delete reservations; admins can read and delete", async () => {
+    let id;
+    await env.withSecurityRulesDisabled(async (ctx) => { id = (await addDoc(collection(ctx.firestore(), "reservations"), reservation())).id; });
+    await assertFails(getDoc(doc(anon(), "reservations", id)));
+    await assertFails(getDocs(collection(as(ACTIVE), "reservations")));
+    await assertFails(updateDoc(doc(anon(), "reservations", id), { product: "journal" }));
+    await assertFails(deleteDoc(doc(anon(), "reservations", id)));
+    await assertSucceeds(getDocs(collection(as(ADMIN), "reservations")));
+    await assertSucceeds(deleteDoc(doc(as(ADMIN), "reservations", id)));
+  });
+});

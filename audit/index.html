@@ -203,6 +203,22 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pf-end-leo { position: static !important; width: 46%; height: auto; }
 .pf-note-end { position: absolute; left: 6%; top: 12%; max-width: 60%; }
 .offer-pack { margin: 6px 0 0; padding: 0 0 0 18px; display: grid; gap: 6px; font-size: 15px; }
+.buy { display: grid; gap: 8px; margin-top: 4px; }
+.buy-btn { width: 100%; }
+.buy-btn[disabled] { opacity: 1; background: rgba(47, 210, 122, .16); color: var(--text); box-shadow: none; cursor: default; }
+.buy-msg { margin: 0; font-size: 14px; color: var(--muted); }
+.buy-msg:empty { display: none; }
+.buy-msg[data-state="error"] { color: var(--hijack-soft); }
+.buy-fine { margin: 0; color: var(--muted); font-size: 12.5px; }
+.skip { justify-self: center; margin-top: 4px; }
+.res-email { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.res-email[hidden] { display: none; }
+.res-email input { width: 100%; min-height: 50px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font: 500 16px var(--body); padding: 0 14px; }
+.journal { border-color: rgba(155, 188, 255, .3); }
+.journal h3 { font-size: 21px; margin: 0 0 6px; }
+.journal-copy { margin: 0; color: var(--muted); font-size: 15px; }
+.journal .deal { margin: 14px 0 12px; }
+.deal-per { color: var(--muted); font: 600 15px var(--body); }
 #offer h3 { font-size: 22px; margin: 0 0 6px; }
 .film-open { width: 100%; margin: 14px 0 6px; padding: 0 18px; gap: 10px; white-space: nowrap; font: 700 15px/1.2 var(--display); }
 .film-len { padding: 3px 8px; border-radius: 999px; background: rgba(13, 12, 16, .14); font: 700 12px/1 var(--display); }
@@ -459,8 +475,25 @@ button { font: inherit; color: inherit; cursor: pointer; }
         <li><b>Journal Pro</b> free for 6 months for the founding 100</li>
       </ul>
       <p class="deal"><span class="deal-row"><s class="deal-was" id="offer-std">₹24,999</s><span class="deal-now" id="offer-price">₹19,999</span><span class="deal-tag">Founding 100</span></span></p>
-      <p class="offer-status">You're on the founding list. We'll email you first when seats open.</p>
+      <div class="buy">
+        <label class="res-email" id="res-email-wrap" hidden><span>Your email</span><input id="res-email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com"></label>
+        <button class="cta buy-btn" id="buy-btn" type="button">Reserve my founding seat</button>
+        <p class="buy-msg" id="buy-msg" role="status"></p>
+        <p class="buy-fine">No payment today. Checkout opens soon and reserved seats get first access.</p>
+        <button class="ghost skip" id="skip-course" type="button">Not now, skip the course</button>
+      </div>
       <button class="ghost offer-switch" id="offer-region" type="button">Show prices in $</button>
+    </div>
+
+    <!-- Shown only after "skip the course": the smaller first step. -->
+    <div class="panel journal" id="journal" hidden>
+      <p class="offer-kicker">Not ready for the course?</p>
+      <h3>Start with Journal Pro</h3>
+      <p class="journal-copy">Log a trade in 20 seconds, tag the hijack and see what it cost you each week.</p>
+      <p class="deal"><span class="deal-row"><span class="deal-now" id="journal-price">₹999</span><span class="deal-per">a month</span></span></p>
+      <button class="cta buy-btn" id="journal-btn" type="button">Reserve Journal Pro</button>
+      <p class="buy-msg" id="journal-msg" role="status"></p>
+      <p class="buy-fine">Opening soon. Reserve now and we'll email you first.</p>
     </div>
   </section>
 
@@ -938,6 +971,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     $('offer-title').textContent = `The way out of the ${name}`;
     $('cost-rows').innerHTML = COST[r].map(([big, cap]) => `<p class="cost-hero"><span class="cost-big">${esc(big)}</span><span class="cost-cap">${esc(cap)}</span></p>`).join('');
     $('offer-price').textContent = o.price; $('offer-std').textContent = o.was;
+    $('journal-price').textContent = JOURNAL_PRICE[r];
     $('offer-region').textContent = o.other; $('offer-region').dataset.region = r;
     const f = FILM[r];
     const T = {
@@ -1005,6 +1039,37 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (new URLSearchParams(location.search).has('debug')) window.__pfilm = api;
     return api;
   })();
+  // ---------- Reserve buttons: the course, or Journal Pro after "skip the course" ----------
+  const JOURNAL_PRICE = { in: '₹999', intl: '$15' };
+  function reserveWith(product, btn, msg, doneLabel) {
+    btn.addEventListener('click', async () => {
+      const api = window.ResetAudit || {};
+      const typed = $('res-email').value.trim();
+      const email = typed || (api.knownEmail ? api.knownEmail() : '');
+      if (!email) { $('res-email-wrap').hidden = false; $('res-email-wrap').scrollIntoView({ block: 'center' }); $('res-email').focus({ preventScroll: true }); msg.dataset.state = 'error'; msg.textContent = 'Add your email above so we can hold your place.'; return; }
+      btn.disabled = true; msg.dataset.state = ''; msg.textContent = 'Saving…';
+      try {
+        if (!api.reserve) throw new Error('not loaded');
+        await api.reserve({ product, type: TYPES[P.ruleType || P.top].name, region: $('offer-region').dataset.region || offerRegion(), email });
+        btn.textContent = doneLabel;
+        msg.textContent = 'Done. We’ll email you first when it opens.';
+        if (product === 'reset') $('skip-course').hidden = true;
+        $('res-email-wrap').hidden = true;
+      } catch (err) {
+        btn.disabled = false;
+        msg.dataset.state = 'error';
+        msg.textContent = err && err.message === 'email' ? 'That email doesn’t look right. Check it and try again.' : 'That didn’t save. Check your connection and try again.';
+        if (err && err.message === 'email') { $('res-email-wrap').hidden = false; $('res-email').focus(); }
+      }
+    });
+  }
+  reserveWith('reset', $('buy-btn'), $('buy-msg'), 'Seat reserved ✓');
+  reserveWith('journal', $('journal-btn'), $('journal-msg'), 'Journal Pro reserved ✓');
+  $('skip-course').addEventListener('click', () => {
+    $('skip-course').hidden = true;
+    $('journal').hidden = false; rise($('journal'), 0, 480);
+    setTimeout(() => $('journal').scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' }), 200);
+  });
   $('offer-region').addEventListener('click', () => {
     const r = $('offer-region').dataset.region === 'in' ? 'intl' : 'in';
     try { localStorage.setItem('rt-region', r); } catch (_) {}
@@ -1115,7 +1180,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   restoreFromHash();
 })();
 </script>
-<script type="module" src="audit-lead.js?v=20261110c"></script>
+<script type="module" src="audit-lead.js?v=20261112a"></script>
 
 </body>
 </html>
