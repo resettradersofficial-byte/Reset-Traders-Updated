@@ -181,6 +181,80 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .offer-list { margin: 0 0 14px; padding: 0 0 0 18px; display: grid; gap: 6px; font-size: 14.5px; }
 .offer-status { margin: 0 0 4px; padding: 10px 12px; border-radius: 12px; background: rgba(47, 210, 122, .1); border: 1px solid rgba(47, 210, 122, .35); font-size: 14px; }
 .offer .ghost { display: block; }
+/* Pitch: cost block (the hijack's red), then the package (the way out's blue) */
+.cost { margin: -18px -18px 18px; padding: 18px; border-radius: var(--r-md) var(--r-md) 0 0; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, rgba(255, 85, 68, .12), transparent 85%); }
+.cost-kicker { color: var(--brand); }
+.cost h3 { font-size: 22px; margin-bottom: 10px; }
+.cost-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cost-list li { display: grid; grid-template-columns: 74px 1fr; gap: 12px; align-items: start; font-size: 14.5px; line-height: 1.45; }
+.cost-big { font: 800 22px/1.05 var(--display); color: var(--brand); letter-spacing: -.02em; }
+.cost-big small { display: block; margin-top: 3px; font: 700 10.5px/1.2 var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.src { display: inline-block; margin-left: 2px; color: var(--muted); font-size: 12.5px; }
+.src::before { content: "· "; }
+.pack-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; font-size: 14.5px; }
+.pack-list li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; }
+.pack-ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgba(155, 188, 255, .14); color: var(--cta); font-size: 13px; }
+.proof { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+.proof-h { margin: 0 0 8px; font: 700 11.5px/1.4 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.proof-list { margin: 0; padding: 0 0 0 16px; display: grid; gap: 8px; font-size: 13.5px; line-height: 1.45; }
+.offer-pay { margin: -4px 0 12px; color: var(--muted); font-size: 13.5px; }
+.film-open { width: 100%; margin: 14px 0 6px; padding: 0 18px; gap: 10px; white-space: nowrap; font: 700 15px/1.2 var(--display); }
+.film-len { padding: 3px 8px; border-radius: 999px; background: rgba(13, 12, 16, .14); font: 700 12px/1 var(--display); }
+.film-open-play { width: 0; height: 0; border-style: solid; border-width: 7px 0 7px 11px; border-color: transparent transparent transparent var(--on-cta); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Pitch film: scenes switch on a clock; bubbles pop and their words appear one by one */
+.pfilm { margin: 6px 0 10px; }
+.pf-screen { position: relative; aspect-ratio: 4 / 5; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: radial-gradient(60% 55% at 50% 78%, rgba(255, 72, 48, .26), transparent 70%), #08070b; }
+.pf-sc { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .35s, visibility 0s .35s; }
+.pf-sc.on { opacity: 1; visibility: visible; transition: opacity .35s; }
+.pf-sc img { position: absolute; bottom: 0; height: auto; }
+.pf-mid { left: 50%; width: 58%; margin-left: -29%; bottom: 6% !important; filter: drop-shadow(0 0 26px rgba(255, 72, 48, .5)); }
+.pf-left { left: 4%; width: 46%; filter: drop-shadow(0 0 22px rgba(255, 72, 48, .5)); }
+.pf-char { left: 0; height: 74%; width: auto; }
+.pf-leo { right: -6%; height: 70%; width: auto; }
+.pf-corner { left: 4%; width: 28%; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .55)); }
+.pf-frozen { filter: grayscale(1) sepia(1) hue-rotate(178deg) saturate(1.5) brightness(.85) !important; }
+.pf-count { position: absolute; right: 7%; bottom: 20%; font: 900 clamp(54px, 18vw, 92px)/1 var(--display); color: var(--brand); letter-spacing: -.04em; text-shadow: 0 0 40px rgba(255, 72, 48, .45); }
+.pf-say { position: absolute; left: 7%; right: 7%; top: 7%; margin: 0; padding: 11px 14px; border-radius: 18px; background: var(--brand); color: var(--night); font: 700 clamp(15px, 4.4vw, 19px)/1.3 var(--display); text-align: center; }
+.pf-say-r { left: 30%; right: 6%; top: 9%; border-radius: 18px 18px 18px 5px; text-align: left; }
+.pf-say-top { left: 34%; right: 6%; top: auto; bottom: 7%; border-radius: 18px 18px 18px 5px; text-align: left; font-size: clamp(13px, 3.8vw, 16px); }
+.pf-chip { position: absolute; left: 30%; right: 6%; top: calc(9% + 96px); margin: 0; padding: 6px 10px; border-radius: 999px; border: 1px dashed rgba(244, 240, 234, .3); background: rgba(13, 12, 16, .7); color: var(--muted); font: 600 11.5px/1.35 var(--body); }
+.pf-note { position: absolute; left: 5%; top: 9%; max-width: 48%; margin: 0; padding: 12px 14px; background: var(--paper); color: var(--ink); border-radius: 3px; transform: rotate(-2deg); font: 400 clamp(16px, 4.6vw, 20px)/1.25 var(--hand); box-shadow: 0 16px 32px -14px rgba(0, 0, 0, .7); }
+.pf-note .sig { display: block; margin-top: 4px; font-weight: 400; color: #c1121f; font-size: .85em; }
+.pf-note-low { top: auto; bottom: 8%; left: auto; right: 6%; transform: rotate(2deg); }
+.pf-cards { position: absolute; left: 6%; right: 6%; top: 6%; display: grid; gap: 10px; }
+.pf-card { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--panel); border: 1px solid rgba(155, 188, 255, .45); font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+.pf-card b { display: block; margin-bottom: 2px; color: var(--text); font: 700 16px/1.25 var(--display); }
+.pf-chips { position: absolute; left: 6%; right: 6%; top: 10%; display: grid; gap: 10px; justify-items: start; }
+.pf-chip-big { position: static; padding: 9px 14px; border-style: solid; border-color: rgba(155, 188, 255, .5); color: var(--text); font: 700 14px/1.3 var(--display); }
+.pf-end { display: grid; place-content: center; justify-items: center; gap: 8px; padding: 10%; text-align: center; }
+.pf-end-k { margin: 0; font: 700 11.5px/1.4 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--cta); }
+.pf-end-price { margin: 0; font: 800 48px/1 var(--display); }
+.pf-end-s { margin: 0; color: var(--muted); font-size: 14.5px; max-width: 26em; }
+.pf-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255, 255, 255, .08); }
+.pf-bar span { display: block; height: 100%; width: 0; background: var(--cta); }
+.pf-ctl { display: flex; gap: 18px; justify-content: flex-end; }
+.pf-ctl .ghost { display: inline-block; }
+/* Entrances, replayed each time a scene turns on */
+.pf-sc.on img, .pf-sc.on .pf-count, .pf-sc.on .pf-card, .pf-sc.on .pf-chip-big { animation: pf-up .6s cubic-bezier(.2, .8, .2, 1) backwards; }
+.pf-sc.on .pf-card:nth-child(2), .pf-sc.on .pf-chip-big:nth-child(2) { animation-delay: .5s; }
+.pf-sc.on .pf-chip-big:nth-child(3) { animation-delay: 1s; }
+.pf-sc.on .pf-say, .pf-sc.on .pf-note { animation: pf-pop .4s cubic-bezier(.3, 1.6, .5, 1) .3s backwards; }
+.pf-sc.on .pf-note-low { animation-delay: 1.6s; }
+.pf-sc.on .pf-chip:not(.pf-chip-big) { animation: pf-up .4s ease 1.4s backwards; }
+.pf-sc.on .w { animation: pf-word .22s ease backwards; animation-delay: calc(.45s + var(--i) * .06s); }
+.pf-say .w, .pf-note .w { display: inline-block; white-space: pre; }
+@keyframes pf-up { from { opacity: 0; transform: translateY(24px); } }
+@keyframes pf-pop { from { opacity: 0; transform: scale(.7); } }
+@keyframes pf-word { from { opacity: 0; transform: translateY(5px); } }
+.pf-screen[data-state="paused"] *, .pf-screen[data-state="paused"] { animation-play-state: paused !important; }
+.pf-static *, .pf-static .pf-sc { animation: none !important; transition: none !important; } /* testing only: jump to a scene and see its finished state */
+@media (prefers-reduced-motion: reduce) {
+  .pf-sc.on *, .pf-sc.on .w { animation-name: pf-fade !important; }
+  @keyframes pf-fade { from { opacity: 0; } }
+}
+@media (min-width: 560px) { .pf-screen { aspect-ratio: 4 / 4.2; } }
 .where-group h4 { margin: 0 0 8px; font: 700 12px/1.4 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .mirror { display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: center; }
 .mirror .face { width: 112px; height: 112px; border-radius: 14px; overflow: hidden; background: var(--panel-2); display: grid; place-items: center; }
@@ -318,17 +392,58 @@ button { font: inherit; color: inherit; cursor: pointer; }
       </div>
     </div>
 
+    <!-- The pitch, shown after unlock: what the hijack costs (personal, then the region's numbers),
+         the package, what it's built on, the price, and a 40-second film behind a button. -->
     <div class="panel next offer" id="next" hidden>
-      <p class="offer-kicker">Your Personal Reset · founding 100</p>
-      <h3>The fix, built on your result</h3>
-      <p class="offer-copy">Your Personal Reset is our video course built on this exact framework, with drills made to counter the <span id="offer-type">Rusher</span> in you.</p>
+      <section class="cost" aria-labelledby="cost-title">
+        <p class="offer-kicker cost-kicker">The cost of keeping it</p>
+        <h3 id="cost-title">What the Rusher costs you</h3>
+        <ul class="cost-list" id="cost-list"></ul>
+      </section>
+
+      <section class="pack" aria-labelledby="pack-title">
+        <p class="offer-kicker">Your Personal Reset · founding 100</p>
+        <h3 id="pack-title">The fix, built on your result</h3>
+        <p class="offer-copy">Your Personal Reset is our video course built on this exact framework, with drills made to counter the <span id="offer-type">Rusher</span> in you.</p>
+        <ul class="pack-list">
+          <li><span class="pack-ic" aria-hidden="true">▶</span><span><b>The course.</b> 12 video modules and a final review. Every module ends with a proof assignment you do before the next one opens.</span></li>
+          <li><span class="pack-ic" aria-hidden="true">✎</span><span><b>The journal.</b> Journal Pro free for 6 months for the founding 100, then 3 months. Log a trade in 20 seconds and see what the hijack cost you each week.</span></li>
+        </ul>
+        <div class="proof">
+          <p class="proof-h">What it's built on</p>
+          <ul class="proof-list">
+            <li><b>If-then plans.</b> A plan written for one exact moment ("when X happens, I do Y") helps people follow through. A large review found a clear effect; newer checks say it's smaller than first thought. <span class="src">Gollwitzer &amp; Sheeran, 2006</span></li>
+            <li><b>Naming the feeling.</b> Putting a feeling into words lowered the brain's alarm response in scans. <span class="src">Lieberman et al., 2007</span></li>
+            <li><b>Behaviour decides the challenge.</b> In our simulation of 20,000 challenges, the same trader with the same edge passed 80% with a stop rule and 39% when sizing up after losses. <span class="src">Reset Traders simulation</span></li>
+          </ul>
+        </div>
+      </section>
+
       <div class="offer-price"><span class="big" id="offer-price">₹19,999</span><span class="was" id="offer-std">then ₹24,999</span></div>
-      <ul class="offer-list">
-        <li>Built around your hijack and your stop rule</li>
-        <li><b>Bonus:</b> Journal Pro free for 6 months for the founding 100, then 3 months</li>
-        <li id="offer-pay">Pay in ₹ with UPI, cards or net banking</li>
-      </ul>
+      <p class="offer-pay" id="offer-pay">Pay in ₹ with UPI, cards or net banking</p>
       <p class="offer-status">You're on the founding list. We'll email you first when seats open.</p>
+      <button class="cta film-open" id="film-open" type="button" aria-controls="pitch-film" aria-expanded="false"><span class="film-open-play" aria-hidden="true"></span>Watch what Tilt costs you <small class="film-len" id="film-len">40 s</small></button>
+
+      <div class="pfilm" id="pitch-film" hidden>
+        <div class="pf-screen" id="pf-screen" data-state="idle" aria-hidden="true">
+          <div class="pf-sc" data-d="3.6"><img class="pf-tilt pf-mid" src="img/tilt_grin.webp" alt="" width="360" height="429"><p class="pf-say"><span data-t="intro"></span></p></div>
+          <div class="pf-sc" data-d="4"><img class="pf-char" id="pf-char" src="img/rohan-big.webp" alt="" width="553" height="680"><span class="pf-count" id="pf-count">8/8</span><p class="pf-say pf-say-r"><span data-t="moments"></span></p></div>
+          <div class="pf-sc" data-d="4.6"><img class="pf-tilt pf-left" src="img/tilt_grin.webp" alt="" width="360" height="429"><p class="pf-say pf-say-r"><span data-t="money"></span></p><p class="pf-chip" data-t="moneySrc"></p></div>
+          <div class="pf-sc" data-d="4.2"><img class="pf-tilt pf-left" src="img/tilt_whisper.webp" alt="" width="248" height="281"><p class="pf-say pf-say-r"><span data-t="time"></span></p><p class="pf-chip" data-t="timeSrc"></p></div>
+          <div class="pf-sc" data-d="4.2"><img class="pf-leo" src="img/leo-big.webp" alt="" width="547" height="680"><p class="pf-note"><span>I lost years to Tilt too. So I built the way out.</span><b class="sig">Leo</b></p></div>
+          <div class="pf-sc" data-d="4.8"><div class="pf-cards"><p class="pf-card"><b>Your Personal Reset</b><span data-t="course"></span></p><p class="pf-card"><b>Journal Pro</b><span>6 months free for the founding 100. Catch the hijack between sessions.</span></p></div><img class="pf-tilt pf-corner" src="img/tilt_whisper.webp" alt="" width="248" height="281"><p class="pf-say pf-say-top"><span>A journal? Now you'll write me down.</span></p></div>
+          <div class="pf-sc" data-d="4.8"><div class="pf-chips"><p class="pf-chip pf-chip-big">If-then plans</p><p class="pf-chip pf-chip-big">Naming the feeling</p><p class="pf-chip pf-chip-big">80% vs 39%: same edge, same trader</p></div><p class="pf-note pf-note-low"><span>Nothing magic. Research, and practice.</span><b class="sig">Leo</b></p></div>
+          <div class="pf-sc" data-d="3.6"><img class="pf-tilt pf-mid pf-frozen" src="img/tilt_sad.webp" alt="" width="360" height="420"><p class="pf-say"><span>Founding 100 only. Maybe you'll miss it.</span></p></div>
+          <div class="pf-sc pf-end" data-d="0"><p class="pf-end-k">Your Personal Reset · founding 100</p><p class="pf-end-price" id="pf-price">₹19,999</p><p class="pf-end-s">You're on the founding list. We'll email you first when seats open.</p></div>
+          <div class="pf-bar"><span id="pf-bar"></span></div>
+        </div>
+        <div class="pf-ctl">
+          <button type="button" class="ghost" id="pf-play">Pause</button>
+          <button type="button" class="ghost" id="pf-close">Close</button>
+        </div>
+        <ol class="sr-only" id="pf-words" aria-label="The film, in words"></ol>
+      </div>
+
       <button class="ghost" id="offer-region" type="button">Show prices in $</button>
       <a class="ghost" href="https://www.instagram.com/resettraders/" target="_blank" rel="noopener">Follow @resettraders for the next Two Traders episode</a>
     </div>
@@ -802,13 +917,95 @@ button { font: inherit; color: inherit; cursor: pointer; }
     try { const saved = localStorage.getItem('rt-region'); if (saved === 'in' || saved === 'intl') return saved; } catch (_) {}
     return /Calcutta|Kolkata/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || '') ? 'in' : 'intl';
   }
+  // What keeping the hijack costs: the visitor's own number first, then real studies for their region.
+  const COST = {
+    in: [
+      ['₹2 lakh', 'average loss', 'In India, 93% of individual F&O traders lost money from FY22 to FY24, about ₹2 lakh each on average.', 'SEBI study, 2024'],
+      ['76%', 'kept going', 'Of the traders who lost money two years in a row, 76% kept trading F&O.', 'SEBI study, 2024']
+    ],
+    intl: [
+      ['78.7%', 'one bad day', 'At one prop firm, 78.7% of failed challenges broke the daily loss limit: one bad day, not a bad strategy.', 'the firm\'s own data'],
+      ['97%', 'still lost', 'Of Brazil\'s futures day traders who kept going for 300 days or more, 97% still lost money.', 'Chague, De-Losso & Giovannetti, 2020']
+    ]
+  };
+  const FILM = {
+    in: { money: 'In India I took about ₹2 lakh per trader. On average.', moneySrc: '93% of F&O traders lost · SEBI, FY22–FY24', time: 'And years. Most of them keep feeding me.', timeSrc: '76% kept trading after two losing years · SEBI' },
+    intl: { money: 'One bad day. That\'s how I end most challenges.', moneySrc: '78.7% broke the daily limit · one firm\'s own data', time: 'And years. Most keep going, and keep losing.', timeSrc: '97% of persistent day traders still lost · Brazil, 2020' }
+  };
+  const splitWords = (el, text) => {
+    let i = 0;
+    el.innerHTML = text.split(/(\s+)/).map(w => (/^\s*$/.test(w) ? w : `<span class="w" style="--i:${i++}">${esc(w)}</span>`)).join('');
+  };
   function renderOffer(region) {
     const r = region || offerRegion();
     const o = OFFER[r];
-    $('offer-type').textContent = TYPES[P.ruleType || P.top].name;
+    const k = P.ruleType || P.top, name = TYPES[k].name, n = P.hijackN, calmLevel = P.level === 'steady';
+    $('offer-type').textContent = name;
     $('offer-price').textContent = o.price; $('offer-std').textContent = o.std; $('offer-pay').textContent = o.pay;
     $('offer-region').textContent = o.other; $('offer-region').dataset.region = r;
+    // Cost block
+    $('cost-title').textContent = `What the ${name} costs you`;
+    const mine = calmLevel
+      ? `Only ${n} of your 8 trading moments went to a hijack. When the stakes rise, the ${name} is the one to watch.`
+      : `The ${name} took ${n} of your 8 trading moments. ${STAGE[P.stage] || ''}`.trim();
+    const rows = [[`${n}/8`, 'your moments', mine, '']].concat(COST[r]);
+    $('cost-list').innerHTML = rows.map(([big, small, text, src]) => `<li><span class="cost-big">${esc(big)}<small>${esc(small)}</small></span><span>${esc(text)}${src ? ` <span class="src">${esc(src)}</span>` : ''}</span></li>`).join('');
+    // Film text, personal to this result and region
+    const f = FILM[r];
+    const T = {
+      intro: `So you found me. The ${name}.`,
+      moments: calmLevel ? `Only ${n} of 8 moments. I'm patient.` : `You gave me ${n} of your 8 moments.`,
+      money: f.money, moneySrc: f.moneySrc, time: f.time, timeSrc: f.timeSrc,
+      course: `12 video modules and a final review. Drills made to counter the ${name}.`
+    };
+    document.querySelectorAll('#pf-screen [data-t]').forEach(el => {
+      const text = T[el.dataset.t] || '';
+      if (el.classList.contains('pf-chip')) el.textContent = text; else splitWords(el, text);
+    });
+    document.querySelectorAll('#pf-screen .pf-say > span:not([data-t]), #pf-screen .pf-note > span').forEach(el => splitWords(el, el.textContent));
+    const m = TYPES[k].mirror;
+    $('pf-char').src = m.big || m.img || 'img/leo-big.webp';
+    $('pf-count').textContent = `${n}/8`;
+    $('pf-price').textContent = o.price;
+    $('pf-words').innerHTML = [...document.querySelectorAll('#pf-screen .pf-sc')].map(sc => `<li>${esc(sc.textContent.replace(/\s+/g, ' ').trim())}</li>`).join('');
   }
+
+  // ---------- Pitch film: a clock moves through the scenes; CSS animates each one ----------
+  const pf = (() => {
+    const wrap = $('pitch-film'), screen = $('pf-screen'), btn = $('pf-play'), openBtn = $('film-open');
+    const scenes = [...screen.querySelectorAll('.pf-sc')];
+    const ends = []; scenes.reduce((s, sc) => { const e = s + Number(sc.dataset.d || 0); ends.push(e); return e; }, 0);
+    const total = ends[ends.length - 2];
+    $('film-len').textContent = `${Math.round(total)} s`;
+    let t = 0, playing = false, last = 0, cur = -1, raf = 0;
+    const set = state => { screen.dataset.state = state; btn.textContent = state === 'playing' ? 'Pause' : state === 'ended' ? 'Replay' : 'Play'; };
+    const sceneAt = time => time >= total ? scenes.length - 1 : ends.findIndex(e => time < e);
+    function render() {
+      const i = sceneAt(t);
+      if (i !== cur) { scenes.forEach((s, j) => s.classList.toggle('on', j === i)); cur = i; }
+      $('pf-bar').style.width = Math.min(100, t / total * 100).toFixed(2) + '%';
+    }
+    function tick(now) {
+      if (!playing) return;
+      t += (now - last) / 1000; last = now;
+      if (t >= total) { t = total; playing = false; render(); set('ended'); return; }
+      render(); raf = requestAnimationFrame(tick);
+    }
+    function play() { if (t >= total) { t = 0; cur = -1; scenes.forEach(s => s.classList.remove('on')); void screen.offsetWidth; } playing = true; last = performance.now(); set('playing'); render(); raf = requestAnimationFrame(tick); }
+    function pause() { playing = false; cancelAnimationFrame(raf); if (t < total) set('paused'); }
+    openBtn.addEventListener('click', () => {
+      const opening = wrap.hidden;
+      wrap.hidden = !opening; openBtn.setAttribute('aria-expanded', String(opening));
+      if (opening) { t = 0; cur = -1; scenes.forEach(s => s.classList.remove('on')); play(); wrap.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' }); }
+      else pause();
+    });
+    btn.addEventListener('click', () => (playing ? pause() : play()));
+    $('pf-close').addEventListener('click', () => { pause(); wrap.hidden = true; openBtn.setAttribute('aria-expanded', 'false'); openBtn.focus(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { if (!e.isIntersecting && playing) pause(); }, { threshold: 0.25 }).observe(screen);
+    const api = { seek(x) { pause(); t = x; render(); screen.classList.add('pf-static'); }, total };
+    if (new URLSearchParams(location.search).has('debug')) window.__pfilm = api;
+    return api;
+  })();
   $('offer-region').addEventListener('click', () => {
     const r = $('offer-region').dataset.region === 'in' ? 'intl' : 'in';
     try { localStorage.setItem('rt-region', r); } catch (_) {}
