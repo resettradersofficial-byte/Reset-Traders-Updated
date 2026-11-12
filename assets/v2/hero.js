@@ -33,6 +33,7 @@ function scare(on) {
   bubble.classList.toggle('alarm', isScared);
   bubbleText.textContent = isScared ? LINES.fear : (whisper >= 0 ? WHISPERS[whisper][1] : LINES.idle);
   tilt3d?.flinch(isScared);
+  buddyScare(isScared);
 }
 document.querySelectorAll('[data-scare]').forEach((el) => {
   el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') scare(true); });
@@ -68,6 +69,84 @@ tiltEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); whisperNext(); }
 });
 
+/* ---------- Tilt follows the visitor below the hero ---------- */
+// He talks at the hijacks and the ladder, freezes from the course section on,
+// and panics once more at the last audit button.
+const buddy = $('#buddy');
+const buddySay = $('#buddy-say');
+const BUDDY = {
+  hijacks: ['on', "Pick one. I'm in all four."],
+  how: ['on', "Skip the audit. You're fine."],
+  reset: ['frozen', ''],
+  elite: ['frozen', ''],
+  faq: ['frozen', ''],
+  start: ['on', "Don't click that. It'll find me."]
+};
+let buddyTimer = 0;
+let buddyAt = '';
+let buddyWhisper = -1;
+function buddySpeak(line, hold = 3800) {
+  if (!buddy) return;
+  clearTimeout(buddyTimer);
+  if (!line) { buddy.classList.remove('talking'); return; }
+  buddySay.textContent = line;
+  buddy.classList.add('talking');
+  if (hold) buddyTimer = setTimeout(() => buddy.classList.remove('talking'), hold);
+}
+function buddyEnter(id) {
+  if (!buddy || id === buddyAt) return;
+  buddyAt = id;
+  const [state, line] = BUDDY[id] || ['hidden', ''];
+  buddy.dataset.state = state;
+  buddy.classList.remove('scared');
+  buddySpeak(state === 'on' ? line : '');
+}
+function buddyScare(on) {
+  if (!buddy || buddy.dataset.state !== 'on') return;
+  buddy.classList.toggle('scared', on);
+  buddySpeak(on ? LINES.fear : '', 0);
+}
+buddy?.addEventListener('click', () => {
+  if (buddy.dataset.state === 'frozen') { buddySpeak('…', 1400); return; }
+  buddyWhisper = (buddyWhisper + 1) % WHISPERS.length;
+  buddySpeak(WHISPERS[buddyWhisper][1]);
+});
+if (buddy && 'IntersectionObserver' in window) {
+  // A thin band across the middle of the screen decides which section the visitor is in.
+  const watch = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) buddyEnter(e.target.id); });
+  }, { rootMargin: '-50% 0px -50% 0px' });
+  ['hero', 'ten', 'intro', 'hijacks', 'how', 'reset', 'elite', 'faq', 'start'].forEach((id) => { const el = document.getElementById(id); if (el) watch.observe(el); });
+}
+
+/* ---------- The ten seconds: one clock, 0 to 16 s, driven by scroll ---------- */
+const ten = $('#ten');
+const TEN_SAY = ['Win it back. Right now.', 'Double the size. One trade fixes it.', "You can't end the day red."];
+const tenEls = ten && {
+  path: $('#ten-path'), dot: $('#ten-dot'), num: $('#ten-num'), say: $('#ten-say'),
+  sides: [...ten.querySelectorAll('.ten-side')], lines: [...ten.querySelectorAll('.ten-line')]
+};
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+function renderTen(t) {
+  const s = Math.min(16, Math.max(0, t));
+  const side = Math.min(3, Math.floor(s / 4));
+  const f = s / 4 - side;
+  // The dot runs up the left side (in), across the top (hold), down the right (out), back along the bottom (hold).
+  const [x, y] = [[20, 220 - 200 * f], [20 + 200 * f, 20], [220, 20 + 200 * f], [220 - 200 * f, 220]][side];
+  tenEls.path.style.strokeDashoffset = String(1 - s / 16);
+  tenEls.dot.setAttribute('cx', x.toFixed(1));
+  tenEls.dot.setAttribute('cy', y.toFixed(1));
+  tenEls.num.textContent = String(Math.floor(s));
+  tenEls.sides.forEach((el, i) => el.classList.toggle('on', t >= 0 && t < 16 && i === side));
+  const line = t < 4 ? 0 : t < 10 ? 1 : t < 16 ? 2 : 3;
+  tenEls.lines.forEach((el, i) => el.classList.toggle('on', i === line));
+  if (t < 10) tenEls.say.textContent = TEN_SAY[t < 3.3 ? 0 : t < 6.6 ? 1 : 2];
+  ten.style.setProperty('--heat', clamp01((12 - t) / 3).toFixed(3)); // red until 9 s, calm by 12 s
+  ten.style.setProperty('--grow', clamp01(s / 10).toFixed(3)); // Tilt swells as his ten seconds run
+  ten.classList.toggle('out', t >= 10);
+  ten.classList.toggle('done', t >= 16);
+}
+
 /* ---------- Entrance and scroll (GSAP) ---------- */
 function motion() {
   const { gsap, ScrollTrigger } = window;
@@ -95,6 +174,27 @@ function motion() {
     });
     gsap.to('#tilt', { yPercent: -8, scale: 0.86, ease: 'none', scrollTrigger: span });
     gsap.to('#talk', { y: -24, autoAlpha: 0, ease: 'none', scrollTrigger: { ...span, end: '30% top' } });
+
+    // The ten seconds: the section becomes tall and sticky, and scroll moves the clock.
+    if (ten) {
+      ten.classList.add('ten-live');
+      const clock = { t: -0.6 };
+      renderTen(clock.t);
+      gsap.to(clock, {
+        t: 17.6, ease: 'none', onUpdate: () => renderTen(clock.t),
+        scrollTrigger: { trigger: ten, start: 'top 64px', end: 'bottom bottom', scrub: touch ? 0.3 : 0.5 }
+      });
+    }
+
+    // Red to paper: Leo's paper rises over the dark page with a curved leading edge that flattens.
+    const paper = $('#reset');
+    if (paper) {
+      gsap.fromTo(paper, { '--arc': 1 }, {
+        '--arc': 0, ease: 'none',
+        scrollTrigger: { trigger: paper, start: 'top bottom', end: 'top 22%', scrub: touch ? 0.3 : 0.5 }
+      });
+    }
+    return () => { ten?.classList.remove('ten-live'); if (ten) renderTen(17); paper?.style.removeProperty('--arc'); };
   });
 }
 if (window.gsap) motion();
@@ -180,6 +280,8 @@ if (meet && PROFILES[meet[1]]) openProfile(meet[1]);
 // length = '1:30', shape = 'wide' (16:9) or 'tall' (a 9:16 reel).
 const INTRO = { src: '', captions: '', length: '1:30', shape: 'wide' };
 const film = $('#film');
+// Until the film exists, the ten seconds scene above does its job, so the empty slot stays hidden.
+if (!INTRO.src && $('#intro')) $('#intro').hidden = true;
 if (film) {
   if (INTRO.shape === 'tall') film.dataset.shape = 'tall';
   if (INTRO.src) {
