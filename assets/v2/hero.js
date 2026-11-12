@@ -183,7 +183,7 @@ function buildStory(gsap) {
     // Scene-specific moves
     if (sc.classList.contains('sc-1')) tl.fromTo(sc.querySelector('.fig-thaw'), { filter: FROZEN }, { filter: LIT, duration: 1.1, ease: 'power1.inOut' }, '<0.3');
     if (sc.classList.contains('sc-2')) tl.from(sc.querySelector('.fig-big'), { scale: 1 - 0.18 * m, transformOrigin: '50% 100%', duration: 0.9, ease: 'back.out(2.4)' }, '<');
-    if (sc.classList.contains('sc-cast')) tl.from(sc.querySelector('.fig-imp'), { x: 40 * m, rotation: 12 * m, duration: 0.6, ease: 'back.out(2)' }, '<0.25');
+    if (sc.classList.contains('sc-cast')) tl.from(sc.querySelector('.imp'), { x: -30 * m, y: 20 * m, scale: 1 - 0.4 * m, opacity: 0, transformOrigin: '60% 100%', duration: 0.7, ease: 'back.out(2)' }, '<0.3');
     if (sc.classList.contains('sc-ten')) {
       const n = sc.querySelector('.ten-big');
       const c = { v: 10 };

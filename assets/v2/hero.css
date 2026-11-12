@@ -417,7 +417,17 @@ dialog.apply { width: min(640px, 100% - 32px); }
 .fig { position: absolute; bottom: 0; height: auto; pointer-events: none; }
 .fig-tilt { left: 50%; width: min(26%, 260px); margin-left: calc(min(26%, 260px) / -2); filter: drop-shadow(0 0 26px rgba(255, 72, 48, .5)); }
 .fig-big { left: 50%; width: min(34%, 300px); margin-left: calc(min(34%, 300px) / -2); bottom: 4%; filter: drop-shadow(0 0 30px rgba(255, 72, 48, .55)); }
-.fig-cast { left: 14%; height: 92%; width: auto; }
+.cast { left: 14%; height: 92%; }
+.cast-img { display: block; height: 100%; width: auto; }
+/* Tilt sits on the character's right shoulder (the viewer's left), leaning in to whisper, with a genie tail. */
+.imp { position: absolute; left: var(--ix, -6%); bottom: var(--iy, 36%); width: var(--iw, 26%); z-index: 1; }
+.imp img { position: relative; z-index: 1; width: 100%; height: auto; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .6)); -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); }
+.imp::after { content: ""; position: absolute; left: 14%; top: 74%; width: 66%; aspect-ratio: 100 / 130; background: url(genie-tail.svg) no-repeat center / contain; filter: drop-shadow(0 0 7px rgba(255, 96, 40, .65)); transform-origin: 50% 0; animation: tail-sway 2.2s ease-in-out infinite alternate; }
+@keyframes tail-sway { from { transform: rotate(-5deg) skewX(3deg); } to { transform: rotate(6deg) skewX(-4deg); } }
+.c-rohan { --ix: 5%; --iy: 35%; --iw: 26%; }
+.c-kabir { --ix: 11%; --iy: 35%; --iw: 23%; }
+.c-arjun { --ix: 11%; --iy: 37%; --iw: 21%; }
+.c-meera { --ix: 5%; --iy: 38%; --iw: 26%; }
 .fig-imp { left: calc(14% + 26%); bottom: 34%; width: min(15%, 140px); filter: drop-shadow(0 0 18px rgba(255, 72, 48, .6)); }
 .fig-leo { right: 12%; height: 92%; width: auto; }
 .fig-imp-left { left: 14%; bottom: 0; width: min(18%, 170px); }
@@ -451,8 +461,7 @@ dialog.apply { width: min(640px, 100% - 32px); }
   .screen { aspect-ratio: 4 / 5; border-radius: 20px; }
   .fig-tilt { width: 44%; margin-left: -22%; }
   .fig-big { width: 60%; margin-left: -30%; }
-  .fig-cast { left: 2%; height: 64%; }
-  .fig-imp { left: 46%; bottom: 40%; width: 24%; }
+  .cast { left: 0; right: 0; margin: 0 auto; width: fit-content; height: 64%; }
   .sc-cast .say { left: 8%; right: 8%; top: 14%; max-width: none; }
   .tag { left: 8%; top: auto; bottom: 66%; display: none; }
   .fig-leo { right: 0; height: 62%; }
