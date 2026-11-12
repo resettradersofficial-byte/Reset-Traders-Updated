@@ -419,11 +419,9 @@ dialog.apply { width: min(640px, 100% - 32px); }
 .fig-big { left: 50%; width: min(34%, 300px); margin-left: calc(min(34%, 300px) / -2); bottom: 4%; filter: drop-shadow(0 0 30px rgba(255, 72, 48, .55)); }
 .cast { left: 14%; height: 92%; }
 .cast-img { display: block; height: 100%; width: auto; }
-/* Tilt sits on the character's right shoulder (the viewer's left), leaning in to whisper, with a genie tail. */
+/* Tilt sits on the character's right shoulder (the viewer's left), leaning in to whisper. */
 .imp { position: absolute; left: var(--ix, -6%); bottom: var(--iy, 36%); width: var(--iw, 26%); z-index: 1; }
 .imp img { position: relative; z-index: 1; width: 100%; height: auto; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .6)); -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); }
-.imp::after { content: ""; position: absolute; left: 14%; top: 74%; width: 66%; aspect-ratio: 100 / 130; background: url(genie-tail.svg) no-repeat center / contain; filter: drop-shadow(0 0 7px rgba(255, 96, 40, .65)); transform-origin: 50% 0; animation: tail-sway 2.2s ease-in-out infinite alternate; }
-@keyframes tail-sway { from { transform: rotate(-5deg) skewX(3deg); } to { transform: rotate(6deg) skewX(-4deg); } }
 .c-rohan { --ix: 5%; --iy: 35%; --iw: 26%; }
 .c-kabir { --ix: 11%; --iy: 35%; --iw: 23%; }
 .c-arjun { --ix: 11%; --iy: 37%; --iw: 21%; }
@@ -432,7 +430,7 @@ dialog.apply { width: min(640px, 100% - 32px); }
 .fig-leo { right: 12%; height: 92%; width: auto; }
 .fig-imp-left { left: 14%; bottom: 0; width: min(18%, 170px); }
 .fig-sad { left: 50%; width: min(26%, 230px); margin-left: calc(min(26%, 230px) / -2); bottom: 16%; }
-.fig-end { left: 50%; width: min(16%, 150px); margin-left: calc(min(16%, 150px) / -2); bottom: auto; top: 10%; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .45)); }
+.fig-end { position: static; width: min(17%, 170px); margin: 0; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .45)); }
 .tag { position: absolute; left: 14%; top: 8%; padding: 5px 11px; border-radius: 999px; background: rgba(13, 12, 16, .8); border: 1px solid var(--line); color: var(--muted); font: 700 11.5px var(--display); letter-spacing: .12em; text-transform: uppercase; }
 .say { position: absolute; margin: 0; max-width: min(42%, 340px); padding: 12px 16px; font: 700 clamp(14px, 1.6vw, 20px)/1.3 var(--display); }
 .say .w { display: inline-block; white-space: pre; }
@@ -447,7 +445,7 @@ dialog.apply { width: min(640px, 100% - 32px); }
 .box-draw { position: absolute; left: 50%; top: 56%; width: min(46%, 380px); transform: translate(-50%, -50%); overflow: visible; }
 .box-draw path { fill: none; stroke: var(--cta); stroke-width: 5; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
 .sc-sad .fig-sad { filter: grayscale(1) sepia(1) hue-rotate(178deg) saturate(1.5) brightness(.85); }
-.sc-end { display: grid; place-content: center; justify-items: center; gap: 18px; padding: 18% 8% 6%; text-align: center; }
+.sc-end { display: grid; place-content: center; justify-items: center; gap: 16px; padding: 4% 8% 6%; text-align: center; }
 .sc-end .say { position: static; max-width: 480px; border-radius: 20px; }
 .screen-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; z-index: 6; background: rgba(255, 255, 255, .08); }
 .screen-bar span { display: block; height: 100%; width: 0; background: var(--cta); }
@@ -471,8 +469,8 @@ dialog.apply { width: min(640px, 100% - 32px); }
   .sc-1 .say, .sc-2 .say, .sc-ten .say, .sc-sad .say { max-width: 84%; width: max-content; top: 9%; }
   .fig-sad { width: 46%; margin-left: -23%; bottom: 14%; }
   .box-draw { width: 74%; top: 58%; }
-  .fig-end { width: 30%; margin-left: -15%; top: 6%; }
-  .sc-end { padding: 32% 8% 16%; }
+  .fig-end { width: 32%; }
+  .sc-end { padding: 6% 8% 14%; }
   .sc-end .btn { width: 100%; }
   .ten-big { font-size: 46vw; }
 }
