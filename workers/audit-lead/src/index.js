@@ -11,7 +11,7 @@ const ALLOWED_ORIGINS = new Set([
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 const MAX_BODY_BYTES = 4096;
 const EMAIL_RE = /^[^\s@<>"'()\\,;:]+@[^\s@<>"'()\\,;:]+\.[^\s@<>"'()\\,;:]{2,}$/;
-const ALLOWED_REFS = ["dm", "bio", "story", "reel"];
+const ALLOWED_REFS = ["dm", "bio", "story", "reel", "site"];
 const LEVELS = ["steady", "mixed", "strong"];
 
 // Content mirrors audit/index.html (TYPES / BODY / NERVE / STAGE / week). Keep them in sync.

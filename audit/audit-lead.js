@@ -26,8 +26,9 @@ const db = getFirestore(initializeApp(firebaseConfig, "audit"));
 const params = new URLSearchParams(location.search);
 const source = params.get("test") === "1" ? "test" : "audit";
 // Where the visitor came from (?ref=dm etc.). Anything outside this list is ignored.
-const ALLOWED_REFS = ["dm", "bio", "story", "reel"];
-const refParam = String(params.get("ref") || "").trim().toLowerCase();
+const ALLOWED_REFS = ["dm", "bio", "story", "reel", "site"];
+// Homepage links carry ref=site-hero, site-nav and so on; they all count as "site".
+const refParam = String(params.get("ref") || "").trim().toLowerCase().replace(/^site-[a-z]+$/, "site");
 const ref = ALLOWED_REFS.includes(refParam) ? refParam : null;
 
 function takenBefore() {
