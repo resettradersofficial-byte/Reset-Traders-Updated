@@ -195,6 +195,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .deal-now { font: 800 40px/1 var(--display); letter-spacing: -.02em; }
 .deal-tag { padding: 4px 9px; border-radius: 999px; background: rgba(155, 188, 255, .16); color: var(--cta); font: 700 11px/1.2 var(--display); letter-spacing: .12em; text-transform: uppercase; }
 .offer-switch { font-size: 13px; }
+.film-bar { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 20; width: min(440px, calc(100% - 28px)); transform: translateX(-50%); display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--cta); color: var(--on-cta); font: 700 15px/1.2 var(--display); box-shadow: 0 16px 40px -10px rgba(0, 0, 0, .7), 0 0 0 1px rgba(155, 188, 255, .4); cursor: pointer; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s; }
+.film-bar span:nth-child(2) { flex: 1; text-align: left; }
+.film-bar.away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
 /* The film page */
 .pitch-back { align-self: flex-start; font-size: 14px; }
 .pf-sc.on .pf-shake { animation: pf-up .5s cubic-bezier(.2, .8, .2, 1) backwards, pf-shake .28s linear .5s 4; }
@@ -427,12 +430,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
       <div class="gate" id="gate">
         <form id="gate-form" novalidate>
           <h3 id="gate-title">Unlock your stop rule</h3>
-          <p id="gate-copy">Your personal stop rule, your body's warning sign, your nervous system default and a 7-day reset plan. We'll email you the full breakdown too.</p>
+          <p id="gate-copy">Your stop rule, your 7-day reset, and a short film on what your hijack costs you. We'll email you the full breakdown too.</p>
           <label for="email" class="sr" style="position:absolute;left:-9999px">Email</label>
           <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" required>
           <span class="err" id="err" role="alert"></span>
           <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <button class="cta" type="submit" id="unlock">Unlock my full profile</button>
+          <button class="cta" type="submit" id="unlock">Unlock my profile + film</button>
           <p style="font-size:12px">Your answers stay on this device. We keep your email and your profile result.</p>
         </form>
       </div>
@@ -450,6 +453,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
       <button class="ghost" id="retake" type="button">Retake the audit</button>
     </div>
   </section>
+
+  <button type="button" class="film-bar" id="film-bar" hidden><span class="film-open-play" aria-hidden="true"></span><span>Next: watch what Tilt costs you</span><small class="film-len" id="film-bar-len">34 s</small></button>
 
   <!-- The next page: Tilt's film first, then the offer, which appears when the film ends. -->
   <section id="pitch" class="stack" hidden aria-label="What Tilt costs you">
@@ -650,6 +655,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   };
   const show = id => {
     ['intro', 'note', 'quiz', 'result', 'pitch'].forEach(s => $(s).hidden = s !== id);
+    if (id !== 'result' && typeof filmBar === 'function') filmBar(false);
+    else if (id === 'result' && !$('next').hidden && typeof filmBar === 'function') filmBar(true);
     if (id === 'result') [...$('result').children].slice(0, 6).forEach((el, i) => rise(el, i, 420));
     else rise($(id));
   };
@@ -937,6 +944,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (P.shape === 'blend') { const O = TYPES[P.leads.find(k => k !== P.ruleType)]; week[5] = `Your second hijack, the ${O.name}: ${O.drill}`; }
     $('week').innerHTML = week.map(w => `<li>${w}</li>`).join('');
     $('gate-title').textContent = P.shape === 'single' ? `Unlock your stop rule, ${T.name}` : 'Unlock your stop rule';
+    $('gate-copy').textContent = `Your stop rule, your 7-day reset, and a short film on what the ${TYPES[P.ruleType || P.top].name} costs you. We'll email you the full breakdown too.`;
     $('locked').classList.add('sealed'); $('gate').hidden = false; $('next').hidden = true;
     show('result'); window.scrollTo(0, 0);
     fitHeadline($('r-type'));
@@ -1005,7 +1013,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const scenes = [...screen.querySelectorAll('.pf-sc')];
     const ends = []; scenes.reduce((s, sc) => { const e = s + Number(sc.dataset.d || 0); ends.push(e); return e; }, 0);
     const total = ends[ends.length - 2];
-    $('film-len').textContent = `${Math.round(total)} s`;
+    $('film-len').textContent = `${Math.round(total)} s`; $('film-bar-len').textContent = `${Math.round(total)} s`;
     let t = 0, playing = false, last = 0, cur = -1, raf = 0, onEnd = () => {};
     const set = state => { screen.dataset.state = state; btn.textContent = state === 'playing' ? 'Pause' : state === 'ended' ? 'Replay' : 'Play'; };
     const sceneAt = time => time >= total ? scenes.length - 1 : ends.findIndex(e => time < e);
@@ -1045,6 +1053,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (new URLSearchParams(location.search).has('debug')) window.__pfilm = api;
     return api;
   })();
+  // ---------- Film bar: after unlock, points to the film until its card is on screen ----------
+  // var + lookups inside the function: show() may call filmBar() before this block has run.
+  var barOn = false, nextInView = false;
+  function filmBar(on) {
+    const bar = $('film-bar');
+    barOn = on;
+    bar.hidden = !on;
+    bar.classList.toggle('away', !on || nextInView);
+  }
+  if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { nextInView = e.isIntersecting; $('film-bar').classList.toggle('away', !barOn || nextInView); }, { threshold: 0.4 }).observe($('next'));
+  $('film-bar').addEventListener('click', () => $('film-open').click());
+
   // ---------- Reserve buttons: the course, or Journal Pro after "skip the course" ----------
   const JOURNAL_PRICE = { in: '₹999', intl: '$15' };
   function reserveWith(product, btn, msg, doneLabel) {
@@ -1097,7 +1117,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { $('err').textContent = 'Enter an email like name@gmail.com.'; return; }
     $('err').textContent = ''; $('unlock').textContent = 'Unlocking…';
     try { await window.ResetAudit.onEmail(v, { type: TYPES[P.top].name, pct: P.pct, body: P.body, nerve: P.nerve, stage: P.stage, rule: $('rule').textContent, level: P.level, root: TYPES[P.root].name, leads: P.leads.map(k => TYPES[k].name), patterns: P.patterns.slice() }); } catch (_) {}
-    $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; renderOffer(); $('unlock').textContent = 'Unlock my full profile';
+    $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; renderOffer(); filmBar(true); $('unlock').textContent = 'Unlock my profile + film';
     saveToHash(true);
   });
   $('retake').addEventListener('click', () => { cur = 0; ans = []; show('note'); window.scrollTo(0, 0); });
@@ -1182,7 +1202,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const a = r.split('').map(Number);
     if (a.some((v, i) => v >= Q[i].opts.length)) return;
     ans = a; cur = Q.length - 1; finish();
-    if (h.get('u') === '1') { $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; renderOffer(); }
+    if (h.get('u') === '1') { $('locked').classList.remove('sealed'); $('gate').hidden = true; $('next').hidden = false; renderOffer(); filmBar(true); }
     saveToHash(h.get('u') === '1');
   }
   $('retake').addEventListener('click', clearHash);
