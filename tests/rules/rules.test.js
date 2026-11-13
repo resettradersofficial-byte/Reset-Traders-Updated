@@ -294,10 +294,10 @@ describe("auditLeads", () => {
   });
   test("ref is optional and limited to dm, bio, story, reel", async () => {
     const db = anon();
-    for (const ref of ["dm", "bio", "story", "reel"]) {
+    for (const ref of ["dm", "bio", "story", "reel", "site"]) {
       await assertSucceeds(addDoc(collection(db, "auditLeads"), lead({ ref })));
     }
-    for (const ref of ["DM", "ads", "", "x".repeat(50), 1, null, true]) {
+    for (const ref of ["DM", "ads", "site-hero", "", "x".repeat(50), 1, null, true]) {
       await assertFails(addDoc(collection(db, "auditLeads"), lead({ ref })));
     }
   });

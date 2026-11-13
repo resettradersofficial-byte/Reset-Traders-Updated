@@ -187,7 +187,7 @@ service cloud.firestore {
         && d.isRetake is bool
         && d.source in ["audit", "test"]
         // optional: where the visitor came from (?ref=)
-        && (!("ref" in d) || d.ref in ["dm", "bio", "story", "reel"])
+        && (!("ref" in d) || d.ref in ["dm", "bio", "story", "reel", "site"])
         // optional (older cached pages don't send them): result level and the type from the sting question
         && (!("level" in d) || d.level in ["steady", "mixed", "strong"])
         && (!("root" in d) || d.root in ["Rusher", "Performer", "Competitor", "Intellectualizer"])
