@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Reset Audit</title>
-<meta name="description" content="The free Reset Audit: 12 real trading moments, about 3 minutes. Find the hijack running your trades, the fear underneath it and a stop rule written for you.">
+<meta name="description" content="The free Reset Audit: 12 questions about real trading moments, about 3 minutes. Find the hijack running your trades, the fear underneath it and a stop rule written for you.">
 <meta name="theme-color" content="#0a0c1c">
 <link rel="canonical" href="https://www.resettraders.com/audit/">
 <meta property="og:type" content="website">
@@ -367,7 +367,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   <!-- intro -->
   <section id="intro" class="stack" aria-label="Start">
     <h1 class="res-type" style="font-size:40px;line-height:1.08">What's really running your trades?</h1>
-    <p class="lede">The Reset Audit. Twelve real trading moments, about 3 minutes. You get your hijack type, the fear underneath it and a stop rule written for you.</p>
+    <p class="lede">The Reset Audit. Twelve questions about real trading moments, about 3 minutes. You get your hijack type, the fear underneath it and a stop rule written for you.</p>
     <div class="door-scene" id="door" role="button" tabindex="0" aria-label="Pick up the page under the door">
       <div class="door"></div><div class="gap"></div><div class="floor"></div><div class="slip"></div>
       <div class="tap-hint">Someone slid a page under your door. Tap it.</div>
@@ -1048,6 +1048,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
   // ---------- Reserve buttons: the course, or Journal Pro after "skip the course" ----------
   const JOURNAL_PRICE = { in: '₹999', intl: '$15' };
   function reserveWith(product, btn, msg, doneLabel) {
+    // A reservation is remembered on this device, so a reload doesn't invite a second tap.
+    const KEY = `rt-reserved-${product}`;
+    const done = () => {
+      btn.disabled = true; btn.textContent = doneLabel; msg.dataset.state = '';
+      msg.textContent = 'Done. We’ll email you first when it opens.';
+      if (product === 'reset') $('skip-course').hidden = true;
+      $('res-email-wrap').hidden = true;
+    };
+    try { if (localStorage.getItem(KEY) === '1') done(); } catch (_) {}
     btn.addEventListener('click', async () => {
       const api = window.ResetAudit || {};
       const typed = $('res-email').value.trim();
@@ -1057,10 +1066,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
       try {
         if (!api.reserve) throw new Error('not loaded');
         await api.reserve({ product, type: TYPES[P.ruleType || P.top].name, region: $('offer-region').dataset.region || offerRegion(), email });
-        btn.textContent = doneLabel;
-        msg.textContent = 'Done. We’ll email you first when it opens.';
-        if (product === 'reset') $('skip-course').hidden = true;
-        $('res-email-wrap').hidden = true;
+        try { localStorage.setItem(KEY, '1'); } catch (_) {}
+        done();
       } catch (err) {
         btn.disabled = false;
         msg.dataset.state = 'error';
