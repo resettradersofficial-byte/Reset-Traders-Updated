@@ -61,6 +61,7 @@ function whisperNext() {
   bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
   document.querySelectorAll('.sil').forEach((s) => s.classList.toggle('called', s.dataset.hijack === kind));
   tilt3d?.hop();
+  VOICE.play(`whisper-${whisper + 1}-tilt`, true); // a tap counts as permission, so he speaks right away
   $('#tap-hint')?.remove();
   clearTimeout(callTimer);
   callTimer = setTimeout(() => document.querySelectorAll('.sil.called').forEach((s) => s.classList.remove('called')), 2200);
@@ -111,6 +112,7 @@ buddy?.addEventListener('click', () => {
   if (buddy.dataset.state === 'frozen') { buddySpeak('…', 1400); return; }
   buddyWhisper = (buddyWhisper + 1) % WHISPERS.length;
   buddySpeak(WHISPERS[buddyWhisper][1]);
+  VOICE.play(`whisper-${buddyWhisper + 1}-tilt`, true);
 });
 if (buddy && 'IntersectionObserver' in window) {
   // A thin band across the middle of the screen decides which section the visitor is in.
@@ -153,6 +155,41 @@ function renderTen(t) {
 // pauses when it leaves, and the button plays, pauses or replays it.
 const FROZEN = 'grayscale(1) sepia(1) hue-rotate(178deg) saturate(1.5) brightness(0.85) drop-shadow(0px 0px 0px rgba(255,72,48,0))';
 const LIT = 'grayscale(0) sepia(0) hue-rotate(0deg) saturate(1) brightness(1) drop-shadow(0px 0px 26px rgba(255,72,48,0.5))';
+/* ---------- Voices: Tilt and Leo speak their lines (assets/audio, made with TTS) ---------- */
+// One clip plays at a time. Film audio waits for the visitor to turn sound on;
+// tapping Tilt is itself a tap, so his whisper plays straight away.
+const VOICE = (() => {
+  const cache = {};
+  const listeners = [];
+  let on = false;
+  let current = null;
+  const RATE = 1.08; // a touch faster keeps the films tight
+  const get = (id) => (cache[id] ||= Object.assign(new Audio(`assets/audio/${id}.mp3`), { preload: 'auto' }));
+  const notify = () => listeners.forEach((f) => f(on));
+  function stop() { if (current) current.pause(); current = null; }
+  return {
+    get on() { return on; },
+    rate: 1.08,
+    onChange(f) { listeners.push(f); },
+    enable() { on = true; notify(); },
+    disable() { on = false; stop(); notify(); },
+    preload(id) { get(id); },
+    play(id, force = false) {
+      if (!on && !force) return;
+      stop();
+      const a = get(id);
+      a.currentTime = 0;
+      a.playbackRate = RATE;
+      current = a;
+      a.play().catch(() => { if (!force && on) { on = false; notify(); } }); // blocked: show "Tap for sound" again
+    },
+    pause() { if (current && !current.ended) current.pause(); },
+    resume() { if (on && current && current.currentTime > 0 && !current.ended) current.play().catch(() => {}); },
+    get playing() { return current && !current.paused ? current.src.split("/").pop() + " @" + current.currentTime.toFixed(2) : null; },
+    stop
+  };
+})();
+
 function buildStory(gsap) {
   const screen = $('#screen');
   if (!screen) return;
@@ -196,20 +233,30 @@ function buildStory(gsap) {
       tl.fromTo(sc.querySelector('.box-draw path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.8, ease: 'none' }, '<');
       tl.from(sc.querySelector('.fig-sad'), { scale: 1 + 0.15 * m, transformOrigin: '50% 100%', duration: 1.8, ease: 'power2.out' }, '<');
     }
-    // Bubbles pop, then their words appear. Leo's note comes after Tilt's line.
+    // Bubbles pop, then their words appear and the line is spoken. A second speaker (Leo) waits for the first to finish.
+    let prevLen = 0, voiceEnd = 0;
     says.forEach((say, k) => {
-      const at = k === 0 ? '<0.3' : '+=0.35';
+      const at = k === 0 ? '<0.15' : `<${(prevLen + 0.2).toFixed(2)}`;
       tl.from(say, { scale: 1 - 0.35 * m, opacity: 0, duration: 0.4, ease: 'back.out(2.2)', transformOrigin: say.classList.contains('say-leo') ? '50% 0%' : '0% 100%' }, at);
       tl.from(say.querySelectorAll('.w, .sig'), { opacity: 0, y: 6 * m, duration: 0.2, stagger: 0.045 }, '<0.1');
+      const id = say.dataset.voice, len = (Number(say.dataset.len) || 0) / VOICE.rate;
+      if (id) {
+        VOICE.preload(id);
+        tl.call(() => VOICE.play(id), null, '<-0.1'); // the voice starts as the bubble pops
+        voiceEnd = tl.recent().startTime() + len;
+      }
+      prevLen = len;
     });
     const btn = sc.querySelector('.btn');
     if (btn) tl.from(btn, { opacity: 0, y: 14 * m, duration: 0.45 }, '+=0.2');
     if (!last) {
-      tl.to({}, { duration: Number(sc.dataset.hold) || 2.4 });
+      // Hold long enough for the voice to finish, whether or not sound is on, so the pacing never changes.
+      const hold = Math.max(0.6, voiceEnd + 0.35 - tl.duration());
+      tl.to({}, { duration: hold });
       tl.to(sc, { autoAlpha: 0, duration: 0.35 });
     }
   });
-  if (new URLSearchParams(location.search).has('debug')) window.__story = tl; // jump to a moment while testing
+  if (new URLSearchParams(location.search).has('debug')) { window.__story = tl; window.__voice = VOICE; } // testing hooks
   const secs = Math.round(tl.duration());
   const LABEL = { idle: `Play · ${secs} s`, playing: 'Pause', paused: 'Play', ended: 'Replay' };
   let state = 'idle';
@@ -222,15 +269,34 @@ function buildStory(gsap) {
   }
   setState('idle');
   ctl.addEventListener('click', () => {
-    if (state === 'playing') { tl.pause(); userPaused = true; setState('paused'); return; }
-    if (state === 'ended') tl.restart(); else tl.play();
+    if (state === 'playing') { tl.pause(); VOICE.pause(); userPaused = true; setState('paused'); return; }
+    if (state === 'ended') { VOICE.stop(); tl.restart(); } else { tl.play(); VOICE.resume(); }
+    userPaused = false;
+    setState('playing');
+  });
+  // Sound: phones only allow it after a tap, so the film starts silent with a "Tap for sound" button.
+  // Turning sound on restarts the film so the visitor hears it from the first line.
+  const snd = $('#screen-sound');
+  const sndText = $('#screen-sound-text');
+  const paintSound = () => {
+    snd.setAttribute('aria-pressed', String(VOICE.on));
+    snd.classList.toggle('on', VOICE.on);
+    sndText.textContent = VOICE.on ? 'Sound on' : 'Tap for sound';
+  };
+  VOICE.onChange(paintSound);
+  paintSound();
+  snd.addEventListener('click', () => {
+    if (VOICE.on) { VOICE.disable(); return; }
+    VOICE.enable();
+    VOICE.stop();
+    tl.restart();
     userPaused = false;
     setState('playing');
   });
   if (!reduce && 'IntersectionObserver' in window) {
     new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !userPaused && (state === 'idle' || state === 'paused')) { tl.play(); setState('playing'); }
-      if (!e.isIntersecting && state === 'playing') { tl.pause(); setState('paused'); }
+      if (e.isIntersecting && !userPaused && (state === 'idle' || state === 'paused')) { tl.play(); VOICE.resume(); setState('playing'); }
+      if (!e.isIntersecting && state === 'playing') { tl.pause(); VOICE.pause(); setState('paused'); }
     }, { threshold: 0.6 }).observe(screen);
   }
 }

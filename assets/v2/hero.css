@@ -481,3 +481,13 @@ dialog.apply { width: min(640px, 100% - 32px); }
 /* Profile panel: the clay picture breathes gently instead of a 3D model */
 dialog.profile[open] #pf-img { animation: pf-float 4.5s ease-in-out infinite alternate; transform-origin: 50% 100%; }
 @keyframes pf-float { from { transform: translateY(0) scale(1); } to { transform: translateY(-8px) scale(1.012); } }
+
+/* Film sound button */
+.screen-sound { position: absolute; right: 14px; bottom: 14px; z-index: 7; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 14px 8px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(13, 12, 16, .82); color: var(--text); font: 700 13px var(--display); cursor: pointer; touch-action: manipulation; animation: snd-nudge 2.4s ease-in-out 1.5s 3; }
+.screen-sound:hover { border-color: var(--cta); }
+.screen-sound.on { animation: none; border-color: rgba(155, 188, 255, .5); }
+.snd-icon { position: relative; width: 18px; height: 18px; }
+.snd-icon::before { content: ""; position: absolute; left: 1px; top: 5px; width: 6px; height: 8px; background: var(--cta); clip-path: polygon(0 25%, 45% 25%, 100% 0, 100% 100%, 45% 75%, 0 75%); transform: scale(1.6); transform-origin: 0 50%; }
+.snd-icon::after { content: ""; position: absolute; right: 0; top: 4px; width: 7px; height: 10px; border: 2px solid var(--cta); border-left: 0; border-radius: 0 10px 10px 0; opacity: .35; }
+.screen-sound.on .snd-icon::after { opacity: 1; }
+@keyframes snd-nudge { 0%, 100% { transform: none; } 50% { transform: scale(1.06); box-shadow: 0 0 0 6px rgba(155, 188, 255, .15); } }
