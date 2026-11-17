@@ -250,9 +250,10 @@ service cloud.firestore {
         && (!("lastLogAt" in d) || d.lastLogAt is timestamp);
     }
 
-    // kind "trade": a taken trade with its P&L. kind "skip": a valid setup the trader let pass.
+    // kind "trade": a taken trade with its P&L (optional: size vs normal, whether the stop rule was used first).
+    // kind "skip": a valid setup the trader let pass. kind "check": a pre-trade check and how it ended.
     function validTrade(d) {
-      return d.keys().hasOnly(["kind", "at", "pnl", "planned", "hijack", "note", "createdAt", "updatedAt"])
+      return d.keys().hasOnly(["kind", "at", "pnl", "planned", "hijack", "note", "size", "ruleUsed", "outcome", "createdAt", "updatedAt"])
         && d.keys().hasAll(["kind", "at", "hijack", "createdAt", "updatedAt"])
         && d.at is timestamp
         && d.at < request.time + duration.value(1, "d")
@@ -263,9 +264,15 @@ service cloud.firestore {
         && (
           (d.kind == "trade"
             && d.keys().hasAll(["pnl", "planned"])
+            && !("outcome" in d)
             && d.pnl is number && d.pnl > -1000000000 && d.pnl < 1000000000
-            && d.planned is bool)
-          || (d.kind == "skip" && !d.keys().hasAny(["pnl", "planned"]))
+            && d.planned is bool
+            && (!("size" in d) || d.size in ["smaller", "same", "bigger"])
+            && (!("ruleUsed" in d) || d.ruleUsed is bool))
+          || (d.kind == "skip" && !d.keys().hasAny(["pnl", "planned", "size", "ruleUsed", "outcome"]))
+          || (d.kind == "check"
+            && !d.keys().hasAny(["pnl", "planned", "size", "ruleUsed"])
+            && d.outcome in ["skip", "take"])
         );
     }
 

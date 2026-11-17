@@ -1,5 +1,6 @@
 /* Reset Journal Pro. Same design system as the Reset Journal desktop app (paper and ink, serif
-   wordmark, amber step tags, ink buttons, light/dark). Red marks the hijack and Tilt Tax only. */
+   wordmark, amber step tags, light/dark). Red marks the hijack and Tilt Tax only. Calm blue is the
+   way out, same job as on the website: main buttons, the active tab, links and focus. */
 :root {
   color-scheme: light;
   --paper: #F5F2EC;
@@ -15,6 +16,9 @@
   --green: #3B6B4F;
   --green-soft: #DFEBE3;
   --white: #FFFDF9;
+  --calm: #1f4fd1;
+  --on-calm: #ffffff;
+  --calm-soft: #e3eafb;
   --shadow: 0 1px 0 rgba(23, 22, 15, 0.05);
   --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -25,6 +29,7 @@
     --paper: #15140F; --paper-raised: #1C1B15; --ink: #EFEBE0; --ink-soft: #B8B3A2; --ink-faint: #8f8a7a;
     --line: #332F24; --amber: #D2A44C; --amber-soft: #2E2717; --red: #D07A6E; --red-soft: #2E1D1A;
     --green: #7FB899; --green-soft: #17251D; --white: #1C1B15; --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+    --calm: #9bbcff; --on-calm: #15140F; --calm-soft: #1b2236;
   }
 }
 :root[data-theme="dark"] {
@@ -32,6 +37,7 @@
   --paper: #15140F; --paper-raised: #1C1B15; --ink: #EFEBE0; --ink-soft: #B8B3A2; --ink-faint: #8f8a7a;
   --line: #332F24; --amber: #D2A44C; --amber-soft: #2E2717; --red: #D07A6E; --red-soft: #2E1D1A;
   --green: #7FB899; --green-soft: #17251D; --white: #1C1B15; --shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+    --calm: #9bbcff; --on-calm: #15140F; --calm-soft: #1b2236;
 }
 
 * { box-sizing: border-box; }
@@ -45,8 +51,8 @@ body {
 [hidden] { display: none !important; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-a { color: inherit; text-underline-offset: 3px; }
-:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+a { color: var(--calm); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--calm); outline-offset: 2px; }
 .num { font-variant-numeric: tabular-nums; }
 p { margin: 0; }
 
@@ -59,7 +65,7 @@ header.app-head {
   max-width: 760px; margin: 0 auto; padding: 14px 20px;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
 }
-.wordmark { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+.wordmark { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; color: var(--ink); }
 .wordmark img { width: 34px; height: 34px; border-radius: 8px; flex: none; }
 .wordmark span { font: 600 19px/1.1 var(--serif); letter-spacing: 0.01em; white-space: nowrap; }
 .wordmark small {
@@ -73,7 +79,7 @@ nav.tabs button {
   border: 0; background: transparent; font: 600 13px/1 var(--sans);
   padding: 9px 16px; border-radius: 999px; color: var(--ink-soft); transition: background .15s ease, color .15s ease;
 }
-nav.tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+nav.tabs button[aria-selected="true"] { background: var(--calm); color: var(--on-calm); }
 .head-meta {
   max-width: 760px; margin: 0 auto; padding: 0 20px 12px;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -126,7 +132,7 @@ input[type=text], input[type=email], input[type=password], input[type=datetime-l
   border: 1px solid var(--line); border-radius: 8px; padding: 12px 13px; min-height: 46px; outline: none;
   transition: border-color .12s ease;
 }
-input:focus, select:focus { border-color: var(--amber); }
+input:focus, select:focus { border-color: var(--calm); }
 select {
   appearance: none; padding-right: 34px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238A8677'/%3E%3C/svg%3E");
@@ -136,7 +142,7 @@ select {
   display: flex; align-items: center; gap: 6px; background: var(--paper); border: 1px solid var(--line);
   border-radius: 8px; padding: 0 14px; min-height: 58px; margin-top: 8px;
 }
-.amount:focus-within { border-color: var(--amber); }
+.amount:focus-within { border-color: var(--calm); }
 .amount span { font: 600 24px/1 var(--serif); color: var(--ink-faint); }
 .amount input {
   border: 0 !important; background: transparent !important; padding: 10px 0 !important; min-height: 0 !important;
@@ -163,7 +169,7 @@ details.more[open] summary { margin-bottom: 14px; }
 /* ---------- buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  border-radius: 999px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+  border-radius: 999px; border: 1px solid var(--calm); background: var(--calm); color: var(--on-calm);
   font: 700 14.5px/1.2 var(--sans); padding: 14px 22px; min-height: 48px; width: 100%;
   transition: opacity .12s ease;
 }
@@ -175,14 +181,14 @@ details.more[open] summary { margin-bottom: 14px; }
 .btn.auto { width: auto; }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn-row .btn { flex: 1; min-width: 130px; }
-.link { background: none; border: 0; padding: 6px 0; color: var(--ink); font-weight: 600; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; }
+.link { background: none; border: 0; padding: 6px 0; color: var(--calm); font-weight: 600; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; }
 .divider { height: 1px; background: var(--line); margin: 22px 0; border: 0; }
 
 /* ---------- landing ---------- */
 .landing { display: grid; gap: 28px; }
 .emblem-hero { width: 96px; height: 96px; border-radius: 20px; display: block; margin-bottom: 18px; }
 .points { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 12px; }
-.points li { border-left: 3px solid var(--line); padding: 2px 0 2px 14px; color: var(--ink-soft); font-size: 14.5px; }
+.points li { border-left: 3px solid var(--calm); padding: 2px 0 2px 14px; color: var(--ink-soft); font-size: 14.5px; }
 .points li.red { border-left-color: var(--red); }
 .points li.amber { border-left-color: var(--amber); }
 .points b { color: var(--ink); }
@@ -268,7 +274,7 @@ dialog form { padding: 24px; }
 dialog header { display: flex; justify-content: space-between; align-items: start; gap: 10px; margin-bottom: 14px; }
 dialog h3 { font: 600 21px/1.2 var(--serif); margin: 0; }
 .toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 14px; }
-.toggle input { width: 20px; height: 20px; accent-color: var(--ink); flex: none; }
+.toggle input { width: 20px; height: 20px; accent-color: var(--calm); flex: none; }
 .toast {
   position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; z-index: 200;
   transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none; transition: all .25s ease;
@@ -303,3 +309,46 @@ footer.tagline {
   .view { animation: none; }
   * { transition: none !important; }
 }
+
+/* ---------- v1.1: avatars (only where the hijack speaks: setup, hijack card, pre-trade check) ---------- */
+.avatar {
+  width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top;
+  background: var(--paper-raised); border: 1px solid var(--line); flex: none;
+}
+.watch-row { display: grid; grid-template-columns: 56px 1fr; gap: 14px; align-items: start; }
+.pick button .avatar { width: 48px; height: 48px; margin-bottom: 6px; }
+.pick button { min-height: 150px; }
+.pick .unsure .avatar { display: none; }
+.chk-head { display: flex; gap: 12px; align-items: center; }
+
+/* ---------- pre-trade check: box breath ---------- */
+.breath {
+  display: grid; grid-template-columns: 76px 1fr; gap: 14px; align-items: center;
+  background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--amber);
+  border-radius: 10px; padding: 14px; margin: 4px 0 6px;
+}
+.breath .rule { font: 600 15px/1.4 var(--serif); margin: 0 0 4px; }
+.breath-box {
+  position: relative; width: 64px; height: 64px; border: 2px solid var(--line); border-radius: 6px;
+  display: grid; place-items: center; font: 600 22px/1 var(--serif); color: var(--ink);
+}
+.breath-box::after {
+  content: ""; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--amber);
+  left: -6px; top: -6px; animation: box-trace 16s linear infinite; animation-play-state: paused;
+}
+.breath-box.run::after { animation-play-state: running; }
+@keyframes box-trace {
+  0% { left: -6px; top: -6px; } 25% { left: calc(100% - 4px); top: -6px; }
+  50% { left: calc(100% - 4px); top: calc(100% - 4px); } 75% { left: -6px; top: calc(100% - 4px); } 100% { left: -6px; top: -6px; }
+}
+#chk-verdict.warn { color: var(--red); }
+
+/* ---------- week: trend ---------- */
+.trend { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 86px; margin: 14px 0 4px; }
+.trend div { display: grid; gap: 4px; justify-items: center; align-self: end; }
+.trend i { display: block; width: 100%; min-height: 3px; border-radius: 3px 3px 0 0; background: var(--line); }
+.trend .now i { background: var(--red); }
+.trend .now.zero i { background: var(--green); }
+.trend span { font-size: 10.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.trend-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--ink-faint); }
+.lead.green { color: var(--green); }

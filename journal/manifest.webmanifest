@@ -1,0 +1,14 @@
+{
+  "name": "Reset Journal",
+  "short_name": "Reset Journal",
+  "description": "Log a trade in 20 seconds. Tag the hijack. See what it cost you.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F2EC",
+  "theme_color": "#F5F2EC",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

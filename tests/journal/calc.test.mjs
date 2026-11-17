@@ -1,7 +1,7 @@
 // Journal Pro maths. Run from repo root: node --test tests/journal/calc.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { annotate, summarize, weekStart, minutesSinceLastLoss, money, headline, toCsv } from "../../journal/calc.js";
+import { annotate, summarize, weekStart, minutesSinceLastLoss, money, headline, toCsv, weeklySeries } from "../../journal/calc.js";
 
 const at = (h, m = 0, day = 17) => new Date(2026, 10, day, h, m); // Tue 17 Nov 2026
 const T = (h, m, pnl, hijack = "none", planned = true, note) => ({ kind: "trade", at: at(h, m), pnl, hijack, planned, note });
@@ -69,17 +69,51 @@ test("money formats rupees and dollars", () => {
   assert.equal(money(0, "USD"), "$0");
 });
 
-test("headline", () => {
-  const base = { trades: 3, skips: 0, hijackedCount: 1, hijackNet: -4200 };
-  assert.equal(headline(base, "INR"), "The hijack cost you ₹4,200 this week.");
-  assert.match(headline({ ...base, hijackedCount: 0 }, "INR"), /all clean/);
-  assert.match(headline({ ...base, hijackNet: 900 }, "INR"), /got paid ₹900/);
-  assert.equal(headline({ trades: 0, skips: 0 }, "INR"), "Nothing logged this week yet.");
+test("headline leads with behaviour, compared with last week", () => {
+  const s = { trades: 5, skips: 0, checks: 0, hijackedCount: 2, urgesCaught: 0 };
+  assert.equal(headline(s, { trades: 6, checks: 0, hijackedCount: 4 }), "2 hijacked trades this week, down from 4 last week.");
+  assert.equal(headline(s, { trades: 6, checks: 0, hijackedCount: 1 }), "2 hijacked trades this week, up from 1 last week.");
+  assert.equal(headline(s, { trades: 3, checks: 0, hijackedCount: 2 }), "2 hijacked trades this week, same as last week.");
+  assert.equal(headline({ ...s, hijackedCount: 0 }, { trades: 0, checks: 0 }), "No hijacked trades this week.");
+  assert.equal(headline({ trades: 0, skips: 0, checks: 2, urgesCaught: 2 }, null), "No trades taken this week. You caught 2 urges.");
+  assert.equal(headline({ trades: 0, skips: 0, checks: 0 }, null), "Nothing logged this week yet.");
+});
+
+test("pre-trade checks, stop-rule use and bigger size after a loss", () => {
+  const list = annotate([
+    T(9, 0, -500),
+    { ...T(9, 10, -300, "Competitor", false), size: "bigger", ruleUsed: false },
+    { ...T(9, 20, 200, "Competitor", false), size: "same", ruleUsed: true },
+    { kind: "check", at: at(9, 25), hijack: "Competitor", outcome: "skip" },
+    { kind: "check", at: at(9, 40), hijack: "Competitor", outcome: "take" }
+  ], 30);
+  const s = summarize(list, weekStart(at(9)), new Date(2026, 10, 23));
+  assert.equal(s.trades, 3);
+  assert.equal(s.checks, 2);
+  assert.equal(s.urgesCaught, 1);
+  assert.equal(s.ruleYesCount, 1);
+  assert.equal(s.ruleYesNet, 200);
+  assert.equal(s.ruleNoCount, 1);
+  assert.equal(s.ruleNoNet, -300);
+  assert.equal(s.biggerAfterLoss, 1);
+});
+
+test("weekly series counts hijacked trades per week, oldest first", () => {
+  const list = annotate([
+    { ...T(9, 0, -1, "Rusher", false), at: new Date(2026, 10, 10, 9) },
+    { ...T(9, 5, -1, "Rusher", false), at: new Date(2026, 10, 10, 9, 5) },
+    T(9, 0, -1, "Rusher", false),
+    { kind: "check", at: at(10), hijack: "Rusher", outcome: "skip" }
+  ], 30);
+  const series = weeklySeries(list, weekStart(at(9)), 3);
+  assert.deepEqual(series.map((w) => w.hijacked), [0, 2, 1]);
+  assert.deepEqual(series.map((w) => w.caught), [0, 0, 1]);
+  assert.equal(series[2].from.getTime(), new Date(2026, 10, 16).getTime());
 });
 
 test("CSV quotes notes and blocks spreadsheet formulas", () => {
   const csv = toCsv(annotate([T(9, 0, -5, "Rusher", false, '=HYPERLINK("x"), "quoted"')], 30), "INR");
   const lines = csv.split("\r\n");
-  assert.equal(lines[0], "date,time,kind,pnl_INR,in_plan,hijack,after_loss_window,note");
-  assert.equal(lines[1], `2026-11-17,09:00,trade,-5,no,Rusher,no,"'=HYPERLINK(""x""), ""quoted"""`);
+  assert.equal(lines[0], "date,time,kind,pnl_INR,in_plan,hijack,after_loss_window,size,rule_used,check_outcome,note");
+  assert.equal(lines[1], `2026-11-17,09:00,trade,-5,no,Rusher,no,,,,"'=HYPERLINK(""x""), ""quoted"""`);
 });

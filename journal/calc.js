@@ -1,7 +1,8 @@
 // Journal Pro maths. Pure functions, no DOM and no Firebase, so they can be unit-tested
 // (tests/journal/calc.test.js) and reused later by a weekly email.
 //
-// A trade: { id, kind: "trade" | "skip", at: Date, pnl?: number, planned?: boolean, hijack: string, note?: string }
+// An entry: { id, kind: "trade" | "skip" | "check", at: Date, pnl?: number, planned?: boolean, hijack: string,
+//   note?: string, size?: "smaller" | "same" | "bigger", ruleUsed?: boolean, outcome?: "skip" | "take" }
 // hijack is "Rusher" | "Performer" | "Competitor" | "Intellectualizer" | "none".
 
 export const HIJACKS = ["Rusher", "Performer", "Competitor", "Intellectualizer"];
@@ -59,6 +60,10 @@ export function summarize(annotated, from, to) {
   const unplanned = taken.filter((e) => e.planned === false);
   const planned = taken.filter((e) => e.planned === true);
 
+  const checks = inRange.filter((e) => e.kind === "check");
+  const ruleYes = hijacked.filter((e) => e.ruleUsed === true);
+  const ruleNo = hijacked.filter((e) => e.ruleUsed === false);
+
   const byHijack = HIJACKS.map((name) => {
     const list = taken.filter((e) => e.hijack === name);
     return { name, count: list.length, net: sum(list) };
@@ -81,6 +86,11 @@ export function summarize(annotated, from, to) {
     unplannedCount: unplanned.length,
     unplannedNet: sum(unplanned),
     taggedShare: taken.length ? hijacked.length / taken.length : 0,
+    checks: checks.length,
+    urgesCaught: checks.filter((e) => e.outcome === "skip").length, // pre-trade checks that ended in "skip"
+    ruleYesCount: ruleYes.length, ruleYesNet: sum(ruleYes),
+    ruleNoCount: ruleNo.length, ruleNoNet: sum(ruleNo),
+    biggerAfterLoss: tilt.filter((e) => e.size === "bigger").length,
     byHijack,
     top: byHijack[0] || null         // the hijack that cost the most (or was tagged most)
   };
@@ -109,15 +119,28 @@ export function money(value, currency, { sign = false } = {}) {
   return `${pre}${sym}${str}`;
 }
 
-// One plain sentence that leads the weekly report.
-export function headline(s, currency) {
-  if (!s.trades && !s.skips) return "Nothing logged this week yet.";
-  if (!s.trades) return `No trades taken. You let ${s.skips} setup${s.skips === 1 ? "" : "s"} pass.`;
-  if (!s.hijackedCount) return `No hijacked trades logged this week. ${s.trades} trade${s.trades === 1 ? "" : "s"}, all clean.`;
-  if (s.hijackNet < 0) {
-    return `The hijack cost you ${money(-s.hijackNet, currency)} this week.`;
+// Hijacked trades (and urges caught) per week, oldest first, for the trend bars.
+export function weeklySeries(annotated, lastWeekStart, weeks) {
+  const out = [];
+  for (let i = weeks - 1; i >= 0; i--) {
+    const from = addDays(lastWeekStart, -7 * i);
+    const s = summarize(annotated, from, addDays(from, 7));
+    out.push({ from, trades: s.trades, hijacked: s.hijackedCount, tilt: s.tiltCount, caught: s.urgesCaught });
   }
-  return `${s.hijackedCount} hijacked trade${s.hijackedCount === 1 ? "" : "s"} this week, and the hijack got paid ${money(s.hijackNet, currency)}. That's how it keeps you coming back.`;
+  return out;
+}
+
+// One plain sentence that leads the weekly report. Behaviour first: one week of money is mostly luck
+// (the simulation showed a 1-week money total points the right way only about half the time).
+export function headline(s, prev) {
+  if (!s.trades && !s.skips && !s.checks) return "Nothing logged this week yet.";
+  if (!s.trades) return `No trades taken this week.${s.urgesCaught ? ` You caught ${s.urgesCaught} urge${s.urgesCaught === 1 ? "" : "s"}.` : ""}`;
+  const k = s.hijackedCount;
+  const now = k ? `${k} hijacked trade${k === 1 ? "" : "s"} this week` : "No hijacked trades this week";
+  if (!prev || (!prev.trades && !prev.checks)) return `${now}.`;
+  const p = prev.hijackedCount;
+  if (k === p) return `${now}, same as last week.`;
+  return `${now}, ${k < p ? "down" : "up"} from ${p} last week.`;
 }
 
 // CSV export, newest first. Notes are quoted; formulas are neutralised for spreadsheet apps.
@@ -127,7 +150,7 @@ export function toCsv(entries, currency) {
     if (/^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s)) s = "'" + s;
     return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const rows = [["date", "time", "kind", `pnl_${currency}`, "in_plan", "hijack", "after_loss_window", "note"]];
+  const rows = [["date", "time", "kind", `pnl_${currency}`, "in_plan", "hijack", "after_loss_window", "size", "rule_used", "check_outcome", "note"]];
   for (const e of [...entries].sort((a, b) => b.at - a.at)) {
     const d = e.at;
     const pad = (n) => String(n).padStart(2, "0");
@@ -139,6 +162,9 @@ export function toCsv(entries, currency) {
       e.kind === "trade" ? (e.planned ? "yes" : "no") : "",
       e.hijack,
       e.afterLoss ? "yes" : "no",
+      e.size || "",
+      e.ruleUsed == null ? "" : e.ruleUsed ? "yes" : "no",
+      e.outcome || "",
       e.note || ""
     ]);
   }

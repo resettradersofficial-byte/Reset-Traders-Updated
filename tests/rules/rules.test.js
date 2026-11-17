@@ -439,6 +439,22 @@ describe("journal", () => {
     await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), skip({ pnl: 10 })));
     await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), skip({ planned: true })));
   });
+  test("v1.1: size, stop-rule use and pre-trade checks are checked too", async () => {
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade({ size: "bigger", ruleUsed: false })));
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade({ size: "same", ruleUsed: true })));
+    const check = (over = {}) => ({ kind: "check", at: Timestamp.now(), hijack: "Rusher", outcome: "skip",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(), ...over });
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), check()));
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), check({ outcome: "take", hijack: "none" })));
+    for (const bad of [
+      trade({ size: "huge" }), trade({ ruleUsed: "yes" }), trade({ outcome: "skip" }),
+      check({ outcome: "maybe" }), check({ pnl: 5 }), check({ planned: true }), check({ size: "same" }), check({ ruleUsed: true }),
+      skip({ outcome: "skip" }), skip({ size: "same" })
+    ]) await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), bad));
+    const { outcome, ...noOutcome } = check();
+    await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), noOutcome));
+    await assertFails(addDoc(trades(as(ACTIVE), NEWBIE), check()));
+  });
   test("traders edit and delete their own trades; createdAt cannot move", async () => {
     const id = (await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade()))).id;
     const ref = doc(as(NEWBIE), "journals", NEWBIE.uid, "trades", id);
