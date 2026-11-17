@@ -474,3 +474,10 @@ dialog.apply { width: min(640px, 100% - 32px); }
   .sc-end .btn { width: 100%; }
   .ten-big { font-size: 46vw; }
 }
+
+/* Tap Tilt: his new line pops so the change is easy to see */
+.bubble.pop { animation: bubble-pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes bubble-pop { from { transform: scale(.82); opacity: .35; } }
+/* Profile panel: the clay picture breathes gently instead of a 3D model */
+dialog.profile[open] #pf-img { animation: pf-float 4.5s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes pf-float { from { transform: translateY(0) scale(1); } to { transform: translateY(-8px) scale(1.012); } }

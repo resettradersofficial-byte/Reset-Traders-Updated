@@ -58,6 +58,7 @@ function whisperNext() {
   whisper = (whisper + 1) % WHISPERS.length;
   const [kind, line] = WHISPERS[whisper];
   bubbleText.textContent = line;
+  bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
   document.querySelectorAll('.sil').forEach((s) => s.classList.toggle('called', s.dataset.hijack === kind));
   tilt3d?.hop();
   $('#tap-hint')?.remove();
@@ -295,31 +296,30 @@ const PROFILES = {
     kicker: 'Hijack 01 · Rohan', name: 'The Rusher', line: 'You trade the clock, not the chart.',
     desc: 'You enter before the candle closes, then tell yourself it was a read. After a loss, your next trade comes faster than your first one did. Sitting flat feels like money leaving.',
     fear: 'Underneath it is fear of falling behind. Rohan knows this one: his story starts in Two Traders, Episode 1.',
-    img: 'assets/characters/rohan.webp', alt: 'Rohan, the Rusher', model: 'assets/3d/rohan.glb'
+    img: 'assets/characters/rohan.webp', alt: 'Rohan, the Rusher'
   },
   performer: {
     kicker: 'Hijack 02 · Kabir', name: 'The Performer', line: 'You trade to be seen winning.',
     desc: 'You size up when someone is watching, even if it\'s just your group chat. A red day feels like a public failure, even when nobody knows. Wins get screenshotted. Losses get deleted.',
     fear: 'Underneath it is fear of being seen failing. Kabir knows this one: the payout screenshot everyone saw, in Two Traders, Episode 8.',
-    img: 'assets/characters/kabir.webp', alt: 'Kabir, the Performer', model: 'assets/3d/kabir.glb'
+    img: 'assets/characters/kabir.webp', alt: 'Kabir, the Performer'
   },
   competitor: {
     kicker: 'Hijack 03 · Arjun', name: 'The Competitor', line: 'You keep score. Against the market, and everyone else.',
     desc: 'After a loss you have to win it back, and it has to be now. You add size, switch instruments or open another account to prove a point. Someone else\'s payout can ruin your whole day.',
     fear: 'Underneath it is fear of losing. Arjun walks into Two Traders soon.',
-    img: 'assets/characters/competitor.webp', alt: 'Arjun, the Competitor', model: 'assets/3d/competitor.glb'
+    img: 'assets/characters/competitor.webp', alt: 'Arjun, the Competitor'
   },
   intellectualizer: {
     kicker: 'Hijack 04 · Meera', name: 'The Intellectualizer', line: 'You know everything. You execute nothing.',
     desc: 'You check one more timeframe and miss the entry, then chase it. After every loss you re-backtest the whole strategy. You can explain your rules better than you follow them.',
     fear: 'Underneath it is fear of being wrong. Meera joins Two Traders soon.',
-    img: 'assets/characters/intellectualizer.webp', alt: 'Meera, the Intellectualizer', model: 'assets/3d/intellectualizer.glb'
+    img: 'assets/characters/intellectualizer.webp', alt: 'Meera, the Intellectualizer'
   }
 };
 const dlg = $('#profile');
 const visual = $('#pf-visual');
 const pfImg = $('#pf-img');
-let avatar = null;
 let opener = null;
 function openProfile(kind, from) {
   const p = PROFILES[kind];
@@ -333,23 +333,12 @@ function openProfile(kind, from) {
   pfImg.src = p.img;
   pfImg.alt = p.soon ? '' : p.alt;
   visual.classList.toggle('soon', Boolean(p.soon));
-  visual.classList.remove('gl-on');
   $('#pf-badge').hidden = !p.soon;
-  $('#pf-drag').hidden = true;
   document.body.classList.add('modal-open');
   dlg.showModal();
-  if (p.model) {
-    import('./avatar3d.js')
-      .then((m) => m.mountAvatar({ canvas: $('#pf-gl'), url: p.model, reduce, onReady: () => { visual.classList.add('gl-on'); $('#pf-drag').hidden = false; } }))
-      .then((a) => { if (dlg.open) avatar = a; else a.dispose(); })
-      .catch((error) => console.warn('[hero] 3D avatar unavailable, keeping the picture:', error && error.message ? error.message : error));
-  }
 }
 function closeProfile() { if (dlg?.open) dlg.close(); }
 dlg?.addEventListener('close', () => {
-  avatar?.dispose();
-  avatar = null;
-  visual.classList.remove('gl-on');
   document.body.classList.remove('modal-open');
   opener?.focus();
 });
