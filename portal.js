@@ -18,7 +18,7 @@ import {
   storage,
   storageRef,
   where
-} from "./firebase.js?v=20260707-checkout-account-fix";
+} from "./firebase.js?v=20261118-portal";
 
 let currentUser = null;
 let currentProfile = null;

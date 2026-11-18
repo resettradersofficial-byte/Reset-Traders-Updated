@@ -1,0 +1,32 @@
+/* Reset Traders design tokens (approved 2026-11-11: "Red to calm, tuned").
+   Red belongs to the hijack (Tilt, hijack words). Calm blue is the way out (buttons).
+   Leo keeps his cream paper. Checked for colour-blind vision and phones in sunlight. */
+:root {
+  /* Tilt's world (dark) */
+  --bg: #0d0c10;
+  --panel: #18161d;
+  --line: #2e2a35;
+  --text: #f4f0ea;
+  --muted: #c4bfca;
+  --hijack: #ff5544;
+  --cta: #9bbcff;
+  --on-cta: #0d0c10;
+  --logo: #e11d2a;
+
+  /* Leo's world (paper) */
+  --paper: #f4f0ea;
+  --paper-panel: #ebe5dc;
+  --ink: #16141b;
+  --ink-muted: #4f4a56;
+  --hijack-on-paper: #c1121f;
+  --cta-on-paper: #1f4fd1;
+  --on-cta-on-paper: #ffffff;
+  --note: #f4f0ea;
+
+  /* Type */
+  --display: 'Poppins', system-ui, sans-serif;
+  --body: 'Inter', system-ui, sans-serif;
+  --hand: 'Kalam', cursive;
+
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}

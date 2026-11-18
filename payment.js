@@ -3,7 +3,7 @@ import {
   auth,
   cleanEmail,
   ensureBuyerAccount
-} from "./firebase.js?v=20260707-checkout-account-fix";
+} from "./firebase.js?v=20261118-portal";
 
 export const PLANS = {
   course: {
@@ -13,15 +13,8 @@ export const PLANS = {
     amount: 1699900,
     display: "₹16,999",
     access: "lifetime"
-  },
-  mentorship: {
-    id: "mentorship",
-    name: "1:1 Elite Mentorship",
-    label: "Elite Mentorship",
-    amount: 7499900,
-    display: "\u20B974,999",
-    access: "3_months"
   }
+  // Elite Mentorship is apply-only (form, then call); it has no public checkout plan.
 };
 
 let currentPlan = null;

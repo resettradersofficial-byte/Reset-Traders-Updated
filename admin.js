@@ -8,6 +8,7 @@ import {
   doc,
   getDocs,
   isAdminProfile,
+  limit,
   onSnapshot,
   orderBy,
   paths,
@@ -18,7 +19,7 @@ import {
   setDoc,
   updateDoc,
   where
-} from "./firebase.js?v=20260707-checkout-account-fix";
+} from "./firebase.js?v=20261118-portal";
 
 let adminUser = null;
 let adminProfile = null;
@@ -80,6 +81,8 @@ export function loadAdmin(user, profile) {
     doubts = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
     renderAdminDoubts();
   }));
+
+  watchLeads();
 }
 
 export function adminTab(tab) {
@@ -90,6 +93,7 @@ export function adminTab(tab) {
   if (tabButton) tabButton.classList.add("active");
   $(`tab-${tab}`)?.classList.add("active");
   if (tab === "doubts") renderAdminDoubts();
+  if (tab === "leads") renderLeads();
 }
 
 function videoField(value) {
@@ -469,4 +473,95 @@ export function previewFounderPhoto(input, who) {
     alert("Preview loaded. For production, upload the image to Firebase Storage and paste its protected URL/path before saving.");
   };
   reader.readAsDataURL(file);
+}
+
+// ---------- Leads: founding-seat / Journal Pro reservations and audit takers (read-only) ----------
+let reservations = [];
+let auditLeads = [];
+let leadsError = "";
+const AUDIT_LEADS_SHOWN = 500;
+
+function when(value) {
+  const date = value?.toDate ? value.toDate() : null;
+  return date ? date.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
+}
+
+function isoWhen(value) {
+  const date = value?.toDate ? value.toDate() : null;
+  return date ? date.toISOString() : "";
+}
+
+function watchLeads() {
+  const onError = (error) => { leadsError = error?.message || "Could not load leads."; renderLeads(); };
+  unsubscribeFns.push(onSnapshot(query(collection(db, paths.reservations), orderBy("createdAt", "desc")), (snapshot) => {
+    reservations = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+    renderLeads();
+  }, onError));
+  unsubscribeFns.push(onSnapshot(query(collection(db, paths.auditLeads), orderBy("createdAt", "desc"), limit(AUDIT_LEADS_SHOWN)), (snapshot) => {
+    auditLeads = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+    renderLeads();
+  }, onError));
+}
+
+function leadTable(headers, rows) {
+  if (!rows.length) return `<p style="color:var(--gray-light);font-size:13px;">Nothing yet.</p>`;
+  return `<div style="overflow-x:auto;"><table class="leads-table">
+    <thead><tr>${headers.map((h) => `<th>${safeText(h)}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${safeText(cell)}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+export function renderLeads() {
+  const box = $("leads-body");
+  if (!box) return;
+  const real = (items) => items.filter((item) => item.source !== "test");
+  const res = real(reservations);
+  const seats = res.filter((item) => item.product === "reset");
+  const journal = res.filter((item) => item.product === "journal");
+  const unique = (items) => new Set(items.map((item) => item.email)).size;
+  const leads = real(auditLeads);
+  const fromSite = leads.filter((item) => item.ref === "site").length;
+  const stat = (n, label) => `<div class="leads-stat"><b>${n}</b><span>${safeText(label)}</span></div>`;
+  box.innerHTML = `
+    ${leadsError ? `<div class="admin-notice" style="border-color:#ff4444;">${safeText(leadsError)}</div>` : ""}
+    <div class="leads-stats">
+      ${stat(unique(seats), "founding seats reserved")}
+      ${stat(unique(journal), "Journal Pro reserved")}
+      ${stat(leads.length + (auditLeads.length >= AUDIT_LEADS_SHOWN ? "+" : ""), "audit takers")}
+      ${stat(fromSite, "audit takers from the homepage")}
+    </div>
+    <div class="admin-card">
+      <h3>RESERVATIONS (${res.length})</h3>
+      <p style="color:var(--gray-light);font-size:13px;margin:-4px 0 14px;">No payment taken. Email these people when checkout opens.</p>
+      ${leadTable(["When", "Email", "Reserved", "Hijack", "Region"], res.map((item) => [
+        when(item.createdAt), item.email, item.product === "journal" ? "Journal Pro" : "Founding seat", item.type, item.region === "in" ? "India (₹)" : "International ($)"
+      ]))}
+      <button class="admin-btn secondary" style="margin-top:14px;" onclick="downloadLeads('reservations')">Download CSV</button>
+    </div>
+    <div class="admin-card">
+      <h3>AUDIT TAKERS (${leads.length}${auditLeads.length >= AUDIT_LEADS_SHOWN ? ", latest " + AUDIT_LEADS_SHOWN : ""})</h3>
+      ${leadTable(["When", "Email", "Hijack", "Level", "Stage", "Came from"], leads.map((item) => [
+        when(item.createdAt), item.email, item.type, item.level || "-", item.stage, item.ref || "-"
+      ]))}
+      <button class="admin-btn secondary" style="margin-top:14px;" onclick="downloadLeads('audit')">Download CSV</button>
+    </div>`;
+}
+
+export function downloadLeads(which) {
+  try {
+    requireAdmin();
+    const cell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const rows = which === "reservations"
+      ? [["createdAt", "email", "product", "type", "region", "source"], ...reservations.map((item) => [isoWhen(item.createdAt), item.email, item.product, item.type, item.region, item.source])]
+      : [["createdAt", "email", "type", "level", "stage", "ref", "body", "nerve", "rule", "source"], ...auditLeads.map((item) => [isoWhen(item.createdAt), item.email, item.type, item.level, item.stage, item.ref, item.body, item.nerve, item.rule, item.source])];
+    const blob = new Blob(["﻿" + rows.map((row) => row.map(cell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `reset-traders-${which}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    alert(error.message);
+  }
 }

@@ -1,0 +1,532 @@
+// Reset Traders v2 hero: entrance, Tilt's reaction to the audit button, Leo's first note,
+// the four hijacks sliding out on scroll, and the 3D Tilt (loaded after the page shows).
+const $ = (s) => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Leo's note: first visit only (add ?leo=1 to see it again) ---------- */
+const note = $('#leo-note');
+try {
+  const forced = new URLSearchParams(location.search).has('leo');
+  if (localStorage.getItem('rt-leo-hero') && !forced) {
+    note.hidden = true;
+    document.querySelectorAll('[data-leo]').forEach((n) => { n.hidden = true; });
+  }
+  else localStorage.setItem('rt-leo-hero', '1');
+} catch (_) { /* private mode: show it */ }
+$('#leo-x')?.addEventListener('click', () => { note.hidden = true; });
+
+/* ---------- Nav line once the page moves ---------- */
+const nav = $('#nav');
+const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+/* ---------- Tilt fears the audit button ---------- */
+const bubble = $('#bubble');
+const bubbleText = $('#bubble-text');
+const LINES = { idle: "Just one more trade. You'll win it back.", fear: "Don't click that. It'll find me." };
+let tilt3d = null;
+let scared = 0;
+function scare(on) {
+  scared = Math.max(0, scared + (on ? 1 : -1));
+  const isScared = scared > 0;
+  bubble.classList.toggle('alarm', isScared);
+  bubbleText.textContent = isScared ? LINES.fear : (whisper >= 0 ? WHISPERS[whisper][1] : LINES.idle);
+  tilt3d?.flinch(isScared);
+  buddyScare(isScared);
+}
+document.querySelectorAll('[data-scare]').forEach((el) => {
+  el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') scare(true); });
+  el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') scare(false); });
+  el.addEventListener('focus', () => scare(true));
+  el.addEventListener('blur', () => scare(false));
+});
+
+/* ---------- Tap Tilt: he whispers each hijack's urge, and that hijack lights up ---------- */
+// Works the same with a mouse, a finger or the keyboard, so phones get a reaction too.
+const WHISPERS = [
+  ['rusher', "Quick, get back in. You're missing it."],
+  ['performer', 'Post the win. Let them see it.'],
+  ['competitor', 'They made more than you. Size up.'],
+  ['intellectualizer', 'Check one more timeframe first.']
+];
+let whisper = -1;
+let callTimer = 0;
+const tiltEl = $('#tilt');
+function whisperNext() {
+  if (scared) return;
+  whisper = (whisper + 1) % WHISPERS.length;
+  const [kind, line] = WHISPERS[whisper];
+  bubbleText.textContent = line;
+  bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
+  document.querySelectorAll('.sil').forEach((s) => s.classList.toggle('called', s.dataset.hijack === kind));
+  tilt3d?.hop();
+  VOICE.play(`whisper-${whisper + 1}-tilt`, true); // a tap counts as permission, so he speaks right away
+  $('#tap-hint')?.remove();
+  clearTimeout(callTimer);
+  callTimer = setTimeout(() => document.querySelectorAll('.sil.called').forEach((s) => s.classList.remove('called')), 2200);
+}
+tiltEl.addEventListener('click', whisperNext);
+tiltEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); whisperNext(); }
+});
+
+/* ---------- Tilt follows the visitor below the hero ---------- */
+// He talks at the hijacks and the ladder, freezes from the course section on,
+// and panics once more at the last audit button.
+const buddy = $('#buddy');
+const buddySay = $('#buddy-say');
+const BUDDY = {
+  hijacks: ['on', "Pick one. I'm in all four."],
+  how: ['on', "Skip the audit. You're fine."],
+  reset: ['frozen', ''],
+  elite: ['frozen', ''],
+  faq: ['frozen', ''],
+  start: ['on', "Don't click that. It'll find me."]
+};
+let buddyTimer = 0;
+let buddyAt = '';
+let buddyWhisper = -1;
+function buddySpeak(line, hold = 3800) {
+  if (!buddy) return;
+  clearTimeout(buddyTimer);
+  if (!line) { buddy.classList.remove('talking'); return; }
+  buddySay.textContent = line;
+  buddy.classList.add('talking');
+  if (hold) buddyTimer = setTimeout(() => buddy.classList.remove('talking'), hold);
+}
+function buddyEnter(id) {
+  if (!buddy || id === buddyAt) return;
+  buddyAt = id;
+  const [state, line] = BUDDY[id] || ['hidden', ''];
+  buddy.dataset.state = state;
+  buddy.classList.remove('scared');
+  buddySpeak(state === 'on' ? line : '');
+}
+function buddyScare(on) {
+  if (!buddy || buddy.dataset.state !== 'on') return;
+  buddy.classList.toggle('scared', on);
+  buddySpeak(on ? LINES.fear : '', 0);
+}
+buddy?.addEventListener('click', () => {
+  if (buddy.dataset.state === 'frozen') { buddySpeak('…', 1400); return; }
+  buddyWhisper = (buddyWhisper + 1) % WHISPERS.length;
+  buddySpeak(WHISPERS[buddyWhisper][1]);
+  VOICE.play(`whisper-${buddyWhisper + 1}-tilt`, true);
+});
+if (buddy && 'IntersectionObserver' in window) {
+  // A thin band across the middle of the screen decides which section the visitor is in.
+  const watch = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) buddyEnter(e.target.id); });
+  }, { rootMargin: '-50% 0px -50% 0px' });
+  ['hero', 'ten', 'story', 'intro', 'hijacks', 'how', 'reset', 'elite', 'faq', 'start'].forEach((id) => { const el = document.getElementById(id); if (el) watch.observe(el); });
+}
+
+/* ---------- The ten seconds: one clock, 0 to 16 s, driven by scroll ---------- */
+const ten = $('#ten');
+const TEN_SAY = ['Win it back. Right now.', 'Double the size. One trade fixes it.', "You can't end the day red."];
+const tenEls = ten && {
+  path: $('#ten-path'), dot: $('#ten-dot'), num: $('#ten-num'), say: $('#ten-say'),
+  sides: [...ten.querySelectorAll('.ten-side')], lines: [...ten.querySelectorAll('.ten-line')]
+};
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+function renderTen(t) {
+  const s = Math.min(16, Math.max(0, t));
+  const side = Math.min(3, Math.floor(s / 4));
+  const f = s / 4 - side;
+  // The dot runs up the left side (in), across the top (hold), down the right (out), back along the bottom (hold).
+  const [x, y] = [[20, 220 - 200 * f], [20 + 200 * f, 20], [220, 20 + 200 * f], [220 - 200 * f, 220]][side];
+  tenEls.path.style.strokeDashoffset = String(1 - s / 16);
+  tenEls.dot.setAttribute('cx', x.toFixed(1));
+  tenEls.dot.setAttribute('cy', y.toFixed(1));
+  tenEls.num.textContent = String(Math.floor(s));
+  tenEls.sides.forEach((el, i) => el.classList.toggle('on', t >= 0 && t < 16 && i === side));
+  const line = t < 4 ? 0 : t < 10 ? 1 : t < 16 ? 2 : 3;
+  tenEls.lines.forEach((el, i) => el.classList.toggle('on', i === line));
+  if (t < 10) tenEls.say.textContent = TEN_SAY[t < 3.3 ? 0 : t < 6.6 ? 1 : 2];
+  ten.style.setProperty('--heat', clamp01((12 - t) / 3).toFixed(3)); // red until 9 s, calm by 12 s
+  ten.style.setProperty('--grow', clamp01(s / 10).toFixed(3)); // Tilt swells as his ten seconds run
+  ten.classList.toggle('out', t >= 10);
+  ten.classList.toggle('done', t >= 16);
+}
+
+/* ---------- Tilt's side of the story: a 30-second motion comic ---------- */
+// One paused GSAP timeline. It plays when the screen is in view (not with reduced motion),
+// pauses when it leaves, and the button plays, pauses or replays it.
+const FROZEN = 'grayscale(1) sepia(1) hue-rotate(178deg) saturate(1.5) brightness(0.85) drop-shadow(0px 0px 0px rgba(255,72,48,0))';
+const LIT = 'grayscale(0) sepia(0) hue-rotate(0deg) saturate(1) brightness(1) drop-shadow(0px 0px 26px rgba(255,72,48,0.5))';
+/* ---------- Voices: Tilt and Leo speak their lines (assets/audio, made with TTS) ---------- */
+// One clip plays at a time. Film audio waits for the visitor to turn sound on;
+// tapping Tilt is itself a tap, so his whisper plays straight away.
+const VOICE = (() => {
+  const cache = {};
+  const listeners = [];
+  let on = false;
+  let current = null;
+  const RATE = 1.08; // a touch faster keeps the films tight
+  const get = (id) => (cache[id] ||= Object.assign(new Audio(`assets/audio/${id}.mp3`), { preload: 'auto' }));
+  const notify = () => listeners.forEach((f) => f(on));
+  function stop() { if (current) current.pause(); current = null; }
+  return {
+    get on() { return on; },
+    rate: 1.08,
+    onChange(f) { listeners.push(f); },
+    enable() { on = true; notify(); },
+    disable() { on = false; stop(); notify(); },
+    preload(id) { get(id); },
+    play(id, force = false) {
+      if (!on && !force) return;
+      stop();
+      const a = get(id);
+      a.currentTime = 0;
+      a.playbackRate = RATE;
+      current = a;
+      a.play().catch(() => { if (!force && on) { on = false; notify(); } }); // blocked: show "Tap for sound" again
+    },
+    pause() { if (current && !current.ended) current.pause(); },
+    resume() { if (on && current && current.currentTime > 0 && !current.ended) current.play().catch(() => {}); },
+    get playing() { return current && !current.paused ? current.src.split("/").pop() + " @" + current.currentTime.toFixed(2) : null; },
+    stop
+  };
+})();
+
+function buildStory(gsap) {
+  const screen = $('#screen');
+  if (!screen) return;
+  const scenes = [...screen.querySelectorAll('.sc')];
+  const ctl = $('#screen-ctl');
+  const ctlText = $('#screen-ctl-text');
+  const bar = $('#screen-progress');
+  const m = reduce ? 0 : 1; // reduced motion: fades only, nothing moves
+  // Words appear one after another inside each bubble.
+  screen.querySelectorAll('.say > span:first-child').forEach((s) => {
+    s.innerHTML = s.textContent.split(/(\s+)/).map((w) => (/^\s+$/.test(w) ? w : `<span class="w">${w}</span>`)).join('');
+  });
+  scenes.forEach((s) => s.classList.remove('on'));
+  gsap.set(scenes, { autoAlpha: 0 });
+  const tl = gsap.timeline({
+    paused: true,
+    onUpdate: () => { bar.style.width = (tl.progress() * 100).toFixed(2) + '%'; },
+    onComplete: () => setState('ended')
+  });
+  scenes.forEach((sc, i) => {
+    const last = i === scenes.length - 1;
+    const figs = sc.querySelectorAll('.fig');
+    const says = sc.querySelectorAll('.say');
+    tl.addLabel('s' + i);
+    tl.to(sc, { autoAlpha: 1, duration: 0.35 });
+    if (figs.length) tl.from(figs, { y: 46 * m, opacity: 0, duration: 0.6, stagger: 0.14, ease: 'power3.out' }, '<');
+    const tag = sc.querySelector('.tag');
+    if (tag) tl.from(tag, { opacity: 0, x: -14 * m, duration: 0.4 }, '<0.2');
+    // Scene-specific moves
+    if (sc.classList.contains('sc-1')) tl.fromTo(sc.querySelector('.fig-thaw'), { filter: FROZEN }, { filter: LIT, duration: 1.1, ease: 'power1.inOut' }, '<0.3');
+    if (sc.classList.contains('sc-2')) tl.from(sc.querySelector('.fig-big'), { scale: 1 - 0.18 * m, transformOrigin: '50% 100%', duration: 0.9, ease: 'back.out(2.4)' }, '<');
+    if (sc.classList.contains('sc-cast')) tl.from(sc.querySelector('.imp'), { x: -30 * m, y: 20 * m, scale: 1 - 0.4 * m, opacity: 0, transformOrigin: '60% 100%', duration: 0.7, ease: 'back.out(2)' }, '<0.3');
+    if (sc.classList.contains('sc-ten')) {
+      const n = sc.querySelector('.ten-big');
+      const c = { v: 10 };
+      tl.from(n, { scale: 1 + 0.3 * m, opacity: 0, duration: 0.5, ease: 'power3.out' }, '<');
+      tl.to(c, { v: 0, duration: 2, ease: 'none', onUpdate: () => { n.textContent = String(Math.ceil(c.v)); } }, '<0.4');
+    }
+    if (sc.classList.contains('sc-leo')) tl.from(sc.querySelector('.fig-leo'), { x: 60 * m, duration: 0.7, ease: 'power3.out' }, '<');
+    if (sc.classList.contains('sc-sad')) {
+      tl.fromTo(sc.querySelector('.box-draw path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.8, ease: 'none' }, '<');
+      tl.from(sc.querySelector('.fig-sad'), { scale: 1 + 0.15 * m, transformOrigin: '50% 100%', duration: 1.8, ease: 'power2.out' }, '<');
+    }
+    // Bubbles pop, then their words appear and the line is spoken. A second speaker (Leo) waits for the first to finish.
+    let prevLen = 0, voiceEnd = 0;
+    says.forEach((say, k) => {
+      const at = k === 0 ? '<0.15' : `<${(prevLen + 0.2).toFixed(2)}`;
+      tl.from(say, { scale: 1 - 0.35 * m, opacity: 0, duration: 0.4, ease: 'back.out(2.2)', transformOrigin: say.classList.contains('say-leo') ? '50% 0%' : '0% 100%' }, at);
+      tl.from(say.querySelectorAll('.w, .sig'), { opacity: 0, y: 6 * m, duration: 0.2, stagger: 0.045 }, '<0.1');
+      const id = say.dataset.voice, len = (Number(say.dataset.len) || 0) / VOICE.rate;
+      if (id) {
+        VOICE.preload(id);
+        tl.call(() => VOICE.play(id), null, '<-0.1'); // the voice starts as the bubble pops
+        voiceEnd = tl.recent().startTime() + len;
+      }
+      prevLen = len;
+    });
+    const btn = sc.querySelector('.btn');
+    if (btn) tl.from(btn, { opacity: 0, y: 14 * m, duration: 0.45 }, '+=0.2');
+    if (!last) {
+      // Hold long enough for the voice to finish, whether or not sound is on, so the pacing never changes.
+      const hold = Math.max(0.6, voiceEnd + 0.35 - tl.duration());
+      tl.to({}, { duration: hold });
+      tl.to(sc, { autoAlpha: 0, duration: 0.35 });
+    }
+  });
+  if (new URLSearchParams(location.search).has('debug')) { window.__story = tl; window.__voice = VOICE; } // testing hooks
+  const secs = Math.round(tl.duration());
+  const LABEL = { idle: `Play · ${secs} s`, playing: 'Pause', paused: 'Play', ended: 'Replay' };
+  let state = 'idle';
+  let userPaused = false;
+  function setState(s) {
+    state = s;
+    screen.dataset.state = s;
+    ctlText.textContent = LABEL[s];
+    ctl.setAttribute('aria-label', s === 'playing' ? "Pause Tilt's story" : s === 'ended' ? "Replay Tilt's story" : "Play Tilt's story");
+  }
+  setState('idle');
+  ctl.addEventListener('click', () => {
+    if (state === 'playing') { tl.pause(); VOICE.pause(); userPaused = true; setState('paused'); return; }
+    if (state === 'ended') { VOICE.stop(); tl.restart(); } else { tl.play(); VOICE.resume(); }
+    userPaused = false;
+    setState('playing');
+  });
+  // Sound: phones only allow it after a tap, so the film starts silent with a "Tap for sound" button.
+  // Turning sound on restarts the film so the visitor hears it from the first line.
+  const snd = $('#screen-sound');
+  const sndText = $('#screen-sound-text');
+  const paintSound = () => {
+    snd.setAttribute('aria-pressed', String(VOICE.on));
+    snd.classList.toggle('on', VOICE.on);
+    sndText.textContent = VOICE.on ? 'Sound on' : 'Tap for sound';
+  };
+  VOICE.onChange(paintSound);
+  paintSound();
+  snd.addEventListener('click', () => {
+    if (VOICE.on) { VOICE.disable(); return; }
+    VOICE.enable();
+    VOICE.stop();
+    tl.restart();
+    userPaused = false;
+    setState('playing');
+  });
+  if (!reduce && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !userPaused && (state === 'idle' || state === 'paused')) { tl.play(); VOICE.resume(); setState('playing'); }
+      if (!e.isIntersecting && state === 'playing') { tl.pause(); VOICE.pause(); setState('paused'); }
+    }, { threshold: 0.6 }).observe(screen);
+  }
+}
+
+/* ---------- Entrance and scroll (GSAP) ---------- */
+function motion() {
+  const { gsap, ScrollTrigger } = window;
+  if (!gsap || !ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  buildStory(gsap);
+  // Phones: ignore the address bar showing and hiding, and follow the finger more closely.
+  ScrollTrigger.config({ ignoreMobileResize: true });
+  const touch = matchMedia('(pointer: coarse)').matches;
+  const mm = gsap.matchMedia();
+  mm.add('(prefers-reduced-motion: no-preference)', () => {
+    gsap.timeline({ defaults: { ease: 'power3.out' } })
+      .from('[data-in]', { y: 26, opacity: 0, duration: 0.8, stagger: 0.08 })
+      .from('.sil', { y: 40, opacity: 0, duration: 1.1, stagger: 0.09 }, 0.15)
+      .from('#tilt', { y: 30, opacity: 0, duration: 0.9 }, 0.25)
+      .from('#bubble', { scale: 0.5, opacity: 0, transformOrigin: '0% 100%', duration: 0.55, ease: 'back.out(2.2)' }, 1.15)
+      .from('#leo-note', { y: 18, rotation: -9, opacity: 0, duration: 0.6 }, 1.45);
+
+    // As the hero scrolls away, the four hijacks step out from behind Tilt.
+    const span = { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: touch ? 0.3 : 0.6 };
+    gsap.utils.toArray('.sil').forEach((el) => {
+      const side = Number(el.dataset.side);
+      const far = el.hasAttribute('data-far');
+      gsap.to(el, { xPercent: side * (far ? 55 : 120), yPercent: far ? 6 : 34, scale: 1.12, ease: 'none', scrollTrigger: span });
+      gsap.to(el.querySelector('.sil-name'), { opacity: 1, ease: 'none', scrollTrigger: { ...span, end: '45% top' } });
+    });
+    gsap.to('#tilt', { yPercent: -8, scale: 0.86, ease: 'none', scrollTrigger: span });
+    gsap.to('#talk', { y: -24, autoAlpha: 0, ease: 'none', scrollTrigger: { ...span, end: '30% top' } });
+
+    // The ten seconds: the section becomes tall and sticky, and scroll moves the clock.
+    if (ten) {
+      ten.classList.add('ten-live');
+      const clock = { t: -0.6 };
+      renderTen(clock.t);
+      gsap.to(clock, {
+        t: 17.6, ease: 'none', onUpdate: () => renderTen(clock.t),
+        scrollTrigger: { trigger: ten, start: 'top 64px', end: 'bottom bottom', scrub: touch ? 0.3 : 0.5 }
+      });
+    }
+
+    // Red to paper: Leo's paper rises over the dark page with a curved leading edge that flattens.
+    const paper = $('#reset');
+    if (paper) {
+      gsap.fromTo(paper, { '--arc': 1 }, {
+        '--arc': 0, ease: 'none',
+        scrollTrigger: { trigger: paper, start: 'top bottom', end: 'top 22%', scrub: touch ? 0.3 : 0.5 }
+      });
+    }
+    return () => { ten?.classList.remove('ten-live'); if (ten) renderTen(17); paper?.style.removeProperty('--arc'); };
+  });
+}
+if (window.gsap) motion();
+else addEventListener('load', motion, { once: true });
+
+/* ---------- Hijack profile: opens from a silhouette or a card ---------- */
+// Same words as the audit, so the site and the result agree. Process only, no trade calls.
+const PROFILES = {
+  rusher: {
+    kicker: 'Hijack 01 · Rohan', name: 'The Rusher', line: 'You trade the clock, not the chart.',
+    desc: 'You enter before the candle closes, then tell yourself it was a read. After a loss, your next trade comes faster than your first one did. Sitting flat feels like money leaving.',
+    fear: 'Underneath it is fear of falling behind. Rohan knows this one: his story starts in Two Traders, Episode 1.',
+    img: 'assets/characters/rohan.webp', alt: 'Rohan, the Rusher'
+  },
+  performer: {
+    kicker: 'Hijack 02 · Kabir', name: 'The Performer', line: 'You trade to be seen winning.',
+    desc: 'You size up when someone is watching, even if it\'s just your group chat. A red day feels like a public failure, even when nobody knows. Wins get screenshotted. Losses get deleted.',
+    fear: 'Underneath it is fear of being seen failing. Kabir knows this one: the payout screenshot everyone saw, in Two Traders, Episode 8.',
+    img: 'assets/characters/kabir.webp', alt: 'Kabir, the Performer'
+  },
+  competitor: {
+    kicker: 'Hijack 03 · Arjun', name: 'The Competitor', line: 'You keep score. Against the market, and everyone else.',
+    desc: 'After a loss you have to win it back, and it has to be now. You add size, switch instruments or open another account to prove a point. Someone else\'s payout can ruin your whole day.',
+    fear: 'Underneath it is fear of losing. Arjun walks into Two Traders soon.',
+    img: 'assets/characters/competitor.webp', alt: 'Arjun, the Competitor'
+  },
+  intellectualizer: {
+    kicker: 'Hijack 04 · Meera', name: 'The Intellectualizer', line: 'You know everything. You execute nothing.',
+    desc: 'You check one more timeframe and miss the entry, then chase it. After every loss you re-backtest the whole strategy. You can explain your rules better than you follow them.',
+    fear: 'Underneath it is fear of being wrong. Meera joins Two Traders soon.',
+    img: 'assets/characters/intellectualizer.webp', alt: 'Meera, the Intellectualizer'
+  }
+};
+const dlg = $('#profile');
+const visual = $('#pf-visual');
+const pfImg = $('#pf-img');
+let opener = null;
+function openProfile(kind, from) {
+  const p = PROFILES[kind];
+  if (!p || !dlg) return;
+  opener = from || null;
+  $('#pf-kicker').textContent = p.kicker;
+  $('#pf-title').textContent = p.name;
+  $('#pf-line').textContent = p.line;
+  $('#pf-desc').textContent = p.desc;
+  $('#pf-fear').textContent = p.fear;
+  pfImg.src = p.img;
+  pfImg.alt = p.soon ? '' : p.alt;
+  visual.classList.toggle('soon', Boolean(p.soon));
+  $('#pf-badge').hidden = !p.soon;
+  document.body.classList.add('modal-open');
+  dlg.showModal();
+}
+function closeProfile() { if (dlg?.open) dlg.close(); }
+dlg?.addEventListener('close', () => {
+  document.body.classList.remove('modal-open');
+  opener?.focus();
+});
+dlg?.addEventListener('click', (e) => {
+  if (e.target === dlg || e.target.closest('[data-close]')) closeProfile();
+});
+document.querySelectorAll('[data-hijack]').forEach((el) => {
+  el.addEventListener('click', () => openProfile(el.dataset.hijack, el));
+});
+// Shareable link, e.g. resettraders.com/#meet-rusher (useful from an Instagram bio or story).
+const meet = location.hash.match(/^#meet-([a-z]+)$/);
+if (meet && PROFILES[meet[1]]) openProfile(meet[1]);
+
+/* ---------- Intro film: poster first, plays only on tap, captions on ---------- */
+// When the film exists: src = 'assets/video/intro.mp4', captions = 'assets/video/intro.vtt',
+// length = '1:30', shape = 'wide' (16:9) or 'tall' (a 9:16 reel).
+const INTRO = { src: '', captions: '', length: '1:30', shape: 'wide' };
+const film = $('#film');
+// Until the film exists, the ten seconds scene above does its job, so the empty slot stays hidden.
+if (!INTRO.src && $('#intro')) $('#intro').hidden = true;
+if (film) {
+  if (INTRO.shape === 'tall') film.dataset.shape = 'tall';
+  if (INTRO.src) {
+    film.dataset.state = 'ready';
+    $('#film-soon').hidden = true;
+    $('#film-play').hidden = false;
+    $('#film-time').textContent = INTRO.length;
+    $('#film-play').addEventListener('click', () => {
+      const video = document.createElement('video');
+      video.src = INTRO.src;
+      video.controls = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.setAttribute('controlslist', 'nodownload');
+      if (INTRO.captions) {
+        const track = document.createElement('track');
+        Object.assign(track, { kind: 'captions', srclang: 'en', label: 'English', src: INTRO.captions, default: true });
+        video.appendChild(track);
+      }
+      film.appendChild(video);
+      film.dataset.state = 'playing';
+      video.play().catch(() => { /* the visitor can press play on the controls */ });
+      video.focus();
+    }, { once: true });
+  }
+}
+
+/* ---------- India / international prices ---------- */
+function setRegion(region) {
+  if (region !== 'in' && region !== 'intl') return;
+  document.documentElement.dataset.region = region;
+  try { localStorage.setItem('rt-region', region); } catch (_) { /* private mode */ }
+}
+document.querySelectorAll('[data-region-toggle]').forEach((b) => b.addEventListener('click', () => {
+  setRegion(document.documentElement.dataset.region === 'intl' ? 'in' : 'intl');
+}));
+
+/* ---------- Elite application ---------- */
+// Applications go to the "Apply for Elite Mentorship" Google Form (Reset Traders account) and its
+// "Elite applications" Google Sheet. If action is emptied, the form falls back to opening an email.
+const ELITE_FORM = {
+  action: 'https://docs.google.com/forms/d/e/1FAIpQLScj9gyVDLSTtnzTW99tvCzz_QvpFAejstrInvyWCfxVw29xTg/formResponse',
+  entries: {
+    name: 'entry.827078575', email: 'entry.1200507579', phone: 'entry.63231226', market: 'entry.730657407',
+    experience: 'entry.408964551', hijack: 'entry.874933976', problem: 'entry.320049012', why: 'entry.1725347274'
+  }
+};
+const CONTACT_EMAIL = 'resettradersofficial@gmail.com';
+const applyDlg = $('#apply');
+const applyForm = $('#apply-form');
+const applyMsg = $('#apply-msg');
+function say(text, state) { applyMsg.textContent = text; applyMsg.dataset.state = state; }
+function openApply(e) {
+  if (e) e.preventDefault();
+  if (!applyDlg) return;
+  document.body.classList.add('modal-open');
+  applyDlg.showModal();
+}
+applyDlg?.addEventListener('close', () => document.body.classList.remove('modal-open'));
+applyDlg?.addEventListener('click', (e) => { if (e.target === applyDlg || e.target.closest('[data-close]')) applyDlg.close(); });
+document.querySelectorAll('[data-apply]').forEach((el) => el.addEventListener('click', openApply));
+if (location.hash === '#apply') openApply();
+applyForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {};
+  for (const [k, v] of new FormData(applyForm).entries()) data[k] = String(v || '').trim().slice(0, 2000);
+  if (!data.name || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email || '') || (data.problem || '').length < 10) {
+    say('Add your name, a valid email, and a line or two on what keeps going wrong.', 'error');
+    return;
+  }
+  const button = applyForm.querySelector('button[type="submit"]');
+  button.disabled = true;
+  if (ELITE_FORM.action && ELITE_FORM.entries.email) {
+    const body = new FormData();
+    Object.entries(ELITE_FORM.entries).forEach(([k, id]) => { if (id) body.append(id, data[k] || ''); });
+    try {
+      await fetch(ELITE_FORM.action, { method: 'POST', mode: 'no-cors', body });
+      applyForm.reset();
+      say("Application sent. We read every one. If it's a fit, you'll get a message to book a call.", 'ok');
+    } catch (_) {
+      say('That didn\'t go through. Email ' + CONTACT_EMAIL + ' instead.', 'error');
+    }
+    button.disabled = false;
+    return;
+  }
+  const lines = ['Name: ' + data.name, 'Email: ' + data.email, 'WhatsApp / phone: ' + (data.phone || '-'), 'Where I trade: ' + data.market, 'Experience: ' + data.experience, 'Audit result: ' + data.hijack, '', 'What keeps going wrong:', data.problem, '', 'Why now:', data.why || '-'];
+  window.location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('Elite application: ' + data.name) + '&body=' + encodeURIComponent(lines.join('\n'));
+  say("Your email app should open with the application filled in. Send it and you're done.", 'ok');
+  button.disabled = false;
+});
+
+/* ---------- 3D Tilt: only where it will run well ---------- */
+const conn = navigator.connection;
+const saveData = Boolean(conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || '')));
+const lowMemory = Boolean(navigator.deviceMemory && navigator.deviceMemory < 3);
+function start3d() {
+  import('./tilt3d.js')
+    .then((m) => m.mountTilt({ canvas: $('#tilt-gl'), box: $('#tilt'), reduce }))
+    .then((api) => { tilt3d = api; if (scared) api.flinch(true); })
+    .catch((error) => console.warn('[hero] 3D Tilt unavailable, keeping the picture:', error && error.message ? error.message : error));
+}
+if (!saveData && !lowMemory) {
+  if ('requestIdleCallback' in window) requestIdleCallback(start3d, { timeout: 1500 });
+  else setTimeout(start3d, 600);
+}
