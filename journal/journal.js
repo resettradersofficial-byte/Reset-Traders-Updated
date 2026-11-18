@@ -18,6 +18,16 @@ import {
 
 // Offline shell + "Add to home screen" (scope: /journal/ only). ?nosw skips it while testing.
 if ("serviceWorker" in navigator && !new URLSearchParams(location.search).has("nosw")) {
+  // When a new version takes over, an open journal (or the home-screen app) would keep running the old code.
+  // Reload into the new one, unless the trader is mid-entry or in a dialog.
+  const hadController = !!navigator.serviceWorker.controller; // first visit: no reload needed
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    if (S.log.startedAt || document.querySelector("dialog[open]")) { toast("Journal updated. Reload when you're done to get the new version."); return; }
+    reloading = true;
+    location.reload();
+  });
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
@@ -1123,26 +1133,31 @@ function googleCalUrl(hhmm) {
   });
   return `https://calendar.google.com/calendar/render?${params}`;
 }
-function addReminder(hhmm) {
+// The trader chooses: Google Calendar (an add-event page, never a download) or an Apple Calendar file.
+// Guessing by device sent iPhone/iPad users a file download they didn't expect.
+function addReminder(hhmm, kind) {
   const time = /^\d{2}:\d{2}$/.test(hhmm || "") ? hhmm : defaultRemindTime();
   lsSet("rt-journal-remind", time);
-  if (isIos()) {
-    // Safari opens a calendar file straight in the Calendar app ("Add to Calendar"), no download screen.
+  if (kind === "apple") {
     downloadBlob(new Blob([reminderIcs(time)], { type: "text/calendar;charset=utf-8" }), "reset-journal-reminder.ics");
-    toast(`Tap Add to Calendar. Your phone will remind you at ${time}, Monday to Friday.`);
+    toast(`Open the downloaded file and tap Add to Calendar. Reminder at ${time}, Monday to Friday.`);
     return;
   }
-  window.open(googleCalUrl(time), "_blank", "noopener");
+  const url = googleCalUrl(time);
+  const win = window.open(url, "_blank", "noopener");
+  if (!win && !standalone()) location.href = url; // pop-up blocked: open it here instead
   toast(`Tap Save in Google Calendar. It will remind you at ${time}, Monday to Friday.`);
 }
 $("habit").addEventListener("click", (ev) => {
   const b = ev.target.closest("[data-act]");
   if (!b) return;
   if (b.dataset.act === "install") installApp();
-  else if (b.dataset.act === "remind") addReminder(defaultRemindTime());
+  else if (b.dataset.act === "remind-google") addReminder(defaultRemindTime(), "google");
+  else if (b.dataset.act === "remind-apple") addReminder(defaultRemindTime(), "apple");
   else if (b.dataset.act === "dismiss-habit") { lsSet("rt-journal-habit", "done"); renderHabit(); }
 });
-$("set-remind-add").addEventListener("click", () => addReminder($("set-remind").value));
+$("set-remind-google").addEventListener("click", () => addReminder($("set-remind").value, "google"));
+$("set-remind-apple").addEventListener("click", () => addReminder($("set-remind").value, "apple"));
 $("set-install").addEventListener("click", installApp);
 
 setAuthMode(lsGet(HAS_ACCOUNT) ? "in" : "up");

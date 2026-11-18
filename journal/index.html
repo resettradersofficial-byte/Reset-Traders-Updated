@@ -120,7 +120,8 @@
         <p>People who keep logging past week four get most of the benefit. Put the journal one tap away and get a nudge when the market closes.</p>
         <div class="row">
           <button class="btn secondary auto" type="button" data-act="install" hidden>Add to home screen</button>
-          <button class="btn secondary auto" type="button" data-act="remind">Daily reminder</button>
+          <button class="btn secondary auto" type="button" data-act="remind-google">Remind me in Google Calendar</button>
+          <button class="link" type="button" data-act="remind-apple">Apple Calendar file</button>
           <button class="link" type="button" data-act="dismiss-habit">Not now</button>
         </div>
         <p class="small faint" id="ios-hint" style="margin-top:8px" hidden>On iPhone: tap Share, then Add to Home Screen.</p>
@@ -248,7 +249,10 @@
       <label for="set-remind">Daily reminder <span class="opt">(added to your phone calendar, Monday to Friday)</span></label>
       <div class="btn-row">
         <input id="set-remind" type="time" value="15:35" style="flex:1;min-width:120px">
-        <button class="btn secondary" id="set-remind-add" type="button">Add to calendar</button>
+        <button class="btn secondary" id="set-remind-google" type="button">Google Calendar</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="link" id="set-remind-apple" type="button">Apple Calendar (downloads a calendar file)</button>
       </div>
     </div>
     <button class="btn secondary" id="set-install" type="button" hidden>Add Reset Journal to home screen</button>
