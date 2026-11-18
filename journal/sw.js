@@ -1,7 +1,7 @@
 // Reset Journal offline shell. Scope: /journal/ only.
 // Same-origin files: network first (so updates show at once), cache as the offline fallback.
 // Firebase SDK files from gstatic: cache first (they are versioned URLs). Firestore/Auth traffic is never touched.
-const CACHE = "reset-journal-v1.1";
+const CACHE = "reset-journal-v1.1.1";
 const SHELL = [
   "./", "index.html", "journal.css", "journal.js", "calc.js", "manifest.webmanifest",
   "img/emblem-128.webp", "img/emblem-360.webp", "img/icon-64.png", "img/icon-192.png",

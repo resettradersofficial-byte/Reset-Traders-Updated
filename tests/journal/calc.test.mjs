@@ -1,7 +1,7 @@
 // Journal Pro maths. Run from repo root: node --test tests/journal/calc.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { annotate, summarize, weekStart, minutesSinceLastLoss, money, headline, toCsv, weeklySeries } from "../../journal/calc.js";
+import { annotate, summarize, weekStart, minutesSinceLastLoss, money, headline, toCsv, weeklySeries, lossStreakToday } from "../../journal/calc.js";
 
 const at = (h, m = 0, day = 17) => new Date(2026, 10, day, h, m); // Tue 17 Nov 2026
 const T = (h, m, pnl, hijack = "none", planned = true, note) => ({ kind: "trade", at: at(h, m), pnl, hijack, planned, note });
@@ -116,4 +116,21 @@ test("CSV quotes notes and blocks spreadsheet formulas", () => {
   const lines = csv.split("\r\n");
   assert.equal(lines[0], "date,time,kind,pnl_INR,in_plan,hijack,after_loss_window,size,rule_used,check_outcome,note");
   assert.equal(lines[1], `2026-11-17,09:00,trade,-5,no,Rusher,no,,,,"'=HYPERLINK(""x""), ""quoted"""`);
+});
+
+test("course cooldown is checked separately from the Tilt Tax window", () => {
+  const list = annotate([T(9, 0, -500), T(9, 6, -300, "Rusher", false), T(9, 25, 200), T(10, 0, 100)], 30);
+  assert.deepEqual(list.map((e) => e.minsAfterLoss), [null, 6, 19, 54]);
+  const s = summarize(list, weekStart(at(9)), new Date(2026, 10, 23), { cooldownMin: 10 });
+  assert.equal(s.cooldownBroken, 1);   // only the 9:06 trade came inside the 10-minute cooldown
+  assert.equal(s.tiltCount, 2);        // 9:06 and 9:25 are inside the 30-minute measuring window
+  assert.equal(summarize(list, weekStart(at(9)), new Date(2026, 10, 23), { cooldownMin: 20 }).cooldownBroken, 2);
+});
+
+test("losses in a row today", () => {
+  const now = at(12);
+  assert.equal(lossStreakToday([T(9, 0, 100), T(10, 0, -50), T(11, 0, -20)], now), 2);
+  assert.equal(lossStreakToday([T(9, 0, -100), T(10, 0, 50)], now), 0);
+  assert.equal(lossStreakToday([{ ...T(9, 0, -100), at: new Date(2026, 10, 16, 15) }, T(9, 30, -10)], now), 1); // yesterday does not count
+  assert.equal(lossStreakToday([], now), 0);
 });

@@ -238,7 +238,8 @@ service cloud.firestore {
     }
 
     function validJournal(uid, d) {
-      return d.keys().hasOnly(["uid", "email", "hijack", "currency", "hidePnl", "windowMin", "createdAt", "updatedAt", "lastLogAt"])
+      return d.keys().hasOnly(["uid", "email", "hijack", "currency", "hidePnl", "windowMin", "cooldownMin", "lossStop",
+                               "createdAt", "updatedAt", "lastLogAt"])
         && d.keys().hasAll(["uid", "email", "hijack", "currency", "hidePnl", "windowMin", "createdAt", "updatedAt"])
         && d.uid == uid
         && d.email == request.auth.token.email
@@ -246,6 +247,9 @@ service cloud.firestore {
         && d.currency in ["INR", "USD"]
         && d.hidePnl is bool
         && d.windowMin is int && d.windowMin >= 5 && d.windowMin <= 240
+        // From the course's Contract: minutes off-screen after any loss, and done for the day after N losses in a row.
+        && (!("cooldownMin" in d) || (d.cooldownMin is int && d.cooldownMin >= 1 && d.cooldownMin <= 120))
+        && (!("lossStop" in d) || (d.lossStop is int && d.lossStop >= 1 && d.lossStop <= 10))
         && d.updatedAt == request.time
         && (!("lastLogAt" in d) || d.lastLogAt is timestamp);
     }

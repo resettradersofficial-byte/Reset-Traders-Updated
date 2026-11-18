@@ -397,6 +397,14 @@ describe("journal", () => {
     const { currency, ...noCurrency } = journal(NEWBIE);
     await assertFails(setDoc(doc(as(NEWBIE), "journals", NEWBIE.uid), noCurrency));
   });
+  test("Contract settings: cooldown minutes and losses-in-a-row stop are optional and checked", async () => {
+    const ref = doc(as(NEWBIE), "journals", NEWBIE.uid);
+    await assertSucceeds(setDoc(ref, journal(NEWBIE, { cooldownMin: 10, lossStop: 2 })));
+    await assertSucceeds(updateDoc(ref, { cooldownMin: 15, lossStop: 3, updatedAt: serverTimestamp() }));
+    for (const bad of [{ cooldownMin: 0 }, { cooldownMin: 121 }, { cooldownMin: 7.5 }, { cooldownMin: "10" }, { lossStop: 0 }, { lossStop: 11 }, { lossStop: true }]) {
+      await assertFails(updateDoc(ref, { ...bad, updatedAt: serverTimestamp() }));
+    }
+  });
   test("traders change their own settings but cannot rewrite createdAt or add a plan", async () => {
     const ref = doc(as(NEWBIE), "journals", NEWBIE.uid);
     await assertSucceeds(setDoc(ref, journal(NEWBIE)));

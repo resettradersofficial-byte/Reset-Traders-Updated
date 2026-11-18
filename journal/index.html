@@ -219,11 +219,25 @@
       <label for="set-cur">Currency</label>
       <select id="set-cur"><option value="INR">₹ Rupees</option><option value="USD">$ Dollars</option></select>
     </div>
+    <p class="label" style="margin:4px 0 10px">Your Contract <span class="opt">(from the course, Module 0.4)</span></p>
     <div class="field">
-      <label for="set-window">Tilt window after a loss</label>
+      <label for="set-cooldown">Minutes off-screen after any loss</label>
+      <select id="set-cooldown">
+        <option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option>
+        <option value="20">20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="set-lossstop">Done for the day after this many losses in a row</label>
+      <select id="set-lossstop">
+        <option value="1">1 loss</option><option value="2">2 losses</option><option value="3">3 losses</option><option value="4">4 losses</option><option value="5">5 losses</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="set-window">Tilt Tax counts trades within <span class="opt">(a measurement, not a rule)</span></label>
       <select id="set-window">
-        <option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option>
-        <option value="45">45 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option>
+        <option value="15">15 minutes of a loss</option><option value="30">30 minutes of a loss</option>
+        <option value="45">45 minutes of a loss</option><option value="60">1 hour of a loss</option><option value="120">2 hours of a loss</option>
       </select>
     </div>
     <label class="toggle"><span>Hide P&amp;L while I trade<br><span class="small faint">It comes back in the weekly report.</span></span><input type="checkbox" id="set-hide"></label>
@@ -253,16 +267,17 @@
   <form method="dialog" id="check-form">
     <header>
       <div class="chk-head"><img class="avatar" id="chk-av" src="img/emblem-128.webp" alt="" width="56" height="56">
-        <div><div class="step-tag">Before the next trade</div><h3 id="chk-title">Who wants this trade?</h3></div></div>
+        <div><div class="step-tag">60-Second Ego Check</div><h3 id="chk-title">Who wants this trade?</h3></div></div>
       <button class="icon-btn" value="cancel" aria-label="Close">&#10005;</button>
     </header>
-    <p class="small soft" style="margin-bottom:16px">Ten seconds before you click. Answer honestly, nobody sees this.</p>
-    <div class="field" data-q="plan"><p class="label">Is this setup in my written plan?</p>
+    <p class="small soft" style="margin-bottom:16px">The course's three questions before any trade after a loss. Answer honestly, nobody sees this.</p>
+    <!-- Wording from the course (Module 3.5, The 60-Second Ego Check). -->
+    <div class="field" data-q="setup"><p class="q">1. Does this trade meet my written setup?</p>
       <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Yes</button><button type="button" class="chip" data-a="no" aria-pressed="false">No</button></div></div>
-    <div class="field" data-q="win"><p class="label">Would I take it if my last trade had won?</p>
-      <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Yes</button><button type="button" class="chip" data-a="no" aria-pressed="false">No</button></div></div>
-    <div class="field" data-q="size"><p class="label">Same size as normal, or smaller?</p>
-      <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Yes</button><button type="button" class="chip" data-a="no" aria-pressed="false">No</button></div></div>
+    <div class="field" data-q="size"><p class="q">2. Is my size the same as, or smaller than, my last trade?</p>
+      <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Yes</button><button type="button" class="chip" data-a="no" aria-pressed="false">No, bigger</button></div></div>
+    <div class="field" data-q="aim"><p class="q">3. Am I trying to take what the market is offering, or to get something back (money, face, justice)?</p>
+      <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Take what's offered</button><button type="button" class="chip" data-a="no" aria-pressed="false">Get something back</button></div></div>
     <div class="breath">
       <div class="breath-box" id="chk-box" aria-hidden="true"><span id="chk-count">16</span></div>
       <div><p class="label" style="margin-bottom:4px">Your rule</p><p class="rule" id="chk-rule"></p><p class="small soft" id="chk-breath" aria-live="polite"></p></div>

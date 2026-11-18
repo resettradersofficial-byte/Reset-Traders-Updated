@@ -13,7 +13,7 @@ import {
   query, serverTimestamp, setDoc, Timestamp, updateDoc, where, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import {
-  HIJACKS, addDays, annotate, dayStart, headline, minutesSinceLastLoss, money, summarize, toCsv, weekStart, weeklySeries
+  HIJACKS, addDays, annotate, dayStart, headline, lossStreakToday, minutesSinceLastLoss, money, summarize, toCsv, weekStart, weeklySeries
 } from "./calc.js";
 
 // Offline shell + "Add to home screen" (scope: /journal/ only). ?nosw skips it while testing.
@@ -306,6 +306,8 @@ $("setup-go").addEventListener("click", async () => {
     currency: S.setup.cur || "INR",
     hidePnl: h === "Performer",
     windowMin: 30,
+    cooldownMin: 10,
+    lossStop: 2,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   }).catch((e) => {
@@ -370,48 +372,64 @@ function renderClock() {
   $("log-clock").textContent = $("log-time").value ? "" : new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+// The course's Contract: minutes off-screen after any loss (its example: 10) and done after N losses in a row (2).
+const cooldown = () => S.profile?.cooldownMin || 10;
+const lossStop = () => S.profile?.lossStop || 2;
+
 function renderWatch() {
   const el = $("watch");
   const p = S.profile;
   const h = p.hijack;
   const w = p.windowMin;
+  const c = cooldown();
   const now = new Date();
   const m = minutesSinceLastLoss(S.entries, now);
-  const inWin = m != null && m <= w;
+  const inCool = m != null && m < c;           // the Contract cooldown: off-screen
+  const inWin = m != null && m <= w;           // the Tilt Tax measuring window (wider)
+  const streak = lossStreakToday(S.entries, now);
+  const done = streak >= lossStop();
   const known = HIJACKS.includes(h);
   const tag = `<div class="step-tag">${known ? `Your hijack · ${h}` : "Your hijack"}</div>`;
-  const windowLine = inWin
-    ? `<p style="margin-top:6px"><span class="red-word">Inside your ${w}-minute window after a loss.</span> Trades now count toward Tilt Tax.</p>`
-    : "";
   const today = dayStart(now);
   const caught = S.entries.filter((e) => e.kind === "check" && e.outcome === "skip" && e.at >= today).length;
-  // The pre-trade check is offered to everyone; inside the window it becomes the main button.
-  const check = `<button class="btn ${inWin ? "" : "secondary "}auto" type="button" data-act="check">${inWin ? "Check before you click" : "Before the next trade"}</button>`;
+  const coolLine = inCool
+    ? `<p style="margin-top:6px"><span class="red-word">Cooldown: ${c - m} min left.</span> Your Contract says ${c} minutes off-screen after any loss.</p>`
+    : inWin ? `<p style="margin-top:6px">After a loss: the 60-Second Ego Check before the next trade.</p>` : "";
+  // The Ego Check is offered to everyone; after a loss it becomes the main button.
+  const strong = inCool || inWin;
+  const check = `<button class="btn ${strong ? "" : "secondary "}auto" type="button" data-act="check">60-Second Ego Check</button>`;
   const extras = [];
   let head, sub;
-  if (h === "Rusher" || h === "Competitor") {
-    head = inWin
-      ? `<span class="red-word">${w - m} min</span> left in your window after a loss.`
-      : m == null || m > 24 * 60 ? "No recent loss. Your window opens after one." : `Last loss ${ago(m)} ago. You're outside the window.`;
-    sub = inWin
-      ? `Every trade now counts toward Tilt Tax. Your rule: ${esc(H[h].rule)}.`
-      : `For ${w} minutes after a loss, every trade counts toward Tilt Tax.`;
+  if (done) {
+    head = `<span class="red-word">${streak} losses in a row.</span> Done for today.`;
+    sub = `Your Contract says stop after ${lossStop()} in a row. Close the platform, log what's left, and finish compliant, not even.`;
+  } else if (h === "Rusher" || h === "Competitor") {
+    if (inCool) {
+      head = `<span class="red-word">${c - m} min</span> left in your cooldown.`;
+      sub = `Your Contract: ${c} minutes off-screen after any loss. Your rule: ${esc(H[h].rule)}.`;
+    } else if (inWin) {
+      head = "Cooldown done. Ego Check before the next trade.";
+      sub = `Trades in the next ${w - m} min still count toward Tilt Tax.`;
+    } else {
+      head = m == null || m > 24 * 60 ? "No recent loss." : `Last loss ${ago(m)} ago.`;
+      sub = `After any loss: ${c} minutes off-screen, then the 60-Second Ego Check.`;
+    }
   } else if (h === "Performer") {
     head = p.hidePnl ? "P&amp;L stays hidden while you trade." : "P&amp;L is showing.";
-    sub = `Log red trades first, within 10 minutes. Your rule: ${esc(H[h].rule)}${windowLine}`;
+    sub = `Log red trades first, within 10 minutes. Your rule: ${esc(H[h].rule)}${coolLine}`;
     extras.push(`<button class="btn secondary auto" type="button" data-act="toggle-pnl">${p.hidePnl ? "Show P&amp;L" : "Hide P&amp;L"}</button>`);
   } else if (h === "Intellectualizer") {
     const skips = S.entries.filter((e) => e.kind === "skip" && e.at >= today).length;
     head = "Let a valid setup pass?";
-    sub = `Count it, don't explain it. Your rule: ${esc(H[h].rule)}.${windowLine}`;
+    sub = `Count it, don't explain it. Your rule: ${esc(H[h].rule)}.${coolLine}`;
     extras.push(`<button class="btn secondary auto" type="button" data-act="skip">+1 setup I let pass</button><span class="small faint num">${skips} today</span>`);
   } else {
     head = "Which hijack is this?";
-    sub = `Take the <a href="../audit/" target="_blank" rel="noopener">3-minute Reset Audit</a>, then set it in Settings. Until then, tag what you notice.${windowLine}`;
+    sub = `Take the <a href="../audit/" target="_blank" rel="noopener">3-minute Reset Audit</a>, then set it in Settings. Until then, tag what you notice.${coolLine}`;
   }
   const caughtLine = caught ? `<span class="small faint num">${caught} urge${caught === 1 ? "" : "s"} caught today</span>` : "";
-  const hot = inWin && (h === "Rusher" || h === "Competitor");
-  el.className = `callout ${hot ? "hot" : inWin ? "left-red" : "left-amber"}`;
+  const hot = done || (inCool && (h === "Rusher" || h === "Competitor"));
+  el.className = `callout ${hot ? "hot" : strong ? "left-red" : "left-amber"}`;
   el.innerHTML = `<div class="watch-row">
     <img class="avatar" src="${AV(h)}" alt="${known ? `${WHO[h]}, the ${h}` : ""}" width="56" height="56">
     <div>${tag}<h4>${head}</h4><p>${sub}</p>
@@ -480,11 +498,11 @@ function startBreath() {
 }
 function updateVerdict() {
   const a = S.check.answers;
-  const answered = ["plan", "win", "size"].filter((k) => a[k]).length;
-  const anyNo = ["plan", "win", "size"].some((k) => a[k] === "no");
+  const answered = ["setup", "size", "aim"].filter((k) => a[k]).length;
+  const anyNo = ["setup", "size", "aim"].some((k) => a[k] === "no");
   const v = $("chk-verdict");
   v.classList.toggle("warn", anyNo);
-  if (anyNo) v.textContent = "One of these is a no. That's the hijack's trade, not yours.";
+  if (anyNo) v.textContent = "No trade. Go to the Pause: body, breath, name it, then decide.";
   else if (answered === 3) v.textContent = S.check.left > 0 ? "All three yes. Finish the breath, then it's your call." : "All three yes. It's your call.";
   else v.textContent = "";
   $("chk-take").disabled = S.check.left > 0;
@@ -637,6 +655,7 @@ $("log-form").addEventListener("submit", (ev) => {
   const pnl = (S.log.sign || 1) * amt;
   const m = minutesSinceLastLoss(S.entries, at);
   const inWin = m != null && m <= S.profile.windowMin;
+  const inCool = m != null && m < cooldown();
   const data = {
     kind: "trade", at: Timestamp.fromDate(at), pnl: pnl === 0 ? 0 : pnl, planned: S.log.plan === "yes", hijack: S.log.hijack,
     createdAt: serverTimestamp(), updatedAt: serverTimestamp()
@@ -649,7 +668,7 @@ $("log-form").addEventListener("submit", (ev) => {
   setDoc(ref, data).catch((e) => toast(writeError(e)));
   touchLastLog();
   const secs = S.log.startedAt ? Math.max(1, Math.round((Date.now() - S.log.startedAt) / 1000)) : null;
-  const extra = inWin ? " It's inside your window after a loss, so it counts toward Tilt Tax." : "";
+  const extra = inCool ? ` That was inside your ${cooldown()}-minute cooldown.` : inWin ? " It counts toward Tilt Tax." : "";
   toast(`${secs && secs < 600 ? `Logged in ${secs} s.` : "Logged."}${extra}`, () => deleteDoc(ref).catch(() => {}));
   resetLog();
 });
@@ -693,7 +712,7 @@ function renderToday() {
   if (!$("log-hijack").children.length) renderChips();
   const ann = annotate(S.entries, S.profile.windowMin);
   const today = dayStart(new Date());
-  const s = summarize(ann, today, addDays(today, 1));
+  const s = summarize(ann, today, addDays(today, 1), { cooldownMin: cooldown() });
   $("today-strip").innerHTML =
     stat("Trades", s.trades) +
     stat("Net", s.trades ? live(s.net, { sign: true }) : "–") +
@@ -727,13 +746,13 @@ function renderWeek() {
   $("wk-prev").disabled = S.weekOffset <= -(WEEKS_BACK - 1);
   $("wk-next").disabled = S.weekOffset >= 0;
   const ann = annotate(S.entries, p.windowMin);
-  const s = summarize(ann, start, end);
-  const prev = summarize(ann, addDays(start, -7), start);
+  const s = summarize(ann, start, end, { cooldownMin: cooldown() });
+  const prev = summarize(ann, addDays(start, -7), start, { cooldownMin: cooldown() });
   // 8 weeks ending with the week on screen (only weeks the journal has loaded).
   const firstLoaded = addDays(weekStart(new Date()), -7 * (WEEKS_BACK - 1));
   const series = weeklySeries(ann, start, WEEKS_BACK).filter((w) => w.from >= firstLoaded);
   const spanFrom = series.length ? series[0].from : start;
-  const span = summarize(ann, spanFrom, end);
+  const span = summarize(ann, spanFrom, end, { cooldownMin: cooldown() });
   const spanWeeks = series.length || 1;
   const h = HIJACKS.includes(p.hijack) ? p.hijack : null;
   const parts = [];
@@ -757,7 +776,8 @@ function renderWeek() {
       <div class="trend-axis"><span>${series.length} weeks ago</span><span>${S.weekOffset === 0 ? "this week" : "that week"}</span></div>`);
   }
   const extra = [];
-  extra.push(stat("Urges caught", s.urgesCaught, { sub: s.checks ? `${s.checks} pre-trade check${s.checks === 1 ? "" : "s"}` : "use Before the next trade" }));
+  extra.push(stat("Urges caught", s.urgesCaught, { sub: s.checks ? `${s.checks} Ego Check${s.checks === 1 ? "" : "s"}` : "use the 60-Second Ego Check" }));
+  extra.push(stat("Cooldown broken", s.cooldownBroken, { red: s.cooldownBroken > 0, sub: `trade${s.cooldownBroken === 1 ? "" : "s"} inside your ${cooldown()}-min cooldown` }));
   extra.push(stat("After a loss", s.tiltCount, { red: s.tiltCount > 0, sub: `trade${s.tiltCount === 1 ? "" : "s"} within ${p.windowMin} min of a loss` }));
   if (s.biggerAfterLoss || h === "Competitor") extra.push(stat("Bigger after a loss", s.biggerAfterLoss, { red: s.biggerAfterLoss > 0, sub: "sized up to win it back" }));
   if (s.skips || h === "Intellectualizer") extra.push(stat("Setups let pass", s.skips, { sub: "valid setups you let go" }));
@@ -934,6 +954,8 @@ $("open-settings").addEventListener("click", () => {
   $("set-hijack").value = p.hijack;
   $("set-cur").value = p.currency;
   $("set-window").value = String(p.windowMin);
+  $("set-cooldown").value = String(p.cooldownMin || 10);
+  $("set-lossstop").value = String(p.lossStop || 2);
   if (!$("set-window").value) $("set-window").value = "30";
   $("set-hide").checked = !!p.hidePnl;
   $("set-remind").value = defaultRemindTime();
@@ -947,6 +969,8 @@ $("set-save").addEventListener("click", () => {
     hijack: $("set-hijack").value,
     currency: $("set-cur").value,
     windowMin: Number($("set-window").value),
+    cooldownMin: Number($("set-cooldown").value),
+    lossStop: Number($("set-lossstop").value),
     hidePnl: $("set-hide").checked,
     updatedAt: serverTimestamp()
   }).catch((e) => toast(writeError(e)));

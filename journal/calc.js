@@ -38,8 +38,10 @@ export function annotate(entries, windowMin) {
   const sorted = [...entries].sort((a, b) => a.at - b.at);
   let lastLoss = null;
   return sorted.map((e) => {
-    const out = { ...e, afterLoss: false };
+    const out = { ...e, afterLoss: false, minsAfterLoss: null };
     if (e.kind !== "trade") return out;
+    // minutes since the last loss, so the course's cooldown can be checked apart from the measuring window
+    if (lastLoss && e.at - lastLoss >= 0) out.minsAfterLoss = (e.at - lastLoss) / MIN;
     if (lastLoss && e.at - lastLoss >= 0 && e.at - lastLoss <= win) out.afterLoss = true;
     if (e.pnl < 0) lastLoss = e.at;
     return out;
@@ -51,7 +53,8 @@ function sum(list) {
 }
 
 // Everything the weekly report (and the "today" strip) shows for entries in [from, to).
-export function summarize(annotated, from, to) {
+// cooldownMin: the trader's Contract cooldown ("minutes off-screen after any loss"; the course's example is 10).
+export function summarize(annotated, from, to, { cooldownMin = 10 } = {}) {
   const inRange = annotated.filter((e) => e.at >= from && e.at < to);
   const taken = inRange.filter((e) => e.kind === "trade");
   const hijacked = taken.filter((e) => e.hijack !== "none");
@@ -91,6 +94,8 @@ export function summarize(annotated, from, to) {
     ruleYesCount: ruleYes.length, ruleYesNet: sum(ruleYes),
     ruleNoCount: ruleNo.length, ruleNoNet: sum(ruleNo),
     biggerAfterLoss: tilt.filter((e) => e.size === "bigger").length,
+    // "Cooldown respected?" from the course's Process Score: trades taken before the cooldown ended.
+    cooldownBroken: taken.filter((e) => e.minsAfterLoss != null && e.minsAfterLoss < cooldownMin).length,
     byHijack,
     top: byHijack[0] || null         // the hijack that cost the most (or was tagged most)
   };
@@ -172,3 +177,12 @@ export function toCsv(entries, currency) {
 }
 
 export { DAY, MIN };
+
+// Losses in a row at the end of the day so far ("Two losses in a row: done", from the course's Contract).
+export function lossStreakToday(entries, now) {
+  const start = dayStart(now);
+  const today = entries.filter((e) => e.kind === "trade" && e.at >= start && e.at <= now).sort((a, b) => a.at - b.at);
+  let n = 0;
+  for (let i = today.length - 1; i >= 0 && today[i].pnl < 0; i--) n++;
+  return n;
+}

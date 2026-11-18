@@ -352,3 +352,6 @@ footer.tagline {
 .trend span { font-size: 10.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 .trend-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--ink-faint); }
 .lead.green { color: var(--green); }
+
+/* Ego Check questions: full sentences from the course, not shouty labels */
+.q { font: 600 14.5px/1.4 var(--sans); color: var(--ink); margin: 0 0 8px; }
