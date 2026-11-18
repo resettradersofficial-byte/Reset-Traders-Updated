@@ -463,11 +463,14 @@ document.querySelectorAll('[data-region-toggle]').forEach((b) => b.addEventListe
 }));
 
 /* ---------- Elite application ---------- */
-// To collect applications in a Google Sheet: make a Google Form with these questions, then paste
-// its ".../formResponse" URL and each question's "entry.123..." ID here. Until then it opens an email.
+// Applications go to the "Apply for Elite Mentorship" Google Form (Reset Traders account) and its
+// "Elite applications" Google Sheet. If action is emptied, the form falls back to opening an email.
 const ELITE_FORM = {
-  action: '',
-  entries: { name: '', email: '', phone: '', market: '', experience: '', hijack: '', problem: '', why: '' }
+  action: 'https://docs.google.com/forms/d/e/1FAIpQLScj9gyVDLSTtnzTW99tvCzz_QvpFAejstrInvyWCfxVw29xTg/formResponse',
+  entries: {
+    name: 'entry.827078575', email: 'entry.1200507579', phone: 'entry.63231226', market: 'entry.730657407',
+    experience: 'entry.408964551', hijack: 'entry.874933976', problem: 'entry.320049012', why: 'entry.1725347274'
+  }
 };
 const CONTACT_EMAIL = 'resettradersofficial@gmail.com';
 const applyDlg = $('#apply');
