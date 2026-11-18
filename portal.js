@@ -18,7 +18,8 @@ import {
   storage,
   storageRef,
   where
-} from "./firebase.js?v=20261118-portal";
+} from "./firebase.js?v=20261118-video";
+import { privateVideoKey, privateVideoUrl } from "./video.js?v=20261118-video";
 
 let currentUser = null;
 let currentProfile = null;
@@ -175,7 +176,10 @@ async function renderVideo(lesson) {
 
   try {
     let url = source;
-    if (source.startsWith("gs://") || source.startsWith("course-videos/")) {
+    const privateKey = privateVideoKey(source);
+    if (privateKey) {
+      url = await privateVideoUrl(privateKey);
+    } else if (source.startsWith("gs://") || source.startsWith("course-videos/")) {
       url = await getDownloadURL(storageRef(storage, source));
     }
 

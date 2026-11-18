@@ -19,7 +19,8 @@ import {
   setDoc,
   updateDoc,
   where
-} from "./firebase.js?v=20261118-portal";
+} from "./firebase.js?v=20261118-video";
+import { privateVideoKey, privateVideoUrl } from "./video.js?v=20261118-video";
 
 let adminUser = null;
 let adminProfile = null;
@@ -194,7 +195,9 @@ export function renderAdminLessons() {
       <div style="background:#000;border-radius:6px;overflow:hidden;aspect-ratio:16/9;margin:8px 0 16px;position:relative;">
         ${source.includes("youtube") || source.includes("youtu.be")
           ? `<iframe src="${safeText(source)}" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe>`
-          : `<video controls style="position:absolute;inset:0;width:100%;height:100%;background:#000;" controlsList="nodownload"><source src="${safeText(source)}" type="video/mp4"></video>`}
+          : privateVideoKey(source)
+            ? `<video controls style="position:absolute;inset:0;width:100%;height:100%;background:#000;" controlsList="nodownload" data-private-key="${safeText(privateVideoKey(source))}"></video>`
+            : `<video controls style="position:absolute;inset:0;width:100%;height:100%;background:#000;" controlsList="nodownload"><source src="${safeText(source)}" type="video/mp4"></video>`}
       </div>` : "";
     return `
       <div class="student-row">
@@ -211,6 +214,13 @@ export function renderAdminLessons() {
         </div>
       </div>${preview}`;
   }).join("");
+  list.querySelectorAll("video[data-private-key]").forEach(async (video) => {
+    try {
+      video.src = await privateVideoUrl(video.dataset.privateKey);
+    } catch (error) {
+      video.replaceWith(Object.assign(document.createElement("p"), { textContent: error.message, style: "color:#ff4444;padding:16px;" }));
+    }
+  });
 }
 
 function generateTempPassword() {

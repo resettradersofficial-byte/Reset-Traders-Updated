@@ -3,7 +3,7 @@ import {
   auth,
   cleanEmail,
   ensureBuyerAccount
-} from "./firebase.js?v=20261118-portal";
+} from "./firebase.js?v=20261118-video";
 
 export const PLANS = {
   course: {

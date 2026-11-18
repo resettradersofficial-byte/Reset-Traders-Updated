@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261118-portal">
+<link rel="stylesheet" href="styles.css?v=20261118-video">
 <style>
   .portal-home { min-height: 100vh; display: grid; place-items: center; padding: 32px 20px; background: var(--black); }
   .portal-home-card { width: 100%; max-width: 420px; text-align: center; padding: 40px 28px; border: 1px solid #222; border-radius: 16px; background: #111; }
@@ -179,11 +179,10 @@
       <h2>Course Videos</h2>
       <div class="admin-notice">
         &#127909; <strong>How to add a video:</strong><br><br>
-        1. Upload the MP4 to your GitHub Release, for example tag <strong style="color:var(--white)">v1</strong>.<br>
-        2. Open the uploaded video asset and copy its browser/download URL.<br>
-        3. Paste that URL in the Video URL field below.<br>
-        4. Add title, module, duration, and notes, then click Add Lesson.<br><br>
-        Videos play in a secure native player with no download button and a student email watermark.
+        1. In the Cloudflare dashboard, open R2 &rarr; <strong style="color:var(--white)">course-videos</strong> and upload the MP4. Use a file name without spaces, for example <strong style="color:var(--white)">Module-01-Intro.mp4</strong>.<br>
+        2. In the Video URL field below, type <strong style="color:var(--white)">r2:</strong> and the file name, for example <strong style="color:var(--white)">r2:Module-01-Intro.mp4</strong>.<br>
+        3. Add title, module, duration, and notes, then click Add Lesson.<br><br>
+        Videos are private: only logged-in students with active access (and admins) can play them, through links that expire after a few hours. Never upload course videos to GitHub, which is public.
       </div>
       <div class="admin-card">
         <h3>ADD NEW LESSON</h3>
@@ -388,6 +387,6 @@
 
 
 
-<script type="module" src="app.js?v=20261118-portal"></script>
+<script type="module" src="app.js?v=20261118-video"></script>
 </body>
 </html>

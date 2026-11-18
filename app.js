@@ -15,8 +15,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   watchSingleSession
-} from "./firebase.js?v=20261118-portal";
-import { proceedToRazorpay, startPayment } from "./payment.js?v=20261118-portal";
+} from "./firebase.js?v=20261118-video";
+import { proceedToRazorpay, startPayment } from "./payment.js?v=20261118-video";
 import {
   loadPortal,
   nextLesson,
@@ -24,7 +24,7 @@ import {
   submitDoubt,
   toggleMobDrawer,
   unloadPortal
-} from "./portal.js?v=20261118-portal";
+} from "./portal.js?v=20261118-video";
 import {
   addLesson,
   addStudent,
@@ -46,7 +46,7 @@ import {
   toggleStudent,
   toggleTestiMedia,
   unloadAdmin
-} from "./admin.js?v=20261118-portal";
+} from "./admin.js?v=20261118-video";
 
 let loginMode = "student";
 let sessionUnsubscribe = null;

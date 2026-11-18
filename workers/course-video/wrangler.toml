@@ -1,0 +1,19 @@
+name = "course-video"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+# Private course videos (not publicly listed). Upload with:
+#   npx wrangler r2 object put course-videos/<file>.mp4 --file <file>.mp4 --content-type video/mp4 --remote
+[[r2_buckets]]
+binding = "VIDEOS"
+bucket_name = "course-videos"
+
+# Secret (set with `npx wrangler secret put VIDEO_SIGNING_KEY`, never committed):
+#   VIDEO_SIGNING_KEY  random string used to sign short-lived video links
+
+# Throttle link requests per IP.
+[[ratelimits]]
+name = "SIGN_LIMIT"
+namespace_id = "41003"
+simple = { limit = 30, period = 60 }
