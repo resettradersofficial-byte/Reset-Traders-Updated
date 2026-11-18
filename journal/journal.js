@@ -82,6 +82,7 @@ const profileRef = () => doc(db, "journals", S.user.uid);
 const cur = () => S.profile?.currency || "INR";
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
+const HAS_ACCOUNT = "rt-journal-account"; // this browser has signed in before: open on "Sign in"
 
 function show(view) {
   if (S.view !== view) window.scrollTo(0, 0);
@@ -175,7 +176,7 @@ $("auth-form").addEventListener("submit", async (ev) => {
   try {
     if (S.authMode === "up") {
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      sendEmailVerification(cred.user, { url: location.origin + location.pathname }).catch(() => {});
+      sendVerify(cred.user).catch(() => {});
     } else {
       await signInWithEmailAndPassword(auth, email, pass);
     }
@@ -192,12 +193,30 @@ $("auth-forgot").addEventListener("click", async () => {
   try { await sendPasswordResetEmail(auth, email); } catch (_) {}
   authMsg("If that email has an account, a reset link is on its way.");
 });
+// The confirm-email link must come back to a domain Firebase allows. The site lives on www.resettraders.com,
+// but the project allows resettraders.com (which redirects to www), so use that; fall back to a plain email.
+function verifySettings() {
+  const h = location.hostname;
+  return { url: (h === "www.resettraders.com" || h === "resettraders.com") ? "https://resettraders.com/journal/" : location.origin + location.pathname };
+}
+async function sendVerify(user) {
+  try {
+    await sendEmailVerification(user, verifySettings());
+  } catch (e) {
+    if (/continue-uri|unauthorized-domain|invalid-dynamic-link/.test(e?.code || "")) { await sendEmailVerification(user); return; }
+    throw e;
+  }
+}
 $("verify-resend").addEventListener("click", async () => {
   try {
-    await sendEmailVerification(S.user, { url: location.origin + location.pathname });
-    toast("Sent. Check your inbox.");
+    await auth.currentUser?.reload();
+    if (auth.currentUser?.emailVerified) { $("verify-banner").hidden = true; toast("Your email is confirmed."); return; }
+    await sendVerify(auth.currentUser);
+    toast("Sent. Check your inbox and spam folder.");
   } catch (e) {
-    toast(e?.code === "auth/too-many-requests" ? "Already sent. Give it a minute." : "Couldn't send it. Try again later.");
+    toast(e?.code === "auth/too-many-requests"
+      ? "Already sent. Check your inbox and spam, or try again in a few minutes."
+      : e?.code === "auth/network-request-failed" ? "No connection. Try again when you're online." : "Couldn't send it. Try again in a few minutes.");
   }
 });
 
@@ -212,15 +231,26 @@ onAuthStateChanged(auth, (user) => {
   S.user = user;
   S.profile = null;
   S.entries = [];
-  if (!user) { show("out"); setPlanPill(null); return; }
+  if (!user) {
+    // Signed out (or never signed in): returning traders land on "Sign in", not "Start your journal".
+    $("auth-pass").value = "";
+    setAuthMode(lsGet(HAS_ACCOUNT) ? "in" : "up");
+    show("out");
+    setPlanPill(null);
+    return;
+  }
+  lsSet(HAS_ACCOUNT, "1");
+  authMsg("");
   $("verify-banner").hidden = !!user.emailVerified;
+  if (!user.emailVerified) user.reload().then(() => { $("verify-banner").hidden = !!auth.currentUser?.emailVerified; }).catch(() => {});
   loadAccess();
-  S.unsubProfile = onSnapshot(profileRef(), (snap) => {
+  // includeMetadataChanges: a cached "no settings yet" is only trusted once the server confirms it.
+  // Without it, the server's confirmation never arrives here and sign-in could hang on "Signing in…".
+  S.unsubProfile = onSnapshot(profileRef(), { includeMetadataChanges: true }, (snap) => {
     if (!snap.exists()) {
-      // A cached "missing" while online may just be the cache: wait for the server's answer.
       if (snap.metadata.fromCache && navigator.onLine) return;
       S.profile = null;
-      startSetup();
+      if (S.view !== "setup") startSetup();
       return;
     }
     S.profile = snap.data();
@@ -1075,11 +1105,35 @@ function downloadBlob(blob, name) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+// Google Calendar's "add event" page with the repeat already set: no file download, and the calendar app
+// sends the notification. (No push server yet, so the journal itself can't notify.)
+function googleCalUrl(hhmm) {
+  const [hh, mm] = hhmm.split(":").map(Number);
+  const start = new Date(); start.setHours(hh, mm, 0, 0);
+  const end = new Date(start.getTime() + 5 * 60000);
+  const pad = (n) => String(n).padStart(2, "0");
+  const fmt = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: "Log today's trades · Reset Journal",
+    details: "20 seconds a trade. Tag the hijack. https://www.resettraders.com/journal/",
+    dates: `${fmt(start)}/${fmt(end)}`,
+    ctz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata",
+    recur: "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"
+  });
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
 function addReminder(hhmm) {
   const time = /^\d{2}:\d{2}$/.test(hhmm || "") ? hhmm : defaultRemindTime();
   lsSet("rt-journal-remind", time);
-  downloadBlob(new Blob([reminderIcs(time)], { type: "text/calendar;charset=utf-8" }), "reset-journal-reminder.ics");
-  toast(`Open the file to add a ${time} reminder, Monday to Friday.`);
+  if (isIos()) {
+    // Safari opens a calendar file straight in the Calendar app ("Add to Calendar"), no download screen.
+    downloadBlob(new Blob([reminderIcs(time)], { type: "text/calendar;charset=utf-8" }), "reset-journal-reminder.ics");
+    toast(`Tap Add to Calendar. Your phone will remind you at ${time}, Monday to Friday.`);
+    return;
+  }
+  window.open(googleCalUrl(time), "_blank", "noopener");
+  toast(`Tap Save in Google Calendar. It will remind you at ${time}, Monday to Friday.`);
 }
 $("habit").addEventListener("click", (ev) => {
   const b = ev.target.closest("[data-act]");
@@ -1091,4 +1145,4 @@ $("habit").addEventListener("click", (ev) => {
 $("set-remind-add").addEventListener("click", () => addReminder($("set-remind").value));
 $("set-install").addEventListener("click", installApp);
 
-setAuthMode("up");
+setAuthMode(lsGet(HAS_ACCOUNT) ? "in" : "up");
