@@ -22,6 +22,45 @@ const WORKER_URL = "https://audit-lead.resettradersofficial.workers.dev/";
 const UNLOCK_AFTER_MS = 6000;
 const TAKEN_KEY = "rt_audit_taken";
 
+// Cloudflare Turnstile ("Reset Audit" widget): checks the visitor is human before the result email is sent.
+// It runs in the background and only shows a box when Cloudflare is unsure.
+const TURNSTILE_SITEKEY = "0x4AAAAAAGGh2CBT5c2hECQv";
+let turnstileBox = null;
+let turnstileValue = "";
+const turnstileWaiters = [];
+function startTurnstile() {
+  const unlock = document.getElementById("unlock");
+  if (!unlock || turnstileBox) return;
+  turnstileBox = document.createElement("div");
+  turnstileBox.style.margin = "10px 0 0";
+  unlock.before(turnstileBox);
+  window.rtTurnstileReady = () => {
+    try {
+      window.turnstile.render(turnstileBox, {
+        sitekey: TURNSTILE_SITEKEY,
+        action: "audit-unlock",
+        appearance: "interaction-only",
+        callback: (token) => { turnstileValue = token; turnstileWaiters.splice(0).forEach((done) => done(token)); },
+        "expired-callback": () => { turnstileValue = ""; },
+        "error-callback": () => { turnstileValue = ""; }
+      });
+    } catch (_) {}
+  };
+  const script = document.createElement("script");
+  script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=rtTurnstileReady";
+  script.async = true;
+  document.head.appendChild(script);
+}
+function turnstileToken(waitMs) {
+  if (turnstileValue) return Promise.resolve(turnstileValue);
+  return new Promise((resolve) => { turnstileWaiters.push(resolve); setTimeout(() => resolve(turnstileValue), waitMs); });
+}
+function turnstileUsed() {
+  turnstileValue = "";
+  try { if (window.turnstile && turnstileBox) window.turnstile.reset(turnstileBox); } catch (_) {}
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startTurnstile); else startTurnstile();
+
 const db = getFirestore(initializeApp(firebaseConfig, "audit"));
 const params = new URLSearchParams(location.search);
 const source = params.get("test") === "1" ? "test" : "audit";
@@ -70,6 +109,8 @@ async function saveLead(email, profile, isRetake) {
 }
 
 async function sendEmail(email, profile, isRetake) {
+  const turnstile = await turnstileToken(5000);
+  turnstileUsed();
   const res = await fetch(WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -77,6 +118,7 @@ async function sendEmail(email, profile, isRetake) {
       email,
       isRetake,
       ...(ref ? { ref } : {}),
+      ...(turnstile ? { turnstile } : {}),
       website: "",
       profile: { type: profile.type, pct: profile.pct, body: profile.body, nerve: profile.nerve, stage: profile.stage, rule: profile.rule, level: profile.level, root: profile.root, leads: profile.leads, patterns: profile.patterns }
     })
