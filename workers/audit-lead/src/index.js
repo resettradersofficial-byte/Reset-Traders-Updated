@@ -365,16 +365,45 @@ export default {
       return json(429, { error: "Too many requests. Try again in a minute." }, origin);
     }
 
-    if (!env.APPS_SCRIPT_URL || !env.APPS_SCRIPT_TOKEN) return json(500, { error: "Email service not configured." }, origin);
+    const hasBrevo = Boolean(env.BREVO_API_KEY);
+    const hasAppsScript = Boolean(env.APPS_SCRIPT_URL && env.APPS_SCRIPT_TOKEN);
+    if (!hasBrevo && !hasAppsScript) return json(500, { error: "Email service not configured." }, origin);
 
-    // Hand the email to Apps Script in the background; the page never waits on Google.
+    // Send in the background; the page never waits. Brevo first (sender: Reset Traders), Apps Script if Brevo fails.
     const message = buildEmail(result);
-    const work = sendViaAppsScript(env, result.ref ? { ...message, ref: result.ref } : message);
+    const withRef = result.ref ? { ...message, ref: result.ref } : message;
+    const work = (async () => {
+      if (hasBrevo && await sendViaBrevo(env, withRef)) return true;
+      return hasAppsScript ? sendViaAppsScript(env, withRef) : false;
+    })();
     if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(work);
     else await work;
     return json(202, { ok: true, queued: true }, origin);
   }
 };
+
+// Brevo transactional email. Sender domain resettraders.com is authenticated in Brevo (SPF/DKIM/DMARC at Hostinger).
+export async function sendViaBrevo(env, message) {
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "api-key": env.BREVO_API_KEY, "Content-Type": "application/json", accept: "application/json" },
+      body: JSON.stringify({
+        sender: { name: "Reset Traders", email: env.MAIL_FROM || "hello@resettraders.com" },
+        replyTo: { name: "Reset Traders", email: "resettradersofficial@gmail.com" },
+        to: [{ email: message.to }],
+        subject: message.subject,
+        htmlContent: message.html,
+        tags: ["audit-result", ...(message.ref ? ["ref-" + message.ref] : [])]
+      })
+    });
+    if (!res.ok) console.error("brevo send not ok", res.status, (await res.text()).slice(0, 200));
+    return res.ok;
+  } catch (err) {
+    console.error("brevo unreachable", String(err));
+    return false;
+  }
+}
 
 export async function sendViaAppsScript(env, message) {
   try {
