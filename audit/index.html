@@ -500,11 +500,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <div class="panel journal" id="journal" hidden>
       <p class="offer-kicker">Not ready for the course?</p>
       <h3>Start with Journal Pro</h3>
-      <p class="journal-copy">Log a trade in 20 seconds, tag the hijack and see what it cost you each week.</p>
-      <p class="deal"><span class="deal-row"><span class="deal-now" id="journal-price">₹999</span><span class="deal-per">a month</span></span></p>
-      <button class="cta buy-btn" id="journal-btn" type="button">Reserve Journal Pro</button>
-      <p class="buy-msg" id="journal-msg" role="status"></p>
-      <p class="buy-fine">Opening soon. Reserve now and we'll email you first.</p>
+      <p class="journal-copy">Log a trade in 20 seconds, tag the hijack and see what it cost you each week. It opens already set up for your hijack.</p>
+      <p class="deal"><span class="deal-row"><span class="deal-now">Free</span><span class="deal-per">while in beta, then <span id="journal-price">₹999</span> a month</span></span></p>
+      <button class="cta buy-btn" id="journal-btn" type="button">Start my free journal</button>
+      <p class="buy-fine">No card needed. Only you can see your trades.</p>
     </div>
   </section>
 
@@ -1139,7 +1138,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
     });
   }
   reserveWith('reset', $('buy-btn'), $('buy-msg'), 'Seat reserved ✓');
-  reserveWith('journal', $('journal-btn'), $('journal-msg'), 'Journal Pro reserved ✓');
+  // Journal Pro is open (free beta): send them straight in, set up for the hijack they just found.
+  $('journal-btn').addEventListener('click', () => {
+    location.href = `../journal/?type=${encodeURIComponent(TYPES[P.ruleType || P.top].name)}`;
+  });
   $('skip-course').addEventListener('click', () => {
     $('skip-course').hidden = true;
     $('journal').hidden = false; rise($('journal'), 0, 480);
