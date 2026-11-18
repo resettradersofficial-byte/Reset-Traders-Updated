@@ -441,8 +441,9 @@ dialog.apply { width: min(640px, 100% - 32px); }
 .cast { left: 14%; height: 92%; }
 .cast-img { display: block; height: 100%; width: auto; }
 /* Tilt sits on the character's right shoulder (the viewer's left), leaning in to whisper. */
-.imp { position: absolute; left: var(--ix, -6%); bottom: var(--iy, 36%); width: var(--iw, 26%); z-index: 1; }
-.imp img { position: relative; z-index: 1; width: 100%; height: auto; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .6)); -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); }
+/* Glow on the wrapper, fade mask on the image: with both on the image, the mask cut the glow into a visible box. */
+.imp { position: absolute; left: var(--ix, -6%); bottom: var(--iy, 36%); width: var(--iw, 26%); z-index: 1; filter: drop-shadow(0 0 16px rgba(255, 72, 48, .6)); }
+.imp img { position: relative; z-index: 1; display: block; width: 100%; height: auto; -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); mask-image: linear-gradient(to bottom, #000 70%, transparent 97%); }
 .c-rohan { --ix: 5%; --iy: 35%; --iw: 26%; }
 .c-kabir { --ix: 11%; --iy: 35%; --iw: 23%; }
 .c-arjun { --ix: 11%; --iy: 37%; --iw: 21%; }
