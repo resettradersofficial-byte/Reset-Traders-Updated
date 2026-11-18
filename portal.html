@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reset Traders · Student portal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="audit/img/mark.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261118-portal">
+<style>
+  .portal-home { min-height: 100vh; display: grid; place-items: center; padding: 32px 20px; background: var(--black); }
+  .portal-home-card { width: 100%; max-width: 420px; text-align: center; padding: 40px 28px; border: 1px solid #222; border-radius: 16px; background: #111; }
+  .portal-home-card img { width: 56px; height: 64px; object-fit: contain; }
+  .portal-home-card h1 { margin: 18px 0 8px; font-size: 26px; font-weight: 900; color: var(--white); }
+  .portal-home-card p { margin: 0 0 26px; color: var(--gray-light); font-size: 14px; line-height: 1.6; }
+  .portal-home-card .btn-primary { width: 100%; justify-content: center; border: 0; cursor: pointer; }
+  .portal-home-links { display: flex; justify-content: space-between; margin-top: 22px; font-size: 13px; }
+  .portal-home-links a { color: var(--gray-light); text-decoration: none; }
+  .portal-home-links a:hover { color: var(--white); }
+  .leads-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .leads-stat { padding: 16px 18px; border: 1px solid #222; border-radius: 10px; background: #111; }
+  .leads-stat b { display: block; font-size: 28px; font-weight: 900; color: var(--white); }
+  .leads-stat span { font-size: 12px; color: var(--gray-light); }
+  .leads-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .leads-table th, .leads-table td { padding: 9px 10px; border-bottom: 1px solid #222; text-align: left; white-space: nowrap; }
+  .leads-table th { color: var(--gray-light); font-weight: 700; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+  .leads-table td { color: var(--white); }
+</style>
+</head>
+<body data-page="portal">
+<!-- Student portal and admin panel. The marketing homepage is index.html. -->
+<div id="main-site" class="page active">
+  <main class="portal-home">
+    <div class="portal-home-card">
+      <img src="audit/img/mark.webp" alt="" width="160" height="182">
+      <h1>Student portal</h1>
+      <p>Log in with the email and password you used at checkout.</p>
+      <button type="button" class="btn-primary" onclick="openLogin('student')">Student login</button>
+      <div class="portal-home-links">
+        <a href="./">&larr; resettraders.com</a>
+        <a href="javascript:void(0)" onclick="openLogin('admin')">Admin</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- --------------------------------------
+   LOGIN OVERLAY (Student & Admin)
+-------------------------------------- -->
+<div id="login-overlay">
+  <div class="login-box">
+    <button class="login-close" onclick="closeLogin()">&times;</button>
+    <div class="login-logo">RESET<span>.</span>TRADERS</div>
+    <div class="login-sub" id="login-sub">Student Portal — Enter your credentials</div>
+    <div class="form-group">
+      <label>EMAIL / USERNAME</label>
+      <input type="text" id="login-email" placeholder="your@email.com" />
+    </div>
+    <div class="form-group">
+      <label>PASSWORD</label>
+      <div style="position:relative;">
+        <input type="password" id="login-pass" placeholder="••••••••" style="padding-right:44px;" />
+        <button type="button" onclick="togglePassVis('login-pass','login-pass-eye')" id="login-pass-eye"
+          style="position:absolute;right:0;top:0;height:100%;width:42px;background:transparent;border:none;cursor:pointer;color:var(--gray-light);font-size:16px;display:flex;align-items:center;justify-content:center;"
+          title="Show/hide password">Show</button>
+      </div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">ACCESS PORTAL -></button>
+    <div class="login-err" id="login-err">Invalid credentials. Please try again.</div>
+  </div>
+</div>
+
+<!-- --------------------------------------
+   COURSE PORTAL (Students)
+-------------------------------------- -->
+<div id="course-portal">
+  <nav class="portal-nav">
+    <div class="portal-brand">RESET<span>.</span>TRADERS <span style="color:var(--gray-light);font-size:12px;font-weight:600;margin-left:8px;">Student Portal</span></div>
+    <div class="portal-user">
+      <span id="portal-username">Student</span>
+      <button class="portal-logout" onclick="logout()">Log Out</button>
+    </div>
+  </nav>
+  <div class="progress-ring-wrap">
+    <div class="progress-ring-info">
+      <div class="progress-ring-label">&#128202; COURSE PROGRESS</div>
+      <div class="progress-ring-stats"><span id="progress-done">0</span> / <span id="progress-total">0</span> <span style="font-size:14px;color:var(--gray-light);font-weight:600;">lessons completed</span></div>
+      <div class="progress-ring-sub" id="progress-pct-label">Start watching to track your progress</div>
+      <div class="progress-bar-bg" style="margin-top:10px;"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <!-- Mobile lesson picker bar (hidden on desktop) -->
+  <div class="mob-lessons-bar" id="mob-lessons-bar" onclick="toggleMobDrawer()">
+    <div>
+      <div class="mob-lessons-bar-label">&#127909; Course Videos</div>
+      <div class="mob-lessons-bar-info" id="mob-bar-info">Tap to browse all lessons</div>
+    </div>
+    <div class="mob-lessons-bar-arrow" id="mob-bar-arrow">v</div>
+  </div>
+  <div class="mob-lesson-drawer" id="mob-lesson-drawer">
+    <div id="mob-lesson-list"></div>
+  </div>
+
+  <div class="portal-layout">
+    <div class="portal-sidebar">
+      <div class="sidebar-title">The Trader Reset</div>
+      <div id="lesson-list"></div>
+    </div>
+    <div class="portal-main" id="portal-main">
+      <div class="lesson-header">
+        <h1 id="lesson-title">Welcome to Reset Traders</h1>
+        <p id="lesson-desc">Select a lesson from the sidebar to begin your journey.</p>
+      </div>
+      <div class="video-player-wrap" id="video-wrap">
+        <div class="video-placeholder">
+          <div class="big-play"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="vt">Select a lesson to start watching</div>
+          <div class="vs">All videos are securely streamed — no downloads</div>
+        </div>
+        <div class="vid-security" id="vid-security"></div>
+        <div class="vid-watermark" id="vid-watermark">RESET TRADERS</div>
+      </div>
+      <div class="lesson-meta" id="lesson-meta" style="display:none;">
+        <div class="lesson-meta-badge">&#9201; Time: <span id="meta-duration">—</span></div>
+        <div class="lesson-meta-badge">&#128214; Module: <span id="meta-module">—</span></div>
+        <div class="lesson-meta-badge" id="meta-complete-badge" style="display:none;color:var(--green);">&#10003; Completed</div>
+      </div>
+      <div class="lesson-notes" id="lesson-notes" style="display:none;">
+        <h3>&#128221; Lesson Notes</h3>
+        <p id="notes-text">No notes for this lesson.</p>
+      </div>
+      <div class="lesson-nav" id="lesson-nav" style="display:none;">
+        <button class="prev-btn" onclick="prevLesson()">&lt; Previous</button>
+        <button class="next-btn" onclick="nextLesson()">Next Lesson &gt;</button>
+      </div>
+
+      <!-- DOUBTS & FEEDBACK -->
+      <div class="doubts-section" id="doubts-section" style="display:block;margin-top:8px;">
+        <h3 class="doubts-title">&#128172; Doubts & Feedback</h3>
+        <p class="doubts-sub">Ask a question or leave feedback about this lesson. Omkar will respond in the next session.</p>
+        <div class="doubt-form">
+          <textarea id="doubt-input" placeholder="Type your doubt or feedback about this lesson..." rows="3"></textarea>
+          <button class="doubt-submit" onclick="submitDoubt()">Submit</button>
+        </div>
+        <div class="doubts-list" id="doubts-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- --------------------------------------
+   ADMIN PANEL
+-------------------------------------- -->
+<div id="admin-panel">
+  <nav class="admin-nav">
+    <div class="admin-title">&#128274; RESET TRADERS — ADMIN</div>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <a class="admin-btn secondary" href="./" style="text-decoration:none;">&lt; Back to Website</a>
+      <button class="portal-logout" onclick="logout()">Log Out</button>
+    </div>
+  </nav>
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="adminTab('courses')">&#127909; Course Videos</button>
+    <button class="admin-tab" onclick="adminTab('students')">&#128101; Students</button>
+    <button class="admin-tab" onclick="adminTab('testimonials')">&#11088; Testimonials</button>
+    <button class="admin-tab" onclick="adminTab('settings')">&#9881; Site Settings</button>
+    <button class="admin-tab" onclick="adminTab('doubts')">&#128172; Doubts</button>
+    <button class="admin-tab" onclick="adminTab('leads')">&#128236; Leads</button>
+  </div>
+  <div class="admin-body">
+
+    <!-- COURSES TAB -->
+    <div class="admin-section active" id="tab-courses">
+      <h2>Course Videos</h2>
+      <div class="admin-notice">
+        &#127909; <strong>How to add a video:</strong><br><br>
+        1. Upload the MP4 to your GitHub Release, for example tag <strong style="color:var(--white)">v1</strong>.<br>
+        2. Open the uploaded video asset and copy its browser/download URL.<br>
+        3. Paste that URL in the Video URL field below.<br>
+        4. Add title, module, duration, and notes, then click Add Lesson.<br><br>
+        Videos play in a secure native player with no download button and a student email watermark.
+      </div>
+      <div class="admin-card">
+        <h3>ADD NEW LESSON</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="admin-field">
+            <label>Lesson Title</label>
+            <input type="text" id="new-title" placeholder="e.g. Market Structure Mastery" />
+          </div>
+          <div class="admin-field">
+            <label>Module / Category</label>
+            <input type="text" id="new-module" placeholder="e.g. Foundation, Advanced, Live Trade" />
+          </div>
+        </div>
+        <div class="admin-field">
+          <label>Video URL <span style="color:#555;font-weight:500;">(GitHub Release MP4, YouTube, or secure video URL)</span></label>
+          <input type="text" id="new-video" placeholder="https://github.com/USER/REPO/releases/download/course-v1/lesson-01.mp4" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="admin-field">
+            <label>Duration (e.g. 42 min)</label>
+            <input type="text" id="new-duration" placeholder="42 min" />
+          </div>
+          <div class="admin-field">
+            <label>Lesson Notes / Key Points</label>
+            <textarea id="new-notes" placeholder="Key takeaways, timestamps, important concepts..."></textarea>
+          </div>
+        </div>
+        <button class="admin-btn" onclick="addLesson()">+ Add Lesson</button>
+      </div>
+      <div class="admin-card">
+        <h3>CURRENT LESSONS (<span id="lesson-count">0</span>)</h3>
+        <div id="lesson-manage-list"></div>
+      </div>
+    </div>
+
+    <!-- STUDENTS TAB -->
+    <div class="admin-section" id="tab-students">
+      <h2>Student Access</h2>
+      <div class="admin-notice">
+        Create Firebase Auth student accounts and grant or revoke paid course access. Passwords are never stored in the website database.
+      </div>
+      <div class="admin-card">
+        <h3>ADD STUDENT</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+          <div class="admin-field">
+            <label>Full Name</label>
+            <input type="text" id="s-name" placeholder="Rahul Sharma" />
+          </div>
+          <div class="admin-field">
+            <label>Email (becomes username)</label>
+            <input type="text" id="s-email" placeholder="rahul@email.com" />
+          </div>
+          <div class="admin-field">
+            <label>Temporary Password <span style="color:#555;font-weight:500;">(sent/reset via Firebase)</span></label>
+            <input type="text" id="s-pass" placeholder="TempPass123" />
+          </div>
+        </div>
+        <div class="admin-field">
+          <label>Plan</label>
+          <select id="s-plan">
+            <option>The Trader Reset</option>
+            <option>1:1 Elite Mentorship</option>
+          </select>
+        </div>
+        <button class="admin-btn" onclick="addStudent()">+ Add Student</button>
+      </div>
+      <div class="admin-card">
+        <h3>STUDENTS (<span id="student-count">0</span>)</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 120px 100px;gap:12px;padding:8px 18px;margin-bottom:8px;">
+          <span style="font-size:11px;font-weight:800;color:var(--gray-light);letter-spacing:1px;">NAME</span>
+          <span style="font-size:11px;font-weight:800;color:var(--gray-light);letter-spacing:1px;">EMAIL</span>
+          <span style="font-size:11px;font-weight:800;color:var(--gray-light);letter-spacing:1px;">PLAN</span>
+          <span style="font-size:11px;font-weight:800;color:var(--gray-light);letter-spacing:1px;">STATUS</span>
+        </div>
+        <div id="student-list"></div>
+      </div>
+    </div>
+
+    <!-- TESTIMONIALS TAB -->
+    <div class="admin-section" id="tab-testimonials">
+      <h2>Testimonials</h2>
+      <div class="admin-card">
+        <h3>ADD TESTIMONIAL</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="admin-field">
+            <label>Student Name</label>
+            <input type="text" id="t-name" placeholder="Rahul S." />
+          </div>
+          <div class="admin-field">
+            <label>Role / Market / City</label>
+            <input type="text" id="t-meta" placeholder="NQ Futures · Pune" />
+          </div>
+        </div>
+        <div class="admin-field">
+          <label>Testimonial Text <span style="color:#555;font-weight:500;">(optional if adding image/video)</span></label>
+          <textarea id="t-text" placeholder="What they said about Reset Traders..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:80px 80px 1fr;gap:12px;align-items:end;">
+          <div class="admin-field" style="margin:0;">
+            <label>Stars</label>
+            <select id="t-stars"><option>5</option><option>4</option><option>3</option></select>
+          </div>
+          <div class="admin-field" style="margin:0;">
+            <label>Initials</label>
+            <input type="text" id="t-initials" placeholder="RS" maxlength="2" />
+          </div>
+          <div class="admin-field" style="margin:0;">
+            <label>Testimonial Type</label>
+            <select id="t-type" onchange="toggleTestiMedia(this.value)"
+              style="background:var(--black3);border:1px solid #333;color:var(--white);padding:10px;border-radius:8px;width:100%;font-family:inherit;font-size:13px;">
+              <option value="text">Text only</option>
+              <option value="image">Image screenshot</option>
+              <option value="video">Video testimonial</option>
+            </select>
+          </div>
+        </div>
+        <!-- Drag & Drop Media Upload -->
+        <div id="t-media-area" style="display:none;margin-top:12px;">
+          <label style="font-size:12px;font-weight:700;color:var(--gray-light);display:block;margin-bottom:8px;">
+            Upload Screenshot or Video <span style="color:#555;">(drag & drop or click)</span>
+          </label>
+          <div id="t-drop-zone"
+            style="border:2px dashed #333;border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;background:var(--black3);transition:all 0.2s;"
+            onclick="document.getElementById('t-file-inp').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--orange)';this.style.background='rgba(255,107,26,0.05)'"
+            ondragleave="this.style.borderColor='#333';this.style.background='var(--black3)'"
+            ondrop="handleTestiDrop(event)">
+            <div style="font-size:36px;margin-bottom:8px;">&#128247;</div>
+            <div style="font-size:14px;color:var(--gray-light);font-weight:700;">Drag & drop here</div>
+            <div style="font-size:12px;color:#555;margin-top:4px;">JPG · PNG · MP4 · MOV · max 10MB</div>
+          </div>
+          <input type="file" id="t-file-inp" accept="image/*,video/*" style="display:none" onchange="handleTestiFile(this.files[0])">
+          <div id="t-preview-wrap" style="display:none;margin-top:12px;border-radius:8px;overflow:hidden;"></div>
+          <div id="t-media-note" style="font-size:11px;color:#555;margin-top:6px;">
+            Files are stored locally in this browser. For permanent storage across devices, upload to Google Drive or a public media host and paste the link below instead.
+          </div>
+          <div class="admin-field" style="margin-top:8px;">
+            <label>Or paste direct image/video URL</label>
+            <input type="text" id="t-media-url" placeholder="https://..." />
+          </div>
+        </div>
+        <button class="admin-btn" style="margin-top:14px;" onclick="addTestimonial()">+ Add Testimonial</button>
+      </div>
+      <div class="admin-card">
+        <h3>CURRENT TESTIMONIALS (<span id="testi-count">0</span>)</h3>
+        <div id="testi-manage-list"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="admin-section" id="tab-settings">
+      <h2>Site Settings</h2>
+      <div class="admin-card">
+        <h3>ADMIN AUTHENTICATION</h3>
+        <p style="font-size:13px;color:var(--gray-light);margin-bottom:16px;font-weight:500;line-height:1.7;">Admin login now uses Firebase Authentication. Password changes are handled by Firebase password reset email, not by storing a password in this website.</p>
+        <button class="admin-btn" onclick="changeAdminPass()">Send Password Reset Email</button>
+        <span id="pass-msg" style="font-size:12px;margin-left:12px;font-weight:600;"></span>
+      </div>
+      <div class="admin-card">
+        <h3>SOCIAL LINKS</h3>
+        <div class="admin-field"><label>YouTube Channel URL</label><input type="text" id="yt-url" placeholder="https://youtube.com/@resettraders" /></div>
+        <div class="admin-field"><label>Intro Video URL <span style="color:#555;font-weight:500;">(paste a GitHub Release MP4 URL)</span></label><input type="text" id="intro-video-id" placeholder="https://github.com/USER/REPO/releases/download/site-v1/intro.mp4" /></div>
+      <h3 style="margin-top:24px;font-size:14px;font-weight:800;color:var(--white);">FOUNDER PHOTOS</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="admin-field">
+          <label>Omkar Photo URL <span style="color:#555;">(paste image link from Google Drive/Firebase)</span></label>
+          <input type="text" id="omkar-photo-url" placeholder="https://..." />
+          <div style="margin-top:6px;font-size:11px;color:#555;">Or upload: <input type="file" accept="image/*" onchange="previewFounderPhoto(this,'omkar')" style="font-size:11px;color:#aaa;"></div>
+        </div>
+
+      </div>
+        <div class="admin-field"><label>Instagram URL</label><input type="text" id="ig-url" placeholder="https://instagram.com/resettraders" /></div>
+        <div class="admin-field"><label>Telegram URL</label><input type="text" id="tg-url" placeholder="https://t.me/resettraders" /></div>
+        <div class="admin-field"><label>WhatsApp Number</label><input type="text" id="wa-num" placeholder="91XXXXXXXXXX" /></div>
+        <button class="admin-btn" onclick="saveSocial()">Save Links</button>
+        <span id="social-msg" style="font-size:12px;margin-left:12px;font-weight:600;color:var(--green);"></span>
+      </div>
+      <div class="admin-card">
+        <h3>DANGER ZONE</h3>
+        <p style="font-size:13px;color:var(--gray-light);margin-bottom:16px;font-weight:500;">Export all data as JSON for backup before making changes.</p>
+        <button class="admin-btn secondary" onclick="exportData()">&#128190; Export All Data</button>
+      </div>
+    </div>
+
+    <!-- DOUBTS TAB -->
+    <div class="admin-section" id="tab-doubts">
+      <h2>Student Doubts & Feedback</h2>
+      <p style="color:var(--gray-light);font-size:13px;margin-bottom:20px;">All doubts submitted by students below each lesson, organized by video. Click Reply to respond — students see your replies in their portal.</p>
+      <div id="admin-doubts-list" style="display:flex;flex-direction:column;gap:16px;"></div>
+    </div>
+
+    <!-- LEADS TAB -->
+    <div class="admin-section" id="tab-leads">
+      <h2>Leads</h2>
+      <p style="color:var(--gray-light);font-size:13px;margin-bottom:20px;">Founding-seat and Journal Pro reservations from the audit's offer page, and everyone who unlocked an audit result. Read-only. Test entries are hidden.</p>
+      <div id="leads-body"></div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+<script type="module" src="app.js?v=20261118-portal"></script>
+</body>
+</html>

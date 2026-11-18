@@ -15,8 +15,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   watchSingleSession
-} from "./firebase.js?v=20260707-checkout-account-fix";
-import { proceedToRazorpay, startPayment } from "./payment.js?v=20260707-checkout-account-fix";
+} from "./firebase.js?v=20261118-portal";
+import { proceedToRazorpay, startPayment } from "./payment.js?v=20261118-portal";
 import {
   loadPortal,
   nextLesson,
@@ -24,7 +24,7 @@ import {
   submitDoubt,
   toggleMobDrawer,
   unloadPortal
-} from "./portal.js?v=20260707-checkout-account-fix";
+} from "./portal.js?v=20261118-portal";
 import {
   addLesson,
   addStudent,
@@ -33,6 +33,7 @@ import {
   changeAdminPass,
   deleteLesson,
   deleteTestimonial,
+  downloadLeads,
   editLesson,
   exportData,
   handleTestiFile,
@@ -45,7 +46,7 @@ import {
   toggleStudent,
   toggleTestiMedia,
   unloadAdmin
-} from "./admin.js?v=20260707-checkout-account-fix";
+} from "./admin.js?v=20261118-portal";
 
 let loginMode = "student";
 let sessionUnsubscribe = null;
@@ -445,6 +446,11 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPublicTestimonials();
 });
 
+// portal.html opens the login box straight away (portal.html#admin for the admin login).
+if (document.body?.dataset.page === "portal") {
+  openLogin(location.hash === "#admin" ? "admin" : "student");
+}
+
 Object.assign(window, {
   addLesson,
   addStudent,
@@ -457,6 +463,7 @@ Object.assign(window, {
   deleteLesson,
   deleteTestimonial,
   doLogin,
+  downloadLeads,
   editLesson,
   exportData,
   handleTestiFile,

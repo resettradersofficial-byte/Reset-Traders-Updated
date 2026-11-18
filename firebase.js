@@ -38,9 +38,8 @@ export const firebaseConfig = {
   authDomain: "resettraders-ead44.firebaseapp.com",
   projectId: "resettraders-ead44",
   storageBucket: "resettraders-ead44.firebasestorage.app",
-  messagingSenderId: "981078061043",
-  appId: "1:981078061043:web:2dcd1109456477a93d126c",
-  measurementId: "G-BX4GEP4CWZ"
+  messagingSenderId: "546098280910",
+  appId: "1:546098280910:web:c3aef977ac26198177939f"
 };
 
 export const RESET_CONFIG = {
@@ -90,7 +89,9 @@ export const paths = {
   site: "site",
   doubts: "doubts",
   orders: "orders",
-  payments: "payments"
+  payments: "payments",
+  reservations: "reservations",
+  auditLeads: "auditLeads"
 };
 
 export function cleanEmail(email) {
