@@ -173,7 +173,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 export function validate(payload) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return { error: "Bad request." };
-  const allowedTop = new Set(["email", "profile", "isRetake", "website", "ref"]);
+  const allowedTop = new Set(["email", "profile", "isRetake", "website", "ref", "turnstile"]);
   if (Object.keys(payload).some((k) => !allowedTop.has(k))) return { error: "Unexpected field." };
   if (payload.ref !== undefined && !ALLOWED_REFS.includes(payload.ref)) return { error: "Invalid ref." };
 
@@ -306,6 +306,21 @@ ${profile.patterns.map((k) => `          <p style="${P}">${esc(PATTERN_TEXT[k])}
   return { to: email, subject, html };
 }
 
+export async function turnstileOk(secret, token, ip) {
+  if (typeof token !== "string" || !token || token.length > 2048) return false;
+  const form = new FormData();
+  form.append("secret", secret);
+  form.append("response", token);
+  if (ip && ip !== "unknown") form.append("remoteip", ip);
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const data = await res.json();
+    return data.success === true;
+  } catch (_) {
+    return false;
+  }
+}
+
 async function limited(limiter, key) {
   if (!limiter || typeof limiter.limit !== "function") return false;
   try {
@@ -342,6 +357,10 @@ export default {
     if (result.error) return json(400, { error: result.error }, origin);
 
     const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    // Cloudflare Turnstile: once TURNSTILE_SECRET_KEY is set, only visitors who pass the check get an email.
+    if (env.TURNSTILE_SECRET_KEY && !(await turnstileOk(env.TURNSTILE_SECRET_KEY, payload.turnstile, ip))) {
+      return json(403, { error: "Verification failed. Reload the page and try again." }, origin);
+    }
     if (await limited(env.IP_LIMIT, `ip:${ip}`) || await limited(env.EMAIL_LIMIT, `em:${result.email}`)) {
       return json(429, { error: "Too many requests. Try again in a minute." }, origin);
     }
