@@ -344,6 +344,8 @@ describe("reservations", () => {
   test("anyone can reserve the course or Journal Pro", async () => {
     await assertSucceeds(addDoc(collection(anon(), "reservations"), reservation()));
     await assertSucceeds(addDoc(collection(anon(), "reservations"), reservation({ product: "journal", region: "intl", source: "audit" })));
+    // the course card inside Journal Pro
+    await assertSucceeds(addDoc(collection(anon(), "reservations"), reservation({ source: "journal" })));
   });
   test("every field is checked", async () => {
     for (const bad of [
@@ -363,5 +365,122 @@ describe("reservations", () => {
     await assertFails(deleteDoc(doc(anon(), "reservations", id)));
     await assertSucceeds(getDocs(collection(as(ADMIN), "reservations")));
     await assertSucceeds(deleteDoc(doc(as(ADMIN), "reservations", id)));
+  });
+});
+
+// Journal Pro (/journal/): same shapes as journal/journal.js saveSettings(), logTrade(), logSkip().
+const journal = (u, over = {}) => ({
+  uid: u.uid, email: u.email, hijack: "Rusher", currency: "INR", hidePnl: false, windowMin: 30,
+  createdAt: serverTimestamp(), updatedAt: serverTimestamp(), ...over
+});
+const trade = (over = {}) => ({
+  kind: "trade", at: Timestamp.now(), pnl: -1250.5, planned: false, hijack: "Rusher", note: "Re-entered after the stop",
+  createdAt: serverTimestamp(), updatedAt: serverTimestamp(), ...over
+});
+const skip = (over = {}) => ({
+  kind: "skip", at: Timestamp.now(), hijack: "Intellectualizer", createdAt: serverTimestamp(), updatedAt: serverTimestamp(), ...over
+});
+const trades = (db, u) => collection(db, "journals", u.uid, "trades");
+
+describe("journal", () => {
+  test("any signed-in trader can start a journal (no course needed); visitors cannot", async () => {
+    await assertSucceeds(setDoc(doc(as(NEWBIE), "journals", NEWBIE.uid), journal(NEWBIE)));
+    await assertSucceeds(setDoc(doc(as(ACTIVE), "journals", ACTIVE.uid), journal(ACTIVE, { hijack: "unsure", currency: "USD" })));
+    await assertFails(setDoc(doc(anon(), "journals", NEWBIE.uid), journal(NEWBIE)));
+  });
+  test("settings: every field is checked", async () => {
+    for (const bad of [
+      { hijack: "Hero" }, { currency: "EUR" }, { hidePnl: "yes" }, { windowMin: 2 }, { windowMin: 600 }, { windowMin: 30.5 },
+      { email: "someone@else.com" }, { uid: "other" }, { createdAt: Timestamp.fromMillis(0) }, { updatedAt: Timestamp.now() },
+      { plan: "pro" }, { pro: true }, { lastLogAt: "today" }
+    ]) await assertFails(setDoc(doc(as(NEWBIE), "journals", NEWBIE.uid), journal(NEWBIE, bad)));
+    const { currency, ...noCurrency } = journal(NEWBIE);
+    await assertFails(setDoc(doc(as(NEWBIE), "journals", NEWBIE.uid), noCurrency));
+  });
+  test("Contract settings: cooldown minutes and losses-in-a-row stop are optional and checked", async () => {
+    const ref = doc(as(NEWBIE), "journals", NEWBIE.uid);
+    await assertSucceeds(setDoc(ref, journal(NEWBIE, { cooldownMin: 10, lossStop: 2 })));
+    await assertSucceeds(updateDoc(ref, { cooldownMin: 15, lossStop: 3, updatedAt: serverTimestamp() }));
+    for (const bad of [{ cooldownMin: 0 }, { cooldownMin: 121 }, { cooldownMin: 7.5 }, { cooldownMin: "10" }, { lossStop: 0 }, { lossStop: 11 }, { lossStop: true }]) {
+      await assertFails(updateDoc(ref, { ...bad, updatedAt: serverTimestamp() }));
+    }
+  });
+  test("traders change their own settings but cannot rewrite createdAt or add a plan", async () => {
+    const ref = doc(as(NEWBIE), "journals", NEWBIE.uid);
+    await assertSucceeds(setDoc(ref, journal(NEWBIE)));
+    await assertSucceeds(updateDoc(ref, { hidePnl: true, windowMin: 45, updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(ref, { lastLogAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref, { createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref, { plan: "pro", updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref, { hidePnl: false })); // updatedAt must move
+  });
+  test("a journal is private: no other trader can read or write it; admins read settings only, never trades", async () => {
+    await assertSucceeds(setDoc(doc(as(NEWBIE), "journals", NEWBIE.uid), journal(NEWBIE)));
+    const id = (await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade()))).id;
+    await assertSucceeds(getDoc(doc(as(NEWBIE), "journals", NEWBIE.uid)));
+    await assertSucceeds(getDocs(trades(as(NEWBIE), NEWBIE)));
+    await assertFails(getDoc(doc(as(ACTIVE), "journals", NEWBIE.uid)));
+    await assertFails(getDocs(trades(as(ACTIVE), NEWBIE)));
+    await assertFails(getDoc(doc(as(ACTIVE), "journals", NEWBIE.uid, "trades", id)));
+    await assertFails(addDoc(trades(as(ACTIVE), NEWBIE), trade()));
+    await assertFails(updateDoc(doc(as(ACTIVE), "journals", NEWBIE.uid), { hidePnl: true, updatedAt: serverTimestamp() }));
+    await assertFails(deleteDoc(doc(as(ACTIVE), "journals", NEWBIE.uid, "trades", id)));
+    await assertFails(getDocs(collection(as(ACTIVE), "journals")));
+    await assertSucceeds(getDoc(doc(as(ADMIN), "journals", NEWBIE.uid)));
+    await assertFails(getDocs(trades(as(ADMIN), NEWBIE)));
+    await assertFails(getDoc(doc(as(ADMIN), "journals", NEWBIE.uid, "trades", id)));
+    await assertFails(getDoc(doc(anon(), "journals", NEWBIE.uid)));
+  });
+  test("log a trade or a skipped setup; every field is checked", async () => {
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade()));
+    const { note, ...noNote } = trade({ pnl: 300, planned: true, hijack: "none" });
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), noNote));
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade({ pnl: 0 })));
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), skip()));
+    for (const bad of [
+      { kind: "win" }, { pnl: "100" }, { pnl: 1e12 }, { planned: "yes" }, { hijack: "Tilt" }, { note: "x".repeat(281) },
+      { at: "now" }, { at: Timestamp.fromMillis(Date.now() + 3 * 86400000) }, { at: Timestamp.fromMillis(0) },
+      { createdAt: Timestamp.now() }, { updatedAt: Timestamp.now() }, { size: 2 }, { uid: NEWBIE.uid }
+    ]) await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), trade(bad)));
+    const { pnl, ...noPnl } = trade();
+    await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), noPnl));
+    await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), skip({ pnl: 10 })));
+    await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), skip({ planned: true })));
+  });
+  test("v1.1: size, stop-rule use and pre-trade checks are checked too", async () => {
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade({ size: "bigger", ruleUsed: false })));
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade({ size: "same", ruleUsed: true })));
+    const check = (over = {}) => ({ kind: "check", at: Timestamp.now(), hijack: "Rusher", outcome: "skip",
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(), ...over });
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), check()));
+    await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), check({ outcome: "take", hijack: "none" })));
+    for (const bad of [
+      trade({ size: "huge" }), trade({ ruleUsed: "yes" }), trade({ outcome: "skip" }),
+      check({ outcome: "maybe" }), check({ pnl: 5 }), check({ planned: true }), check({ size: "same" }), check({ ruleUsed: true }),
+      skip({ outcome: "skip" }), skip({ size: "same" })
+    ]) await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), bad));
+    const { outcome, ...noOutcome } = check();
+    await assertFails(addDoc(trades(as(NEWBIE), NEWBIE), noOutcome));
+    await assertFails(addDoc(trades(as(ACTIVE), NEWBIE), check()));
+  });
+  test("traders edit and delete their own trades; createdAt cannot move", async () => {
+    const id = (await assertSucceeds(addDoc(trades(as(NEWBIE), NEWBIE), trade()))).id;
+    const ref = doc(as(NEWBIE), "journals", NEWBIE.uid, "trades", id);
+    await assertSucceeds(updateDoc(ref, { pnl: -900, hijack: "none", updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref, { createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref, { pnl: "lots", updatedAt: serverTimestamp() }));
+    await assertSucceeds(deleteDoc(ref));
+  });
+  test("journalAccess: traders read their own plan, only admins write it", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "journalAccess", ACTIVE.uid), { plan: "founder", until: Timestamp.fromMillis(Date.now() + 180 * 86400000) });
+    });
+    await assertSucceeds(getDoc(doc(as(ACTIVE), "journalAccess", ACTIVE.uid)));
+    await assertSucceeds(getDoc(doc(as(NEWBIE), "journalAccess", NEWBIE.uid)));
+    await assertFails(getDoc(doc(as(NEWBIE), "journalAccess", ACTIVE.uid)));
+    await assertFails(setDoc(doc(as(NEWBIE), "journalAccess", NEWBIE.uid), { plan: "pro" }));
+    await assertFails(updateDoc(doc(as(ACTIVE), "journalAccess", ACTIVE.uid), { plan: "pro" }));
+    await assertSucceeds(setDoc(doc(as(ADMIN), "journalAccess", NEWBIE.uid), { plan: "beta" }));
+    await assertSucceeds(getDoc(doc(as(ADMIN), "journalAccess", ACTIVE.uid)));
   });
 });

@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reset Journal Pro</title>
+<meta name="description" content="Log a trade in 20 seconds, tag the hijack and see what it cost you each week. The Reset Journal, built on the Reset Audit's four hijacks. Free while in beta.">
+<meta name="theme-color" content="#F5F2EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15140F" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://www.resettraders.com/journal/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Reset Traders">
+<meta property="og:url" content="https://www.resettraders.com/journal/">
+<meta property="og:title" content="Reset Journal Pro: see what the hijack costs you">
+<meta property="og:description" content="Log a trade in 20 seconds. Tag the hijack. See what it cost you each week.">
+<link rel="icon" href="img/icon-64.png" type="image/png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script>
+  // Theme before first paint (same idea as the desktop app's toggle).
+  try { const t = localStorage.getItem("rt-journal-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (_) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="journal.css">
+<script type="module" src="journal.js"></script>
+</head>
+<body>
+<header class="app-head">
+  <div class="head-row">
+    <a class="wordmark" href="./"><img src="img/emblem-128.webp" alt="" width="34" height="34"><span>RESET JOURNAL<small>PRO · BETA</small></span></a>
+    <nav class="tabs" role="tablist" aria-label="Journal" id="tabs" hidden>
+      <button type="button" role="tab" id="tab-today" aria-controls="p-today" aria-selected="true">Today</button>
+      <button type="button" role="tab" id="tab-week" aria-controls="p-week" aria-selected="false">Week</button>
+    </nav>
+  </div>
+  <div class="head-meta">
+    <span id="sync"><span class="sync-dot off" id="sync-dot"></span><span id="sync-text">Free while in beta</span></span>
+    <div class="head-actions">
+      <span class="plan-badge" id="plan-badge">Beta</span>
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Switch light or dark">&#9788;</button>
+      <button class="icon-btn" id="open-settings" type="button" aria-label="Settings" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="v-loading" class="view"><p class="faint">Opening your journal…</p></section>
+
+  <!-- Signed out: what it is + sign up / sign in -->
+  <section id="v-out" class="view" hidden>
+    <div class="landing">
+      <div>
+        <img class="emblem-hero" src="img/emblem-360.webp" alt="Reset Journal" width="96" height="96">
+        <div class="step-tag">Reset Journal Pro · free while in beta</div>
+        <h1 class="hero-title">Log a trade in 20 seconds. Tag the hijack. See what it cost you.</h1>
+        <ul class="points">
+          <li class="red"><b>Tilt Tax.</b> What the trades you took right after a loss really made, added up every week.</li>
+          <li class="amber"><b>Set up for your hijack.</b> Rusher, Performer, Competitor or Intellectualizer, from your Reset Audit.</li>
+          <li><b>Private.</b> Only you can see your trades. Export them any time.</li>
+        </ul>
+      </div>
+      <form class="card" id="auth-form" novalidate>
+        <div class="step-tag" id="auth-step">01 / Start</div>
+        <h2 class="section-title" id="auth-title">Start your journal</h2>
+        <p class="section-sub">Course student? Sign in with your portal login.</p>
+        <div class="field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+        <div class="field">
+          <label for="auth-pass">Password <span class="opt" id="auth-pass-hint">(8 characters or more)</span></label>
+          <input id="auth-pass" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <p class="form-msg" id="auth-msg" role="status"></p>
+        <button class="btn" id="auth-submit" type="submit">Start my journal</button>
+        <div class="btn-row" style="justify-content:space-between;margin-top:10px">
+          <button class="link" id="auth-switch" type="button">I already have an account</button>
+          <button class="link" id="auth-forgot" type="button" hidden>Forgot password?</button>
+        </div>
+        <hr class="divider">
+        <p class="small soft">Don't know your hijack yet? <a href="../audit/">Take the free Reset Audit</a> (3 minutes).</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- First sign-in -->
+  <section id="v-setup" class="view" hidden>
+    <div class="card">
+      <div class="step-tag">01 / Set up</div>
+      <h1 class="section-title">Which hijack runs your trades?</h1>
+      <p class="section-sub" id="setup-sub">Pick the one that sounds most like you. You can change it later.</p>
+      <div class="pick" id="setup-pick" role="group" aria-label="Your hijack"></div>
+      <hr class="divider">
+      <div class="field">
+        <p class="label" id="cur-legend">You trade in</p>
+        <div class="scale-row" id="setup-cur" role="group" aria-labelledby="cur-legend">
+          <button type="button" class="chip" data-cur="INR" aria-pressed="false">₹ Rupees</button>
+          <button type="button" class="chip" data-cur="USD" aria-pressed="false">$ Dollars</button>
+        </div>
+      </div>
+      <p class="form-msg" id="setup-msg" role="status"></p>
+      <button class="btn" id="setup-go" type="button">Open my journal</button>
+    </div>
+  </section>
+
+  <!-- The journal -->
+  <section id="v-app" class="view" hidden>
+    <p class="banner" id="verify-banner" hidden>Check your inbox to confirm your email.<button class="link" id="verify-resend" type="button">Send again</button></p>
+
+    <div id="p-today" role="tabpanel" aria-labelledby="tab-today">
+      <div class="callout" id="watch" hidden></div>
+
+      <div class="callout left-green" id="habit" hidden>
+        <div class="step-tag">Make it a habit</div>
+        <h4>Twenty seconds after every session.</h4>
+        <p>People who keep logging past week four get most of the benefit. Put the journal one tap away and get a nudge when the market closes.</p>
+        <div class="row">
+          <button class="btn secondary auto" type="button" data-act="install" hidden>Add to home screen</button>
+          <button class="btn secondary auto" type="button" data-act="remind">Daily reminder</button>
+          <button class="link" type="button" data-act="dismiss-habit">Not now</button>
+        </div>
+        <p class="small faint" id="ios-hint" style="margin-top:8px" hidden>On iPhone: tap Share, then Add to Home Screen.</p>
+      </div>
+
+      <form class="card" id="log-form" novalidate>
+        <div class="step-tag">01 / After the trade <span class="faint num" id="log-clock" style="float:right;font-weight:600;letter-spacing:0"></span></div>
+        <h2 class="section-title">Log a trade</h2>
+        <p class="section-sub">Three taps and a number. About 20 seconds.</p>
+
+        <div class="field" id="q-result">
+          <p class="label" id="res-legend">Result</p>
+          <div class="scale-row" id="log-sign" role="group" aria-labelledby="res-legend">
+            <button type="button" class="chip" data-sign="1" aria-pressed="false">Profit</button>
+            <button type="button" class="chip" data-sign="-1" aria-pressed="false">Loss</button>
+          </div>
+          <label class="amount"><span class="cur-sym">₹</span><input id="log-amt" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Amount"></label>
+        </div>
+        <div class="field" id="q-plan">
+          <p class="label" id="plan-legend">Was it in your plan?</p>
+          <div class="scale-row" id="log-plan" role="group" aria-labelledby="plan-legend">
+            <button type="button" class="chip" data-plan="yes" aria-pressed="false">Yes</button>
+            <button type="button" class="chip" data-plan="no" aria-pressed="false">No</button>
+          </div>
+        </div>
+        <div class="field" id="q-hijack">
+          <p class="label" id="hj-legend">Who took this trade?</p>
+          <div class="chip-row" id="log-hijack" role="group" aria-labelledby="hj-legend"></div>
+        </div>
+        <div class="field" id="q-size">
+          <p class="label" id="size-legend">Size vs your normal <span class="opt">(optional)</span></p>
+          <div class="scale-row" id="log-size" role="group" aria-labelledby="size-legend">
+            <button type="button" class="chip" data-size="smaller" aria-pressed="false">Smaller</button>
+            <button type="button" class="chip" data-size="same" aria-pressed="false">Same</button>
+            <button type="button" class="chip" data-size="bigger" aria-pressed="false">Bigger</button>
+          </div>
+        </div>
+        <div class="field" id="q-rule" hidden>
+          <p class="label" id="rule-legend">Did you use your stop rule first? <span class="opt">(optional)</span></p>
+          <div class="scale-row" id="log-rule" role="group" aria-labelledby="rule-legend">
+            <button type="button" class="chip" data-rule="yes" aria-pressed="false">Yes</button>
+            <button type="button" class="chip" data-rule="no" aria-pressed="false">No</button>
+          </div>
+        </div>
+        <details class="more field" id="log-more">
+          <summary id="more-label">Add a note or change the time</summary>
+          <div id="more-slot"></div>
+          <div class="field">
+            <label for="log-note">Note <span class="opt">(only you see it)</span></label>
+            <input id="log-note" type="text" maxlength="280" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="log-time">Time <span class="opt">(leave empty for now)</span></label>
+            <input id="log-time" type="datetime-local">
+          </div>
+        </details>
+        <p class="form-msg" id="log-msg" role="status"></p>
+        <button class="btn" type="submit" id="log-submit">Log trade</button>
+      </form>
+
+      <div class="card">
+        <div class="step-tag">02 / Today</div>
+        <div class="stat-grid three" id="today-strip" style="margin:6px 0 10px"></div>
+        <ul class="entries" id="today-list"></ul>
+      </div>
+    </div>
+
+    <div id="p-week" role="tabpanel" aria-labelledby="tab-week" hidden>
+      <div class="weeknav">
+        <button class="icon-btn" id="wk-prev" type="button" aria-label="Previous week">&#8249;</button>
+        <span id="wk-label"></span>
+        <button class="icon-btn" id="wk-next" type="button" aria-label="Next week">&#8250;</button>
+      </div>
+      <div id="week-body"></div>
+    </div>
+  </section>
+
+  <footer class="tagline">Your goal is not to eliminate emotion. It is to become difficult to hijack.</footer>
+</main>
+
+<!-- Settings -->
+<dialog id="d-settings" aria-labelledby="set-title">
+  <form method="dialog" id="set-form">
+    <header><div><div class="step-tag">Settings</div><h3 id="set-title">Your journal</h3></div><button class="icon-btn" value="cancel" aria-label="Close">&#10005;</button></header>
+    <div class="field">
+      <label for="set-hijack">Your hijack</label>
+      <select id="set-hijack">
+        <option value="Rusher">Rusher</option>
+        <option value="Performer">Performer</option>
+        <option value="Competitor">Competitor</option>
+        <option value="Intellectualizer">Intellectualizer</option>
+        <option value="unsure">Not sure yet</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="set-cur">Currency</label>
+      <select id="set-cur"><option value="INR">₹ Rupees</option><option value="USD">$ Dollars</option></select>
+    </div>
+    <p class="label" style="margin:4px 0 10px">Your Contract <span class="opt">(from the course, Module 0.4)</span></p>
+    <div class="field">
+      <label for="set-cooldown">Minutes off-screen after any loss</label>
+      <select id="set-cooldown">
+        <option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option>
+        <option value="20">20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="set-lossstop">Done for the day after this many losses in a row</label>
+      <select id="set-lossstop">
+        <option value="1">1 loss</option><option value="2">2 losses</option><option value="3">3 losses</option><option value="4">4 losses</option><option value="5">5 losses</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="set-window">Tilt Tax counts trades within <span class="opt">(a measurement, not a rule)</span></label>
+      <select id="set-window">
+        <option value="15">15 minutes of a loss</option><option value="30">30 minutes of a loss</option>
+        <option value="45">45 minutes of a loss</option><option value="60">1 hour of a loss</option><option value="120">2 hours of a loss</option>
+      </select>
+    </div>
+    <label class="toggle"><span>Hide P&amp;L while I trade<br><span class="small faint">It comes back in the weekly report.</span></span><input type="checkbox" id="set-hide"></label>
+    <p class="form-msg" id="set-msg" role="status"></p>
+    <button class="btn" id="set-save" type="button">Save</button>
+    <hr class="divider">
+    <div class="field">
+      <label for="set-remind">Daily reminder <span class="opt">(added to your phone calendar, Monday to Friday)</span></label>
+      <div class="btn-row">
+        <input id="set-remind" type="time" value="15:35" style="flex:1;min-width:120px">
+        <button class="btn secondary" id="set-remind-add" type="button">Add to calendar</button>
+      </div>
+    </div>
+    <button class="btn secondary" id="set-install" type="button" hidden>Add Reset Journal to home screen</button>
+    <hr class="divider">
+    <p class="small soft" id="set-email" style="margin-bottom:12px"></p>
+    <div class="btn-row">
+      <button class="btn secondary" id="set-export" type="button">Export CSV</button>
+      <button class="btn secondary" id="set-signout" type="button">Sign out</button>
+    </div>
+    <button class="btn danger" id="set-delete" type="button" style="margin-top:10px">Delete my journal</button>
+  </form>
+</dialog>
+
+<!-- Pre-trade check: ten seconds between the urge and the click -->
+<dialog id="d-check" aria-labelledby="chk-title">
+  <form method="dialog" id="check-form">
+    <header>
+      <div class="chk-head"><img class="avatar" id="chk-av" src="img/emblem-128.webp" alt="" width="56" height="56">
+        <div><div class="step-tag">60-Second Ego Check</div><h3 id="chk-title">Who wants this trade?</h3></div></div>
+      <button class="icon-btn" value="cancel" aria-label="Close">&#10005;</button>
+    </header>
+    <p class="small soft" style="margin-bottom:16px">The course's three questions before any trade after a loss. Answer honestly, nobody sees this.</p>
+    <!-- Wording from the course (Module 3.5, The 60-Second Ego Check). -->
+    <div class="field" data-q="setup"><p class="q">1. Does this trade meet my written setup?</p>
+      <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Yes</button><button type="button" class="chip" data-a="no" aria-pressed="false">No</button></div></div>
+    <div class="field" data-q="size"><p class="q">2. Is my size the same as, or smaller than, my last trade?</p>
+      <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Yes</button><button type="button" class="chip" data-a="no" aria-pressed="false">No, bigger</button></div></div>
+    <div class="field" data-q="aim"><p class="q">3. Am I trying to take what the market is offering, or to get something back (money, face, justice)?</p>
+      <div class="scale-row"><button type="button" class="chip" data-a="yes" aria-pressed="false">Take what's offered</button><button type="button" class="chip" data-a="no" aria-pressed="false">Get something back</button></div></div>
+    <div class="breath">
+      <div class="breath-box" id="chk-box" aria-hidden="true"><span id="chk-count">16</span></div>
+      <div><p class="label" style="margin-bottom:4px">Your rule</p><p class="rule" id="chk-rule"></p><p class="small soft" id="chk-breath" aria-live="polite"></p></div>
+    </div>
+    <p class="form-msg" id="chk-verdict" role="status"></p>
+    <div class="btn-row">
+      <button class="btn" id="chk-skip" type="button">Skip this trade</button>
+      <button class="btn secondary" id="chk-take" type="button" disabled>Take it</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Edit a logged entry -->
+<dialog id="d-edit" aria-labelledby="edit-title">
+  <form method="dialog" id="edit-form">
+    <header><div><div class="step-tag">Edit</div><h3 id="edit-title">Edit trade</h3></div><button class="icon-btn" value="cancel" aria-label="Close">&#10005;</button></header>
+    <div class="field" id="edit-pnl-f">
+      <label for="edit-pnl">P&amp;L <span class="opt">(use − for a loss)</span></label>
+      <input id="edit-pnl" type="text" inputmode="decimal" autocomplete="off">
+    </div>
+    <div class="field" id="edit-plan-f">
+      <label for="edit-plan">In your plan?</label>
+      <select id="edit-plan"><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <div class="field">
+      <label for="edit-hijack">Who took it</label>
+      <select id="edit-hijack">
+        <option value="none">Me, clean</option><option value="Rusher">Rusher</option><option value="Performer">Performer</option>
+        <option value="Competitor">Competitor</option><option value="Intellectualizer">Intellectualizer</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="edit-note">Note</label>
+      <input id="edit-note" type="text" maxlength="280" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="edit-time">Time</label>
+      <input id="edit-time" type="datetime-local">
+    </div>
+    <p class="form-msg" id="edit-msg" role="status"></p>
+    <div class="btn-row">
+      <button class="btn danger" id="edit-delete" type="button">Delete</button>
+      <button class="btn" id="edit-save" type="button">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-text"></span><button type="button" id="toast-undo" hidden>Undo</button></div>
+</body>
+</html>
