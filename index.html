@@ -69,6 +69,7 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
 <script type="module" src="assets/v2/hero.js"></script>
+<script type="module" src="assets/v2/voices.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -431,6 +432,20 @@
             <li><b>And more,</b> which we walk you through on the call.</li>
           </ul>
         </details>
+        <div class="voices" id="voices" aria-labelledby="voices-title">
+          <div class="voices-head">
+            <p class="kicker">From Omkar's students</p>
+            <h3 id="voices-title">They learned the method from Omkar first.</h3>
+            <p class="voices-sub">Students of Omkar's technical course, filmed on their own phones. Tap one to hear them.</p>
+          </div>
+          <ul class="voices-row">
+            <li class="voice" style="--r:-6deg; --y:26px"><button type="button" class="voice-hit" data-src="assets/testimonials/t4.mp4" data-poster="assets/testimonials/t4.webp" aria-label="Play Dhiraj's video"><video class="voice-loop" src="assets/testimonials/t4-loop.mp4" poster="assets/testimonials/t4.webp" muted loop playsinline preload="none" aria-hidden="true"></video><span class="voice-play" aria-hidden="true"></span></button><p class="voice-name">Dhiraj</p></li>
+            <li class="voice" style="--r:3deg; --y:0px"><button type="button" class="voice-hit" data-src="assets/testimonials/t3.mp4" data-poster="assets/testimonials/t3.webp" aria-label="Play Nafis's video"><video class="voice-loop" src="assets/testimonials/t3-loop.mp4" poster="assets/testimonials/t3.webp" muted loop playsinline preload="none" aria-hidden="true"></video><span class="voice-play" aria-hidden="true"></span></button><p class="voice-name">Nafis</p></li>
+            <li class="voice" style="--r:-2deg; --y:34px"><button type="button" class="voice-hit" data-src="assets/testimonials/t2.mp4" data-poster="assets/testimonials/t2.webp" aria-label="Play a student's video"><video class="voice-loop" src="assets/testimonials/t2-loop.mp4" poster="assets/testimonials/t2.webp" muted loop playsinline preload="none" aria-hidden="true"></video><span class="voice-play" aria-hidden="true"></span></button><p class="voice-name">Student</p></li>
+            <li class="voice" style="--r:5deg; --y:8px"><button type="button" class="voice-hit" data-src="assets/testimonials/t1.mp4" data-poster="assets/testimonials/t1.webp" aria-label="Play a student's video"><video class="voice-loop" src="assets/testimonials/t1-loop.mp4" poster="assets/testimonials/t1.webp" muted loop playsinline preload="none" aria-hidden="true"></video><span class="voice-play" aria-hidden="true"></span></button><p class="voice-name">Student</p></li>
+          </ul>
+          <p class="voices-fine">Shared with their permission. Results vary, and trading involves risk.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -500,6 +515,11 @@
     </div>
     <button type="button" class="pf-x" data-close aria-label="Close">×</button>
   </div>
+</dialog>
+
+<dialog class="voice-dlg" id="voice-dlg" aria-label="Student video">
+  <video controls playsinline preload="none"></video>
+  <button type="button" class="pf-x" data-close aria-label="Close">×</button>
 </dialog>
 
 <dialog class="profile apply" id="apply" aria-labelledby="apply-title">
