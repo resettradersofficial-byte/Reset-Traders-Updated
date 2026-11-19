@@ -423,6 +423,13 @@ async function processCapturedPayment(env, token, { payment, order, orderId, sou
     await firestoreIncrement(env, token, "site/founding", "sold", 1);
   }
 
+  // Invoice email (once per payment). An invoice problem never undoes a recorded payment.
+  try {
+    await issueInvoice(env, token, { payment, storedOrder, test, paidAt: now });
+  } catch (error) {
+    console.error("invoice failed", String(error && error.message || error));
+  }
+
   if (!test) {
     await notifyPabbly(env, {
       event: "payment_verified",
@@ -441,6 +448,110 @@ async function processCapturedPayment(env, token, { payment, order, orderId, sou
   }
 
   return { status: "paid", paid: true };
+}
+
+// ---------- invoices ----------
+
+const SELLER = { name: "Reset Traders", email: "resettradersofficial@gmail.com", site: "www.resettraders.com" };
+
+function money(amount, currency) {
+  const value = (Number(amount) / 100).toFixed(2);
+  return currency === "INR"
+    ? "₹" + Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2 })
+    : "$" + Number(value).toLocaleString("en-US", { minimumFractionDigits: 2 });
+}
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
+}
+
+export function invoiceHtml(inv) {
+  const opens = new Date(OPENS_AT + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  const row = (label, value) => `<tr><td style="padding:6px 0;color:#6b6575;font-size:13px;width:140px;vertical-align:top">${esc(label)}</td><td style="padding:6px 0;font-size:14px;color:#16141b">${value}</td></tr>`;
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#f4f0ea;font-family:Inter,Segoe UI,Arial,sans-serif;color:#16141b">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f0ea;padding:28px 12px">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;border:1px solid #e3ddd3">
+<tr><td style="padding:28px 28px 8px">
+  <table role="presentation" width="100%"><tr>
+    <td style="font:800 22px Poppins,Arial,sans-serif;color:#16141b">${esc(SELLER.name)}</td>
+    <td align="right" style="font:700 12px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:${inv.test ? "#c2410c" : "#1f4fd1"}">${inv.test ? "Test invoice" : "Invoice"}</td>
+  </tr></table>
+  <p style="margin:6px 0 0;color:#6b6575;font-size:13px;line-height:1.6">${inv.address ? esc(inv.address) + "<br>" : ""}${esc(SELLER.email)} · ${esc(SELLER.site)}<br>Not registered under GST.</p>
+</td></tr>
+<tr><td style="padding:16px 28px 0">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #eee7dc">
+    ${row("Invoice number", `<b>${esc(inv.number)}</b>`)}
+    ${row("Date", esc(inv.date))}
+    ${row("Billed to", `${esc(inv.name)}<br>${esc(inv.email)}${inv.phone ? "<br>" + esc(inv.phone) : ""}`)}
+  </table>
+</td></tr>
+<tr><td style="padding:18px 28px 0">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eee7dc;border-radius:12px">
+    <tr style="background:#faf7f2"><td style="padding:10px 14px;font:700 12px Arial,sans-serif;color:#6b6575;text-transform:uppercase;letter-spacing:.08em">Item</td><td align="right" style="padding:10px 14px;font:700 12px Arial,sans-serif;color:#6b6575;text-transform:uppercase;letter-spacing:.08em">Amount</td></tr>
+    <tr><td style="padding:14px;font-size:14px;line-height:1.5"><b>Your Personal Reset</b> · ${inv.tier === "standard" ? "seat" : "founding seat"}<br><span style="color:#6b6575;font-size:13px">Pre-order. Access in the student portal from ${esc(opens)}. 12 video modules, drills for your hijack, Journal Pro and the 1% Strategy.</span></td><td align="right" style="padding:14px;font-size:14px;white-space:nowrap">${esc(money(inv.amount, inv.currency))}</td></tr>
+    <tr><td style="padding:12px 14px;border-top:1px solid #eee7dc;font:800 15px Arial,sans-serif">Total paid</td><td align="right" style="padding:12px 14px;border-top:1px solid #eee7dc;font:800 15px Arial,sans-serif;white-space:nowrap">${esc(money(inv.amount, inv.currency))}</td></tr>
+  </table>
+</td></tr>
+<tr><td style="padding:16px 28px 0">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    ${row("Paid via", `Razorpay${inv.method ? " · " + esc(inv.method) : ""}`)}
+    ${row("Payment ID", esc(inv.paymentId))}
+    ${row("Order ID", esc(inv.orderId))}
+  </table>
+</td></tr>
+<tr><td style="padding:18px 28px 28px">
+  <p style="margin:0;padding:14px 16px;border-radius:12px;background:#f4f7ff;color:#16141b;font-size:13.5px;line-height:1.6">Your seat is confirmed. On ${esc(opens)}, log in at <a href="https://www.resettraders.com/portal.html" style="color:#1f4fd1">resettraders.com/portal.html</a> with this email and the password you created at checkout. If the course is not open by then, reply to this email for a full refund.</p>
+  <p style="margin:14px 0 0;color:#8a8494;font-size:12px;line-height:1.6">Educational content only, not investment advice. Trading involves risk. Terms: www.resettraders.com/legal.html</p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
+async function issueInvoice(env, token, { payment, storedOrder, test, paidAt }) {
+  if (!env.MAILER || !env.INTERNAL_TOKEN) return;
+  // Claim the invoice for this payment once; a second caller (webhook vs checkout) gets "already exists".
+  const claimed = await firestoreCreate(env, token, "invoices", payment.id, { paymentId: payment.id, status: "claimed", test, createdAt: paidAt });
+  if (!claimed) return;
+  const n = await firestoreIncrement(env, token, "site/invoices", test ? "test" : "count", 1);
+  const date = new Date(paidAt);
+  const inv = {
+    number: `${test ? "TEST-" : "RT-"}${date.getUTCFullYear()}-${String(n).padStart(4, "0")}`,
+    date: date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" }),
+    name: storedOrder.name,
+    email: storedOrder.email,
+    phone: storedOrder.phone,
+    amount: payment.amount,
+    currency: payment.currency,
+    tier: storedOrder.tier,
+    method: payment.method || "",
+    paymentId: payment.id,
+    orderId: payment.order_id,
+    address: env.INVOICE_ADDRESS || "",
+    test
+  };
+  const response = await env.MAILER.fetch("https://audit-lead.internal/internal/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-internal-token": env.INTERNAL_TOKEN },
+    body: JSON.stringify({
+      to: storedOrder.email,
+      subject: `${test ? "[TEST] " : ""}Your Reset Traders invoice ${inv.number}`,
+      html: invoiceHtml(inv),
+      tags: ["invoice"]
+    })
+  });
+  await firestorePatch(env, token, `invoices/${payment.id}`, {
+    number: inv.number,
+    uid: storedOrder.uid,
+    email: storedOrder.email,
+    amount: payment.amount,
+    currency: payment.currency,
+    emailed: response.ok,
+    status: response.ok ? "sent" : "send_failed",
+    updatedAt: new Date().toISOString()
+  });
 }
 
 // ---------- Firebase auth ----------
@@ -648,7 +759,22 @@ async function firestoreIncrement(env, token, path, field, by) {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw httpError(response.status, payload.error?.message || "Firestore counter update failed.");
-  return payload;
+  const result = payload.writeResults?.[0]?.transformResults?.[0];
+  return Number(result?.integerValue ?? 0);
+}
+
+// Create a document only if it doesn't exist yet. Returns false when it already exists.
+async function firestoreCreate(env, token, collection, id, data) {
+  const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/${encodeURIComponent(collection)}?documentId=${encodeURIComponent(id)}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: toFirestoreFields(data) })
+  });
+  if (response.status === 409) return false;
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw httpError(response.status, payload.error?.message || "Firestore create failed.");
+  return true;
 }
 
 function firestoreUrl(env, path) {

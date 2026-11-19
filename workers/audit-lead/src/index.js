@@ -333,6 +333,8 @@ async function limited(limiter, key) {
 
 export default {
   async fetch(request, env, ctx) {
+    // Internal mail relay for the payment Worker (invoices). Not for browsers: needs INTERNAL_TOKEN.
+    if (new URL(request.url).pathname === "/internal/send") return handleInternalSend(request, env);
     const origin = request.headers.get("Origin") || "";
     const allowed = originAllowed(origin);
 
@@ -382,6 +384,24 @@ export default {
   }
 };
 
+async function handleInternalSend(request, env) {
+  const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  if (request.method !== "POST") return reply(405, { error: "Method not allowed." });
+  const token = request.headers.get("x-internal-token") || "";
+  if (!env.INTERNAL_TOKEN || token.length !== env.INTERNAL_TOKEN.length || token !== env.INTERNAL_TOKEN) return reply(403, { error: "Forbidden." });
+  if (!env.BREVO_API_KEY) return reply(500, { error: "Email service not configured." });
+  const raw = await request.text();
+  if (raw.length > 200000) return reply(413, { error: "Too large." });
+  let m;
+  try { m = JSON.parse(raw); } catch (_) { return reply(400, { error: "Bad JSON." }); }
+  const to = typeof m.to === "string" ? m.to.trim().toLowerCase() : "";
+  if (!to || to.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to)) return reply(400, { error: "Invalid email." });
+  if (typeof m.subject !== "string" || !m.subject || typeof m.html !== "string" || !m.html) return reply(400, { error: "Missing subject or html." });
+  const tags = Array.isArray(m.tags) ? m.tags.filter((t) => typeof t === "string").slice(0, 5) : ["invoice"];
+  const ok = await sendViaBrevo(env, { to, subject: m.subject.slice(0, 200), html: m.html, tags });
+  return reply(ok ? 200 : 502, { ok });
+}
+
 // Brevo transactional email. Sender domain resettraders.com is authenticated in Brevo (SPF/DKIM/DMARC at Hostinger).
 export async function sendViaBrevo(env, message) {
   try {
@@ -394,7 +414,7 @@ export async function sendViaBrevo(env, message) {
         to: [{ email: message.to }],
         subject: message.subject,
         htmlContent: message.html,
-        tags: ["audit-result", ...(message.ref ? ["ref-" + message.ref] : [])]
+        tags: message.tags || ["audit-result", ...(message.ref ? ["ref-" + message.ref] : [])]
       })
     });
     if (!res.ok) console.error("brevo send not ok", res.status, (await res.text()).slice(0, 200));

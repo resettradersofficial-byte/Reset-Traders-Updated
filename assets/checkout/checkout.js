@@ -177,16 +177,22 @@ async function submit(e) {
       prefill: { name: data.name, email: data.email, contact: data.phone },
       readonly: { email: true },
       theme: { color: '#1f4fd1' },
-      handler: (r) => confirmPayment(user, order, r, data.email),
-      modal: { ondismiss: () => { go.disabled = false; say('Payment window closed. You can try again.'); } }
+      handler: (r) => { reopen(); confirmPayment(user, order, r, data.email); },
+      modal: { ondismiss: () => { reopen(); go.disabled = false; say('Payment window closed. You can try again.'); } }
     });
-    rzp.on('payment.failed', (r) => { go.disabled = false; say((r && r.error && r.error.description) || 'Payment failed. Please try again.', 'error'); });
+    rzp.on('payment.failed', (r) => { reopen(); go.disabled = false; say((r && r.error && r.error.description) || 'Payment failed. Please try again.', 'error'); });
+    // A modal <dialog> sits above everything, including Razorpay's screen, so step aside while it is open.
+    dlg.close();
     rzp.open();
   } catch (err) {
     go.disabled = false;
     say(friendly(err), 'error');
     return;
   }
+}
+
+function reopen() {
+  if (!dlg.open) dlg.showModal();
 }
 
 async function confirmPayment(user, order, r, email) {

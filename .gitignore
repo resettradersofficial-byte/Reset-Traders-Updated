@@ -13,3 +13,4 @@ apps-script/**/Setup.js
 # Internal notes: never publish (private pricing etc.)
 HANDOFF.md
 *.private.md
+tests/payments/invoice-preview.html

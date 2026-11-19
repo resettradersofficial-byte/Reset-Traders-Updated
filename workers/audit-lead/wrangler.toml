@@ -7,6 +7,7 @@ workers_dev = true
 #   APPS_SCRIPT_URL    /exec URL of the "Reset Audit Mailer" Apps Script web app
 #   APPS_SCRIPT_TOKEN  shared token, also stored as AUDIT_TOKEN in the script's Script Properties
 #   BREVO_API_KEY      Brevo API key (emails go out through Brevo first; Apps Script is the fallback)
+#   INTERNAL_TOKEN     shared with the payment Worker; lets it send invoices through /internal/send
 #   TURNSTILE_SECRET_KEY  secret key of the "Reset Audit" Turnstile widget (optional: no check while unset)
 
 # Per-IP and per-email throttles so the Worker can't be used to email-bomb someone.

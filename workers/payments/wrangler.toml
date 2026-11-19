@@ -9,4 +9,10 @@ keep_vars = true
 # Secrets (already set in Cloudflare; set new ones with `npx wrangler secret put <NAME>`):
 #   RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
 #   RAZORPAY_TEST_KEY_ID, RAZORPAY_TEST_KEY_SECRET   (test mode, admin accounts only)
-# Optional: PABBLY_WEBHOOK_URL
+#   INTERNAL_TOKEN   shared with the audit-lead Worker, used to send invoice emails through it
+# Optional: PABBLY_WEBHOOK_URL, INVOICE_ADDRESS (seller address line on invoices, kept out of the repo)
+
+# Invoice emails go out through the audit-lead Worker (Brevo, Reset Traders <hello@resettraders.com>).
+[[services]]
+binding = "MAILER"
+service = "audit-lead"
