@@ -478,7 +478,7 @@ export function invoiceHtml(inv) {
     <td style="font:800 22px Poppins,Arial,sans-serif;color:#16141b">${esc(SELLER.name)}</td>
     <td align="right" style="font:700 12px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:${inv.test ? "#c2410c" : "#1f4fd1"}">${inv.test ? "Test invoice" : "Invoice"}</td>
   </tr></table>
-  <p style="margin:6px 0 0;color:#6b6575;font-size:13px;line-height:1.6">${inv.address ? esc(inv.address) + "<br>" : ""}${esc(SELLER.email)} · ${esc(SELLER.site)}<br>Not registered under GST.</p>
+  <p style="margin:6px 0 0;color:#6b6575;font-size:13px;line-height:1.6">${inv.address ? esc(inv.address) + "<br>" : ""}${esc(SELLER.email)} · ${esc(SELLER.site)}</p>
 </td></tr>
 <tr><td style="padding:16px 28px 0">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #eee7dc">

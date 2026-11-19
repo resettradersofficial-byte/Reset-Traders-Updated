@@ -77,7 +77,7 @@ ok('no double counting', db.get('site/founding')?.sold === 1);
 ok('one invoice email for the live payment', mails.filter((m) => !m.subject.startsWith('[TEST]')).length === 1, mails.length + ' mails');
 const m1 = mails[0];
 ok('invoice numbered RT-YYYY-0001 to the buyer', /Your Reset Traders invoice RT-\d{4}-0001$/.test(m1.subject) && m1.to === 'buyer@example.com' && m1.token === 'tok', m1.subject);
-ok('invoice shows amount and GST note', m1.html.includes('₹19,999.00') && m1.html.includes('Not registered under GST') && m1.html.includes('pay_A'));
+ok('invoice shows amount, no GST line', m1.html.includes('₹19,999.00') && !m1.html.includes('GST') && m1.html.includes('pay_A'));
 fs.writeFileSync(new URL('./invoice-preview.html', import.meta.url), m1.html);
 // 9. second purchase on the same account refused
 r = await call('/create-order', { token: 'tok-buyer', body: buyerBody }); ok('second seat on same account refused', r.status === 409);
