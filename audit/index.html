@@ -522,6 +522,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   <button class="ghost" id="close-modal" type="button">Close</button>
 </div>
 
+<script src="/assets/checkout/config.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -1137,7 +1138,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
       }
     });
   }
-  reserveWith('reset', $('buy-btn'), $('buy-msg'), 'Seat reserved ✓');
+  // When checkout is on (assets/checkout/config.js), the button buys the seat; otherwise it reserves one.
+  if (window.RT_CHECKOUT && window.RT_CHECKOUT.active) {
+    $('buy-btn').textContent = 'Buy my founding seat';
+    document.querySelector('#buy-btn ~ .buy-fine').textContent = 'Pay now, start on ' + window.RT_CHECKOUT.opensLabel + '. Full refund if it doesn’t open by then.';
+    $('buy-btn').addEventListener('click', () => {
+      const api = window.ResetAudit || {};
+      if (window.RTCheckout) window.RTCheckout.open({ region: $('offer-region').dataset.region || offerRegion(), email: api.knownEmail ? api.knownEmail() : '' });
+    });
+  } else {
+    reserveWith('reset', $('buy-btn'), $('buy-msg'), 'Seat reserved ✓');
+  }
   // Journal Pro is open (free beta): send them straight in, set up for the hijack they just found.
   $('journal-btn').addEventListener('click', () => {
     location.href = `../journal/?type=${encodeURIComponent(TYPES[P.ruleType || P.top].name)}`;
@@ -1258,6 +1269,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 })();
 </script>
 <script type="module" src="audit-lead.js?v=20261118t"></script>
+<script type="module" src="/assets/checkout/checkout.js"></script>
 
 </body>
 </html>

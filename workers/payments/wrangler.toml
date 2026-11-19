@@ -1,0 +1,12 @@
+name = "shiny-dew-032freset-traders-payments"
+main = "src/index.js"
+compatibility_date = "2026-06-20"
+workers_dev = true
+# Keep the variables set in the Cloudflare dashboard (ALLOWED_ORIGINS, FIREBASE_PROJECT_ID,
+# FIREBASE_WEB_API_KEY, RAZORPAY_KEY_ID). Secrets are always kept.
+keep_vars = true
+
+# Secrets (already set in Cloudflare; set new ones with `npx wrangler secret put <NAME>`):
+#   RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
+#   RAZORPAY_TEST_KEY_ID, RAZORPAY_TEST_KEY_SECRET   (test mode, admin accounts only)
+# Optional: PABBLY_WEBHOOK_URL

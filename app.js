@@ -125,6 +125,13 @@ export async function doLogin() {
     }
     if (loginMode === "student" && !hasActiveAccess(profile)) {
       await signOut(auth);
+      // Founding buyers of Your Personal Reset: seat confirmed, the course opens on reset.opensAt.
+      const seat = profile?.reset;
+      if (seat && ["founding", "standard", "test"].includes(seat.status)) {
+        const opens = new Date(seat.opensAt + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+        setLoginError("Your seat for Your Personal Reset is confirmed. The course opens on " + opens + ". Log in here that day; we will email you too.");
+        return;
+      }
       setLoginError("Course access is not active yet. Access unlocks only after verified payment.");
       return;
     }

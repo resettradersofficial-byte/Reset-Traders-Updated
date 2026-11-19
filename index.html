@@ -70,6 +70,8 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
 <script type="module" src="assets/v2/hero.js"></script>
 <script type="module" src="assets/v2/voices.js"></script>
+<script src="assets/checkout/config.js"></script>
+<script type="module" src="assets/checkout/checkout.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -366,8 +368,10 @@
         <p class="price"><span class="only-in">₹19,999</span><span class="only-intl">$247</span></p>
         <p class="price-std">then <span class="only-in">₹24,999</span><span class="only-intl">$297</span> standard</p>
         <p class="price-pay"><span class="only-in">Pay in ₹ with UPI, cards or net banking</span><span class="only-intl">Priced in USD</span></p>
-        <a class="btn btn-block" href="audit/?ref=site-reset">Start with the audit <span class="arr" aria-hidden="true">→</span></a>
-        <p class="fine">Founding seats go to the audit list first. Checkout opens soon.</p>
+        <button type="button" class="btn btn-block" data-checkout hidden>Buy your founding seat <span class="arr" aria-hidden="true">→</span></button>
+        <p class="fine" data-checkout-show hidden>Pay now, start on 2 December. Full refund if it doesn't open by then. <a href="audit/?ref=site-reset">Take the free audit first</a>.</p>
+        <a class="btn btn-block" href="audit/?ref=site-reset" data-checkout-hide>Start with the audit <span class="arr" aria-hidden="true">→</span></a>
+        <p class="fine" data-checkout-hide>Founding seats go to the audit list first. Checkout opens soon.</p>
         <button type="button" class="link region-switch" data-region-toggle><span class="only-in">Show prices in $</span><span class="only-intl">Show prices in ₹</span></button>
         <aside class="leo-inline leo-on-paper" data-leo aria-label="A note from Leo"><p>I wish this had existed in my first year.</p><span class="sig">Leo</span></aside>
       </div>
