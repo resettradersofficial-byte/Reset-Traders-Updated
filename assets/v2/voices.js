@@ -1,9 +1,12 @@
 // Student videos in the Elite section: silent preview loops while on screen, full video with sound on tap.
+// Motion is tied to the scroll only: the cards rise at slightly different speeds and straighten as
+// the row passes through the screen. Nothing animates on its own.
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wall = document.getElementById('voices');
 const dlg = document.getElementById('voice-dlg');
 
 if (wall && dlg) {
+  const row = wall.querySelector('.voices-row');
   const cards = [...wall.querySelectorAll('.voice')];
   const loops = cards.map((c) => c.querySelector('.voice-loop'));
 
@@ -13,25 +16,30 @@ if (wall && dlg) {
       loops.forEach((v) => {
         if (e.isIntersecting) { v.preload = 'auto'; v.play().catch(() => {}); } else v.pause();
       });
-    }, { threshold: 0.2 }).observe(wall.querySelector('.voices-row'));
+    }, { threshold: 0.2 }).observe(row);
   }
 
-  // Motion: the cards fan in as the row scrolls into view, then drift slightly with the scroll.
   if (!reduce && window.gsap && window.ScrollTrigger) {
     gsap.registerPlugin(ScrollTrigger);
-    gsap.from(cards, {
-      y: 120, opacity: 0, rotate: (i) => (i % 2 ? 14 : -14), scale: 0.86,
-      duration: 0.9, ease: 'back.out(1.5)', stagger: 0.12,
-      scrollTrigger: { trigger: wall, start: 'top 78%', once: true }
+    const mm = gsap.matchMedia();
+    // Wide screens: the four cards sit in a row, each with its own scroll speed and tilt.
+    mm.add('(min-width: 900px)', () => {
+      const speed = [70, 30, 90, 45];
+      const tilt = [-6, 3, -3, 5];
+      cards.forEach((c, i) => {
+        gsap.fromTo(c, { y: speed[i], rotate: tilt[i] }, {
+          y: -speed[i] * 0.6, rotate: 0, ease: 'none',
+          scrollTrigger: { trigger: row, start: 'top bottom', end: 'bottom 35%', scrub: 0.6 }
+        });
+      });
     });
-    gsap.from(wall.querySelectorAll('.voices-head > *'), {
-      y: 24, opacity: 0, duration: 0.7, ease: 'power2.out', stagger: 0.08,
-      scrollTrigger: { trigger: wall, start: 'top 85%', once: true }
+    // Phones: the row is swiped sideways; scrolling down only lifts it slightly.
+    mm.add('(max-width: 899px)', () => {
+      gsap.fromTo(row, { y: 40 }, {
+        y: -10, ease: 'none',
+        scrollTrigger: { trigger: row, start: 'top bottom', end: 'bottom 40%', scrub: 0.6 }
+      });
     });
-    cards.forEach((c, i) => gsap.to(c, {
-      yPercent: i % 2 ? -6 : 6, ease: 'none',
-      scrollTrigger: { trigger: wall, start: 'top bottom', end: 'bottom top', scrub: true }
-    }));
   }
 
   // Full video with sound in a dialog.
@@ -49,6 +57,7 @@ if (wall && dlg) {
     player.removeAttribute('src');
     player.load();
     document.body.classList.remove('modal-open');
+    loops.forEach((v) => { if (v.preload === 'auto') v.play().catch(() => {}); });
   };
   wall.querySelectorAll('.voice-hit').forEach((b) => b.addEventListener('click', () => open(b)));
   dlg.addEventListener('close', close);

@@ -333,8 +333,10 @@ dialog.profile[open]::backdrop { animation: pf-fade .3s ease both; }
 .voices-head h3 { margin: 0; font: 800 clamp(24px, 3vw, 32px)/1.15 var(--display); letter-spacing: -.02em; }
 .voices-sub { margin: 10px 0 0; max-width: 34em; color: var(--muted); }
 .voices-row { list-style: none; margin: 34px 0 0; padding: 0 0 30px; display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(14px, 2vw, 26px); }
-.voice { transform: translateY(var(--y)) rotate(var(--r)); transition: transform .45s cubic-bezier(.2, .8, .2, 1); }
-.voice:hover, .voice:focus-within { transform: translateY(-8px) rotate(0deg) scale(1.03); z-index: 2; }
+.voice { position: relative; }
+.voice:hover, .voice:focus-within { z-index: 2; }
+.voice-hit { transition: transform .35s cubic-bezier(.2, .8, .2, 1), border-color .35s; }
+.voice-hit:hover, .voice-hit:focus-visible { transform: translateY(-6px) scale(1.02); border-color: rgba(155, 188, 255, .55); }
 .voice-hit { position: relative; display: block; width: 100%; aspect-ratio: 9 / 16; padding: 0; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; cursor: pointer; background: #08070b; box-shadow: 0 30px 60px -28px rgba(0, 0, 0, .9); }
 .voice-hit::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, transparent 55%, rgba(8, 7, 11, .55)); pointer-events: none; }
 .voice-loop { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -346,13 +348,17 @@ dialog.profile[open]::backdrop { animation: pf-fade .3s ease both; }
 .voice:nth-child(4) .voice-play::after { animation-delay: 1.5s; }
 @keyframes voice-ring { from { transform: scale(.9); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
 .voice-name { margin: 12px 0 0; text-align: center; font: 700 15px var(--display); }
+.voices-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 28px; margin: 6px 0 18px; padding: 20px 24px; border-radius: 18px; border: 1px solid rgba(155, 188, 255, .3); background: rgba(155, 188, 255, .06); }
+.voices-cta p { margin: 0; max-width: 36em; color: var(--muted); }
+.voices-cta b { color: var(--text); }
+@media (max-width: 599px) { .voices-cta .btn { width: 100%; } }
 .voices-fine { margin: 0; color: var(--muted); font-size: 13px; }
 @media (max-width: 899px) {
   .voices-row { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 58%; overflow-x: auto; scroll-snap-type: x mandatory; margin-top: 18px; padding: 16px 4px 44px; margin-left: -4px; margin-right: -4px; scrollbar-width: none; }
   .voices-row::-webkit-scrollbar { display: none; }
-  .voice { scroll-snap-align: center; transform: rotate(calc(var(--r) / 2)); }
+  .voice { scroll-snap-align: center; }
 }
-@media (prefers-reduced-motion: reduce) { .voice, .voice:hover { transform: none; } .voice-play::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .voice-hit:hover { transform: none; } .voice-play::after { animation: none; } }
 dialog.voice-dlg { width: min(420px, 100% - 32px); max-height: calc(100svh - 32px); padding: 0; border: 0; border-radius: 24px; background: #08070b; overflow: hidden; }
 dialog.voice-dlg::backdrop { background: rgba(5, 4, 8, .8); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 dialog.voice-dlg[open] { animation: pf-rise .42s cubic-bezier(.2, .8, .2, 1) both; }
