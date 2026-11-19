@@ -186,6 +186,7 @@ async function submit(e) {
     // A modal <dialog> sits above everything, including Razorpay's screen, so step aside while it is open.
     dlg.close();
     rzp.open();
+    watchOrder(user, order, data.email, rzp, () => handled);
   } catch (err) {
     go.disabled = false;
     say(friendly(err), 'error');
@@ -197,7 +198,33 @@ function reopen() {
   try { if (!dlg.open) dlg.showModal(); } catch (_) { dlg.setAttribute('open', ''); }
 }
 
+// Razorpay doesn't always call back to the page (for example when a bank or UPI step opens its own
+// window). So while checkout is open, ask the server every few seconds whether the order is paid.
+let watching = 0;
+function watchOrder(user, order, email, rzp, wasHandled) {
+  const id = ++watching;
+  const started = Date.now();
+  const tick = async () => {
+    if (id !== watching || wasHandled() || Date.now() - started > 15 * 60 * 1000) return;
+    try {
+      const token = await user.getIdToken();
+      if (await orderPaid(token, order.orderId, '')) {
+        watching++;
+        try { rzp.close(); } catch (_) {}
+        showDone(email);
+        return;
+      }
+    } catch (_) {}
+    setTimeout(tick, document.hidden ? 6000 : 4000);
+  };
+  setTimeout(tick, 5000);
+  // Coming back to this tab (after a bank or UPI app): check straight away.
+  const onBack = () => { if (!document.hidden && id === watching) tick(); };
+  document.addEventListener('visibilitychange', onBack, { once: true });
+}
+
 function showDone(email) {
+  watching++;
   reopen();
   dlg.querySelector('#rtc-done-email').textContent = email;
   dlg.querySelector('#rtc-form-view').hidden = true;
