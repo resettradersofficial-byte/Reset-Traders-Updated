@@ -167,6 +167,7 @@ async function submit(e) {
     const order = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(order.error || 'Checkout could not start.');
     say('');
+    let handled = false;
     const rzp = new window.Razorpay({
       key: order.keyId,
       amount: order.amount,
@@ -177,8 +178,9 @@ async function submit(e) {
       prefill: { name: data.name, email: data.email, contact: data.phone },
       readonly: { email: true },
       theme: { color: '#1f4fd1' },
-      handler: (r) => { reopen(); confirmPayment(user, order, r, data.email); },
-      modal: { ondismiss: () => { reopen(); go.disabled = false; say('Payment window closed. You can try again.'); } }
+      handler: (r) => { handled = true; confirmPayment(user, order, r, data.email); },
+      // Closing Razorpay (or a missed callback): ask the server whether the order was paid anyway.
+      modal: { ondismiss: () => { if (!handled) checkAfterClose(user, order, data.email, go); } }
     });
     rzp.on('payment.failed', (r) => { reopen(); go.disabled = false; say((r && r.error && r.error.description) || 'Payment failed. Please try again.', 'error'); });
     // A modal <dialog> sits above everything, including Razorpay's screen, so step aside while it is open.
@@ -192,40 +194,64 @@ async function submit(e) {
 }
 
 function reopen() {
-  if (!dlg.open) dlg.showModal();
+  try { if (!dlg.open) dlg.showModal(); } catch (_) { dlg.setAttribute('open', ''); }
+}
+
+function showDone(email) {
+  reopen();
+  dlg.querySelector('#rtc-done-email').textContent = email;
+  dlg.querySelector('#rtc-form-view').hidden = true;
+  dlg.querySelector('#rtc-done-view').hidden = false;
+  try { localStorage.setItem('rt-reserved-reset', '1'); } catch (_) {}
+}
+
+// Ask the server about an order. Without a payment id it looks the payment up at Razorpay itself.
+async function orderPaid(token, orderId, paymentId) {
+  try {
+    const u = new URL(CFG.worker + '/payment-status');
+    u.searchParams.set('orderId', orderId);
+    if (paymentId) u.searchParams.set('paymentId', paymentId);
+    const j = await (await fetch(u, { headers: { Authorization: 'Bearer ' + token } })).json();
+    return j.paid === true;
+  } catch (_) { return false; }
 }
 
 async function confirmPayment(user, order, r, email) {
-  say('Payment received. Confirming…');
-  const token = await user.getIdToken();
+  reopen();
+  say('Payment received. Confirming your seat…');
   let paid = false;
   try {
-    const res = await fetch(CFG.worker + '/verify-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify(r)
-    });
-    const j = await res.json().catch(() => ({}));
-    paid = res.ok && j.paid === true;
-  } catch (_) {}
-  for (let i = 0; !paid && i < 8; i++) {
-    await new Promise((ok) => setTimeout(ok, i ? 3000 : 1200));
+    const token = await user.getIdToken();
     try {
-      const u = new URL(CFG.worker + '/payment-status');
-      u.searchParams.set('orderId', order.orderId);
-      u.searchParams.set('paymentId', r.razorpay_payment_id);
-      const j = await (await fetch(u, { headers: { Authorization: 'Bearer ' + token } })).json();
-      paid = j.paid === true;
+      const res = await fetch(CFG.worker + '/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(r)
+      });
+      const j = await res.json().catch(() => ({}));
+      paid = res.ok && j.paid === true;
     } catch (_) {}
-  }
-  if (paid) {
-    dlg.querySelector('#rtc-done-email').textContent = email;
-    dlg.querySelector('#rtc-form-view').hidden = true;
-    dlg.querySelector('#rtc-done-view').hidden = false;
-    try { localStorage.setItem('rt-reserved-reset', '1'); } catch (_) {}
-  } else {
-    say('We received your payment and are still confirming it. You’ll get an email shortly; you don’t need to pay again.', 'error');
-  }
+    for (let i = 0; !paid && i < 8; i++) {
+      await new Promise((ok) => setTimeout(ok, i ? 3000 : 1200));
+      paid = await orderPaid(token, order.orderId, i % 2 ? '' : r && r.razorpay_payment_id);
+    }
+  } catch (_) {}
+  if (paid) showDone(email);
+  else say('We received your payment and are still confirming it. You’ll get an email shortly; you don’t need to pay again.', 'error');
+}
+
+async function checkAfterClose(user, order, email, go) {
+  reopen();
+  say('Checking your payment…');
+  try {
+    const token = await user.getIdToken();
+    for (let i = 0; i < 3; i++) {
+      if (await orderPaid(token, order.orderId, '')) return showDone(email);
+      await new Promise((ok) => setTimeout(ok, 2500));
+    }
+  } catch (_) {}
+  go.disabled = false;
+  say('Payment window closed. If you completed the payment, you’ll get an email shortly; otherwise you can try again.');
 }
 
 // Buttons: <button data-checkout> (optional data-region="in|intl").

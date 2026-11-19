@@ -22,6 +22,7 @@ globalThis.fetch = async (url, init = {}) => {
     if (init.method === 'PATCH') { const fields = JSON.parse(init.body).fields; db.set(p, { ...(db.get(p) || {}), ...Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, fromF(v)])) }); return new Response('{}'); }
     const d = db.get(p); return d ? new Response(JSON.stringify({ fields: Object.fromEntries(Object.entries(d).map(([k, v]) => [k, toF(v)])) })) : new Response('{}', { status: 404 });
   }
+  if (u.includes('api.razorpay.com/v1/orders/') && u.endsWith('/payments')) { const oid = u.split('/v1/orders/')[1].split('/')[0]; return new Response(JSON.stringify({ items: [...rzPayments.values()].filter((p) => p.order_id === oid) })); }
   if (u.includes('api.razorpay.com/v1/orders')) { lastOrderKey = init.headers.Authorization; const b = JSON.parse(init.body); rzOrders++; return new Response(JSON.stringify({ id: 'order_' + rzOrders, amount: b.amount, currency: b.currency })); }
   if (u.includes('api.razorpay.com/v1/payments/')) { const id = u.split('/').pop(); return new Response(JSON.stringify(rzPayments.get(id))); }
   return new Response('{}', { status: 404 });
@@ -94,6 +95,14 @@ ok('test payment marked test, admin kept', db.get('users/admin1').reset?.status 
 const tm = mails.find((m) => m.subject.startsWith('[TEST]'));
 ok('test payment gets a TEST invoice', tm && /TEST-\d{4}-0001/.test(tm.subject) && tm.to === 'admin@example.com', tm && tm.subject);
 ok('test payment not counted', db.get('site/founding')?.sold === 1);
+// 11b. page missed Razorpay's callback: /payment-status with only the order id recovers the payment
+users['tok-lost'] = { localId: 'lost1', email: 'lost@example.com' };
+r = await call('/create-order', { token: 'tok-lost', body: { ...buyerBody, email: 'lost@example.com' } }); j = await r.json();
+const lostOrder = j.orderId;
+rzPayments.set('pay_L', { id: 'pay_L', order_id: lostOrder, status: 'captured', amount: 1999900, currency: 'INR', method: 'card' });
+r = await call('/payment-status?orderId=' + lostOrder, { method: 'GET', token: 'tok-lost' }); j = await r.json();
+ok('missed callback recovered from the order alone', j.paid === true && db.get('users/lost1')?.reset?.status === 'founding', JSON.stringify(j));
+ok('recovered payment gets its invoice', mails.some((m) => m.to === 'lost@example.com'));
 // 12. after 100 founding seats, standard price
 db.set('site/founding', { sold: 100 });
 users['tok-new'] = { localId: 'new1', email: 'new@example.com' };

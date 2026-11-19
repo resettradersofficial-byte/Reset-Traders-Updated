@@ -313,16 +313,27 @@ async function handlePaymentStatus(request, env) {
     return json({ error: "Order not found." }, 404, env, request);
   }
 
-  if (order.status !== "paid" && paymentId) {
+  if (order.status !== "paid") {
     assertEnv(env, RAZORPAY_ENV);
-    const payment = await fetchRazorpayPayment(razorpayKeys(env, order.test === true), paymentId);
-    await processCapturedPayment(env, token, {
-      payment,
-      order,
-      orderId,
-      source: "payment_status_api"
-    });
-    order = await firestoreGet(env, token, `orders/${orderId}`);
+    const keys = razorpayKeys(env, order.test === true);
+    // With a payment id, check that payment. Without one (the page missed Razorpay's callback),
+    // ask Razorpay for this order's payments and use the captured one.
+    let payment = null;
+    if (paymentId) {
+      payment = await fetchRazorpayPayment(keys, paymentId);
+    } else {
+      const list = await razorpayRequest(keys, `/v1/orders/${encodeURIComponent(orderId)}/payments`);
+      payment = (list.items || []).find((p) => p.status === "captured") || null;
+    }
+    if (payment && payment.order_id === orderId) {
+      await processCapturedPayment(env, token, {
+        payment,
+        order,
+        orderId,
+        source: "payment_status_api"
+      });
+      order = await firestoreGet(env, token, `orders/${orderId}`);
+    }
   }
 
   return json({
