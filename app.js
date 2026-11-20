@@ -368,7 +368,7 @@ function answerChat(text) {
     return "It starts with the free Reset Audit. Next is Reset Yourself, the psychology video course (opening soon, founding seats go to the audit list first). Elite Mentorship is 1:1 and by application only.";
   }
   if (has("price", "pricing", "cost", "fee", "fees", "elite")) {
-    return "The Reset Audit is free. Reset Yourself has a founding price of ₹19,999 in India or $247 internationally for the first 100 traders, then ₹24,999 / $297. Elite Mentorship is by application: a short form, then a call where you get the full details.";
+    return "The Reset Audit is free. Reset Yourself has a founding price of ₹4,999 in India or $69 internationally for the first 100 traders, then ₹24,999 / $297. Elite Mentorship is by application: a short form, then a call where you get the full details.";
   }
   if (has("tax", "gst")) {
     return "The final checkout amount is always shown clearly before you pay.";

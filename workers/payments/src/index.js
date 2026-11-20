@@ -13,8 +13,8 @@ const FOUNDING_SEATS = 100;
 const OPENS_AT = "2027-01-01";
 
 const PLANS = {
-  reset_in: { product: "reset", name: "Your Personal Reset", currency: "INR", founding: 1999900, standard: 2499900 },
-  reset_intl: { product: "reset", name: "Your Personal Reset", currency: "USD", founding: 24700, standard: 29700 }
+  reset_in: { product: "reset", name: "Your Personal Reset", currency: "INR", founding: 499900, standard: 2499900 },
+  reset_intl: { product: "reset", name: "Your Personal Reset", currency: "USD", founding: 6900, standard: 29700 }
 };
 
 const SITE_ORIGINS = ["https://www.resettraders.com", "https://resettraders.com"];

@@ -102,7 +102,7 @@ function say(text, state) {
 function paintPrice() {
   const p = info && info.prices && info.prices[PLAN[region]];
   const now = dlg.querySelector('#rtc-now'), was = dlg.querySelector('#rtc-was'), left = dlg.querySelector('#rtc-left');
-  if (!p) { now.textContent = region === 'in' ? '₹19,999' : '$247'; was.textContent = region === 'in' ? '₹24,999' : '$297'; return; }
+  if (!p) { now.textContent = region === 'in' ? '₹4,999' : '$69'; was.textContent = region === 'in' ? '₹24,999' : '$297'; return; }
   now.textContent = fmt(p.amount, p.currency);
   was.textContent = p.tier === 'founding' ? (region === 'in' ? '₹24,999' : '$297') : '';
   left.textContent = p.tier === 'founding' ? `${info.left} of ${info.total} left` : 'standard price';

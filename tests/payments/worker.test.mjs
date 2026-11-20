@@ -41,12 +41,12 @@ const buyerBody = { plan: 'reset_in', email: 'buyer@example.com', name: 'Test Bu
 
 // 1. founding price in INR, live key
 let r = await call('/create-order', { token: 'tok-buyer', body: buyerBody }); let j = await r.json();
-ok('founding INR order', r.status === 200 && j.amount === 1999900 && j.currency === 'INR' && j.tier === 'founding' && j.keyId === 'rzp_live_X', JSON.stringify(j));
+ok('founding INR order', r.status === 200 && j.amount === 499900 && j.currency === 'INR' && j.tier === 'founding' && j.keyId === 'rzp_live_X', JSON.stringify(j));
 ok('live key used for order', lastOrderKey === 'Basic ' + btoa('rzp_live_X:livesecret'));
 const orderId = j.orderId;
 // 2. USD price
 r = await call('/create-order', { token: 'tok-buyer', body: { ...buyerBody, plan: 'reset_intl' } }); j = await r.json();
-ok('founding USD order', j.amount === 24700 && j.currency === 'USD', JSON.stringify(j));
+ok('founding USD order', j.amount === 6900 && j.currency === 'USD', JSON.stringify(j));
 // 3. old plans gone
 r = await call('/create-order', { token: 'tok-buyer', body: { ...buyerBody, plan: 'course' } }); ok('old course plan refused', r.status === 400);
 r = await call('/create-order', { token: 'tok-buyer', body: { ...buyerBody, plan: 'mentorship' } }); ok('Elite plan refused', r.status === 400);
@@ -62,7 +62,7 @@ const testOrderId = j.orderId;
 r = await call('/verify-payment', { token: 'tok-buyer', body: { razorpay_order_id: orderId, razorpay_payment_id: 'pay_A', razorpay_signature: 'bad' } }); ok('bad signature refused', r.status === 401);
 // 7. verify: good signature -> seat recorded, counter +1, old access untouched
 db.set('users/buyer1', { role: 'student', email: 'buyer@example.com', access: { active: false, source: 'checkout_started' } });
-rzPayments.set('pay_A', { id: 'pay_A', order_id: orderId, status: 'captured', amount: 1999900, currency: 'INR', method: 'upi', created_at: 1 });
+rzPayments.set('pay_A', { id: 'pay_A', order_id: orderId, status: 'captured', amount: 499900, currency: 'INR', method: 'upi', created_at: 1 });
 r = await call('/verify-payment', { token: 'tok-buyer', body: { razorpay_order_id: orderId, razorpay_payment_id: 'pay_A', razorpay_signature: await hmac('livesecret', `${orderId}|pay_A`) } }); j = await r.json();
 const u1 = db.get('users/buyer1');
 ok('payment verified', r.status === 200 && j.paid === true && j.opensAt === '2027-01-01', JSON.stringify(j));
@@ -78,7 +78,7 @@ ok('no double counting', db.get('site/founding')?.sold === 1);
 ok('one invoice email for the live payment', mails.filter((m) => !m.subject.startsWith('[TEST]')).length === 1, mails.length + ' mails');
 const m1 = mails[0];
 ok('invoice numbered RT-YYYY-0001 to the buyer', /Your Reset Traders invoice RT-\d{4}-0001$/.test(m1.subject) && m1.to === 'buyer@example.com' && m1.token === 'tok', m1.subject);
-ok('invoice shows amount, no GST line', m1.html.includes('₹19,999.00') && !m1.html.includes('GST') && m1.html.includes('pay_A'));
+ok('invoice shows amount, no GST line', m1.html.includes('₹4,999.00') && !m1.html.includes('GST') && m1.html.includes('pay_A'));
 fs.writeFileSync(new URL('./invoice-preview.html', import.meta.url), m1.html);
 // 9. second purchase on the same account refused
 r = await call('/create-order', { token: 'tok-buyer', body: buyerBody }); ok('second seat on same account refused', r.status === 409);
@@ -88,7 +88,7 @@ rzPayments.set('pay_T', { id: 'pay_T', order_id: o2, status: 'captured', amount:
 r = await call('/verify-payment', { token: 'tok-buyer', body: { razorpay_order_id: o2, razorpay_payment_id: 'pay_T', razorpay_signature: await hmac('livesecret', `${o2}|pay_T`) } });
 ok('wrong amount refused', r.status === 400);
 // 11. test payment: signature with test secret, no counter change
-rzPayments.set('pay_X', { id: 'pay_X', order_id: testOrderId, status: 'captured', amount: 1999900, currency: 'INR' });
+rzPayments.set('pay_X', { id: 'pay_X', order_id: testOrderId, status: 'captured', amount: 499900, currency: 'INR' });
 r = await call('/verify-payment', { token: 'tok-admin', body: { razorpay_order_id: testOrderId, razorpay_payment_id: 'pay_X', razorpay_signature: await hmac('testsecret', `${testOrderId}|pay_X`) } }); j = await r.json();
 ok('test payment verified with test secret', r.status === 200 && j.paid === true);
 ok('test payment marked test, admin kept', db.get('users/admin1').reset?.status === 'test' && db.get('users/admin1').role === 'admin');
@@ -99,7 +99,7 @@ ok('test payment not counted', db.get('site/founding')?.sold === 1);
 users['tok-lost'] = { localId: 'lost1', email: 'lost@example.com' };
 r = await call('/create-order', { token: 'tok-lost', body: { ...buyerBody, email: 'lost@example.com' } }); j = await r.json();
 const lostOrder = j.orderId;
-rzPayments.set('pay_L', { id: 'pay_L', order_id: lostOrder, status: 'captured', amount: 1999900, currency: 'INR', method: 'card' });
+rzPayments.set('pay_L', { id: 'pay_L', order_id: lostOrder, status: 'captured', amount: 499900, currency: 'INR', method: 'card' });
 r = await call('/payment-status?orderId=' + lostOrder, { method: 'GET', token: 'tok-lost' }); j = await r.json();
 ok('missed callback recovered from the order alone', j.paid === true && db.get('users/lost1')?.reset?.status === 'founding', JSON.stringify(j));
 ok('recovered payment gets its invoice', mails.some((m) => m.to === 'lost@example.com'));
