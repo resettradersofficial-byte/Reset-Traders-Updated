@@ -69,7 +69,7 @@ function build() {
       <p class="rtc-k">Founding seat · <span id="rtc-left">first 100</span></p>
       <h2 id="rtc-title">Your Personal Reset</h2>
       <p class="rtc-price"><b id="rtc-now">…</b><s id="rtc-was"></s></p>
-      <p class="rtc-sub">Pay now, start on ${CFG.opensLabel}. 12 video modules, guided audio, drills for your hijack and Journal Pro.</p>
+      <p class="rtc-sub">Pay now, start on ${CFG.opensLabel}. 12 video modules, guided audio, drills for your hijack, Journal Pro and the 1% Strategy.</p>
       <form id="rtc-form" novalidate>
         <label>Full name<input type="text" name="name" autocomplete="name" required maxlength="120"></label>
         <label>Email<input type="email" name="email" autocomplete="email" required maxlength="200"></label>
