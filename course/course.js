@@ -8,6 +8,7 @@ import {
   signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "/firebase.js?v=20261118-video";
 import { privateVideoUrl } from "/video.js?v=20261118-video";
+import { sketchHtml } from "/course/sketch.js?v=20261120";
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { writeBatch } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -238,6 +239,7 @@ async function openLesson(id, scroll = true) {
       ${lesson.audio ? `<div class="audio" id="audio"><p class="audio-k">Guided practice · press play and follow along</p><p class="audio-msg">Loading the audio…</p></div>` : ""}
       ${firstOfModule && mod.problem ? `<div class="problem"><b>The trader problem this module fixes</b>${cleanHtml(mod.problem)}</div>` : ""}
       ${firstOfModule && mod.intro ? `<div class="content">${cleanHtml(mod.intro)}</div>` : ""}
+      ${item.type === "drill-slot" && lesson.steps?.length ? sketchHtml(lesson.steps, lesson.id.length + (lesson.module || "").length) : ""}
       <div class="content" id="content">${cleanHtml(lesson.html)}</div>
       ${item.type === "drill-slot" ? `<p><button class="link" type="button" data-pick-hijack>Not your hijack? Change it</button></p>` : ""}`;
   }

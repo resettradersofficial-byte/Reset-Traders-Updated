@@ -154,3 +154,27 @@ img { max-width: 100%; height: auto; }
   .pager .btn { min-width: 0; flex: 1; }
 }
 @media (max-width: 520px) { #hijack-btn { display: none; } .hijack-grid { grid-template-columns: 1fr; } }
+
+/* ---------- drill sketches (Leo's notebook) ---------- */
+.sketch { margin: 0 0 24px; padding: 18px 18px 20px; border-radius: 14px; color: var(--ink); background-color: var(--paper);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(31, 79, 209, .09) 27px 28px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .25), 0 18px 40px -24px rgba(0, 0, 0, .8); transform: rotate(-.4deg); }
+.sk-k { margin: 0 0 12px; font: 700 15px var(--hand); color: var(--cta-on-paper); }
+.sk-steps { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; }
+.sk-step { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.sk-ring { width: 78px; height: 78px; overflow: visible; }
+.sk-circle, .sk-icon, .sk-arrow path { fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sk-circle { stroke-width: 1.6; opacity: .85; }
+.sk-n { position: absolute; top: -4px; left: calc(50% + 22px); display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--cta-on-paper); color: #fff; font: 700 12px var(--body); }
+.sk-t { margin-top: 6px; font: 400 15.5px/1.25 var(--hand); color: var(--ink); max-width: 15ch; }
+.sk-arrow { flex: 0 0 38px; width: 38px; height: 22px; margin-top: 28px; }
+.sk-arrow path { stroke: var(--ink-muted); stroke-width: 1.6; }
+@media (max-width: 640px) {
+  .sketch { transform: none; }
+  .sk-steps { flex-direction: column; align-items: stretch; gap: 0; }
+  .sk-step { flex-direction: row; text-align: left; gap: 12px; }
+  .sk-ring { width: 60px; height: 60px; flex: none; }
+  .sk-n { top: -2px; left: 44px; }
+  .sk-t { margin: 0; max-width: none; font-size: 17px; align-self: center; }
+  .sk-arrow { transform: rotate(90deg); margin: 2px 0 2px 11px; width: 36px; height: 20px; }
+}
