@@ -429,6 +429,15 @@ async function processCapturedPayment(env, token, { payment, order, orderId, sou
     updatedAt: now
   });
 
+  // Journal Pro bonus: 3 months free once paid plans start (the journal is free for everyone during the beta).
+  // Recorded now so it can be applied automatically at launch; only this field is written, so any
+  // existing journal plan is left as it is.
+  if (!test) {
+    await firestorePatch(env, token, `journalAccess/${storedOrder.uid}`, {
+      resetBonus: { months: 3, startsWhen: "paid-plans-launch", source: "reset-seat", razorpayPaymentId: payment.id, grantedAt: now }
+    });
+  }
+
   // Count real founding seats (once per payment: the duplicate check above returns early on repeats).
   if (!test && storedOrder.tier !== "standard") {
     await firestoreIncrement(env, token, "site/founding", "sold", 1);

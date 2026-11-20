@@ -69,6 +69,8 @@ ok('payment verified', r.status === 200 && j.paid === true && j.opensAt === '202
 ok('seat recorded as founding', u1.reset?.status === 'founding' && u1.reset?.opensAt === '2027-01-01');
 ok('old course access NOT switched on', u1.access?.active === false);
 ok('founding counter = 1', db.get('site/founding')?.sold === 1);
+const ja = db.get('journalAccess/buyer1');
+ok('Journal Pro bonus recorded: 3 months after beta, plan untouched', ja?.resetBonus?.months === 3 && ja.resetBonus.startsWhen === 'paid-plans-launch' && ja.plan === undefined, JSON.stringify(ja));
 // 8. repeat verify / webhook does not double count
 await call('/verify-payment', { token: 'tok-buyer', body: { razorpay_order_id: orderId, razorpay_payment_id: 'pay_A', razorpay_signature: await hmac('livesecret', `${orderId}|pay_A`) } });
 const wh = JSON.stringify({ event: 'payment.captured', created_at: 5, payload: { payment: { entity: rzPayments.get('pay_A') } } });

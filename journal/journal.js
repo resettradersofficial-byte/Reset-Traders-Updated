@@ -901,7 +901,7 @@ function offerCard(h, c) {
   return `<div class="card">
     <div class="step-tag">Your Personal Reset</div>
     <h3>The journal shows you what the ${h} costs. The course trains it out.</h3>
-    <p class="small soft">12 video modules with drills made for the ${h}. Seats include Journal Pro free for 3 months.</p>
+    <p class="small soft">12 video modules with drills made for the ${h}. Seats include 3 months of Journal Pro free when paid plans start (it stays free during the beta).</p>
     <p class="price"><s>${pr.was}</s><b>${pr.now}</b><span class="small faint">founding price</span></p>
     <button class="btn" type="button" data-act="reserve">Reserve my founding seat</button>
     <p class="small faint" style="margin-top:10px">No payment today. Checkout opens soon and reserved seats get first access.</p>
