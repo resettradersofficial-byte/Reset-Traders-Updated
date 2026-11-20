@@ -10,7 +10,7 @@
 //   - CORS only for the website's own origins.
 
 const FOUNDING_SEATS = 100;
-const OPENS_AT = "2026-12-02";
+const OPENS_AT = "2027-01-01";
 
 const PLANS = {
   reset_in: { product: "reset", name: "Your Personal Reset", currency: "INR", founding: 1999900, standard: 2499900 },

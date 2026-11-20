@@ -65,8 +65,8 @@ db.set('users/buyer1', { role: 'student', email: 'buyer@example.com', access: { 
 rzPayments.set('pay_A', { id: 'pay_A', order_id: orderId, status: 'captured', amount: 1999900, currency: 'INR', method: 'upi', created_at: 1 });
 r = await call('/verify-payment', { token: 'tok-buyer', body: { razorpay_order_id: orderId, razorpay_payment_id: 'pay_A', razorpay_signature: await hmac('livesecret', `${orderId}|pay_A`) } }); j = await r.json();
 const u1 = db.get('users/buyer1');
-ok('payment verified', r.status === 200 && j.paid === true && j.opensAt === '2026-12-02', JSON.stringify(j));
-ok('seat recorded as founding', u1.reset?.status === 'founding' && u1.reset?.opensAt === '2026-12-02');
+ok('payment verified', r.status === 200 && j.paid === true && j.opensAt === '2027-01-01', JSON.stringify(j));
+ok('seat recorded as founding', u1.reset?.status === 'founding' && u1.reset?.opensAt === '2027-01-01');
 ok('old course access NOT switched on', u1.access?.active === false);
 ok('founding counter = 1', db.get('site/founding')?.sold === 1);
 // 8. repeat verify / webhook does not double count
