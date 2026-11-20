@@ -894,17 +894,17 @@ async function shareWeek() {
 }
 
 function offerCard(h, c) {
-  if (lsGet("rt-reserved-reset") === "1") {
-    return `<div class="callout left-green"><p>You're on the founding list for Your Personal Reset. We'll email you when seats open.</p></div>`;
-  }
   const pr = PRICE[c] || PRICE.INR;
+  // Founding seats are on sale: the button opens checkout on the homepage (no personal data in the link).
+  const reserved = lsGet("rt-reserved-reset") === "1";
   return `<div class="card">
     <div class="step-tag">Your Personal Reset</div>
     <h3>The journal shows you what the ${h} costs. The course trains it out.</h3>
+    ${reserved ? `<p class="small">You reserved a founding seat. Seats are open now.</p>` : ""}
     <p class="small soft">12 video modules with drills made for the ${h}. Seats include 3 months of Journal Pro free when paid plans start (it stays free during the beta).</p>
     <p class="price"><s>${pr.was}</s><b>${pr.now}</b><span class="small faint">founding price</span></p>
-    <button class="btn" type="button" data-act="reserve">Reserve my founding seat</button>
-    <p class="small faint" style="margin-top:10px">No payment today. Checkout opens soon and reserved seats get first access.</p>
+    <a class="btn" href="/?buy=1&amp;region=${pr.region}#reset" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Buy my founding seat →</a>
+    <p class="small faint" style="margin-top:10px">Pay now, start on 1 January 2027. Full refund if it doesn't open by then.</p>
   </div>`;
 }
 

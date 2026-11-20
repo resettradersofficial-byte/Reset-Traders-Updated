@@ -289,5 +289,12 @@ if (CFG.active) {
     b.hidden = false;
     b.addEventListener('click', (e) => { e.preventDefault(); openCheckout({ region: regionNow(b) }); });
   });
+  // Links from elsewhere (e.g. the journal's course card) open checkout here: /?buy=1&region=in#reset
+  const q = new URLSearchParams(location.search);
+  if (q.get('buy') === '1') {
+    const r = q.get('region');
+    history.replaceState(null, '', location.pathname + location.hash);
+    openCheckout({ region: r === 'intl' ? 'intl' : r === 'in' ? 'in' : undefined });
+  }
 }
 window.RTCheckout = { open: openCheckout };
