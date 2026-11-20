@@ -47,8 +47,13 @@
 
     send.disabled = true;
     say('Sending…');
+    body.turnstile = await getToken(6000);
+    if (!body.turnstile) {
+      // Cloudflare wants a click on "Verify you are human" before it hands out a token.
+      send.disabled = false;
+      return say('Tick "Verify you are human" above, then press Send message again.', 'error');
+    }
     try {
-      body.turnstile = await getToken(6000);
       const res = await fetch(WORKER, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Couldn\'t send right now.');
