@@ -501,7 +501,7 @@ export function invoiceHtml(inv) {
 <tr><td style="padding:18px 28px 0">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eee7dc;border-radius:12px">
     <tr style="background:#faf7f2"><td style="padding:10px 14px;font:700 12px Arial,sans-serif;color:#6b6575;text-transform:uppercase;letter-spacing:.08em">Item</td><td align="right" style="padding:10px 14px;font:700 12px Arial,sans-serif;color:#6b6575;text-transform:uppercase;letter-spacing:.08em">Amount</td></tr>
-    <tr><td style="padding:14px;font-size:14px;line-height:1.5"><b>Your Personal Reset</b> · ${inv.tier === "standard" ? "seat" : "founding seat"}<br><span style="color:#6b6575;font-size:13px">Pre-order. Access in the student portal from ${esc(opens)}. 12 video modules, drills for your hijack, Journal Pro and the 1% Strategy.</span></td><td align="right" style="padding:14px;font-size:14px;white-space:nowrap">${esc(money(inv.amount, inv.currency))}</td></tr>
+    <tr><td style="padding:14px;font-size:14px;line-height:1.5"><b>Your Personal Reset</b> · ${inv.tier === "standard" ? "seat" : "founding seat"}<br><span style="color:#6b6575;font-size:13px">Pre-order. Access in the student portal from ${esc(opens)}. 12 video modules, guided audio, drills for your hijack and Journal Pro.</span></td><td align="right" style="padding:14px;font-size:14px;white-space:nowrap">${esc(money(inv.amount, inv.currency))}</td></tr>
     <tr><td style="padding:12px 14px;border-top:1px solid #eee7dc;font:800 15px Arial,sans-serif">Total paid</td><td align="right" style="padding:12px 14px;border-top:1px solid #eee7dc;font:800 15px Arial,sans-serif;white-space:nowrap">${esc(money(inv.amount, inv.currency))}</td></tr>
   </table>
 </td></tr>

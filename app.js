@@ -127,6 +127,11 @@ export async function doLogin() {
       await signOut(auth);
       // Founding buyers of Your Personal Reset: seat confirmed, the course opens on reset.opensAt.
       const seat = profile?.reset;
+      // Once it has opened, Your Personal Reset lives at /course/ (same Firebase login).
+      if (seat && ["founding", "standard"].includes(seat.status) && Date.now() >= Date.parse("2027-01-01T00:00:00+05:30")) {
+        location.href = "/course/";
+        return;
+      }
       if (seat && ["founding", "standard", "test"].includes(seat.status)) {
         const opens = new Date(seat.opensAt + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
         setLoginError("Your seat for Your Personal Reset is confirmed. The course opens on " + opens + ". Log in here that day; we will email you too.");

@@ -12,6 +12,11 @@
 const PROJECT_ID = "resettraders-ead44";
 const LINK_HOURS = 4;
 const ALLOWED_ORIGINS = ["https://www.resettraders.com", "https://resettraders.com"];
+// Your Personal Reset videos are named "reset-*.mp4". Buyers with a paid seat may play them from the
+// opening moment (1 January 2027 00:00 IST, same as firestore.rules); admins any time. Other videos
+// belong to the technical course and keep the original rule (active, unexpired student access).
+const RESET_PREFIX = "reset-";
+const RESET_OPENS_MS = Date.parse("2027-01-01T00:00:00+05:30");
 const JWKS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 
 export default {
@@ -55,7 +60,7 @@ async function sign(request, env, cors) {
   const key = cleanKey(body.key);
   if (!key) return json({ error: "Unknown video." }, 400, cors);
 
-  if (!(await hasAccess(claims.user_id, token))) return json({ error: "Course access is not active." }, 403, cors);
+  if (!(await hasAccess(claims.user_id, token, key))) return json({ error: "Course access is not active." }, 403, cors);
   if (!(await env.VIDEOS.head(key))) return json({ error: "Video not found." }, 404, cors);
 
   const exp = Math.floor(Date.now() / 1000) + LINK_HOURS * 3600;
@@ -67,10 +72,10 @@ async function sign(request, env, cors) {
 
 function cleanKey(value) {
   const key = String(value || "").trim();
-  return /^[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.mp4$/.test(key) ? key : "";
+  return /^[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.(mp4|mp3|m4a)$/.test(key) ? key : "";
 }
 
-async function hasAccess(uid, idToken) {
+export async function hasAccess(uid, idToken, key = "", now = Date.now()) {
   const res = await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${encodeURIComponent(uid)}`, {
     headers: { Authorization: `Bearer ${idToken}` }
   });
@@ -78,6 +83,10 @@ async function hasAccess(uid, idToken) {
   const f = (await res.json()).fields || {};
   const role = f.role?.stringValue;
   if (role === "admin") return true;
+  if (key.startsWith(RESET_PREFIX)) {
+    const status = f.reset?.mapValue?.fields?.status?.stringValue;
+    return (status === "founding" || status === "standard") && now >= RESET_OPENS_MS;
+  }
   if (role !== "student") return false;
   const access = f.access?.mapValue?.fields || {};
   if (access.active?.booleanValue !== true) return false;
@@ -100,7 +109,7 @@ async function stream(request, env, url) {
   if (!object) return new Response("Not found", { status: 404 });
 
   const headers = new Headers({
-    "Content-Type": object.httpMetadata?.contentType || "video/mp4",
+    "Content-Type": object.httpMetadata?.contentType || (key.endsWith(".mp3") ? "audio/mpeg" : key.endsWith(".m4a") ? "audio/mp4" : "video/mp4"),
     "Accept-Ranges": "bytes",
     "Cache-Control": "private, max-age=3600",
     "Content-Disposition": "inline",

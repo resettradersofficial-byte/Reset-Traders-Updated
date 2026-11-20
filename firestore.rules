@@ -46,6 +46,24 @@ service cloud.firestore {
         );
     }
 
+    // Your Personal Reset (the psychology course). Separate from the technical course above:
+    // buyers with a paid founding or standard seat (written by the payment Worker), from the
+    // opening moment 1 January 2027 00:00 IST (= 2026-12-31 18:30 UTC). Admins any time.
+    // Keep RESET_OPENS_MS in sync with OPENS_AT in workers/payments and workers/course-video.
+    function resetOpen() {
+      return request.time >= timestamp.value(1798741800000);
+    }
+
+    function hasResetSeat() {
+      return signedIn()
+        && hasUser(request.auth.uid)
+        && userData(request.auth.uid).get("reset", {}).get("status", "") in ["founding", "standard"];
+    }
+
+    function hasResetAccess() {
+      return isAdmin() || (hasResetSeat() && resetOpen());
+    }
+
     function validInactiveSelfProfile(uid) {
       return isSelf(uid)
         && request.resource.data.uid == uid
@@ -97,6 +115,43 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(["lessonId", "completed", "completedAt"]);
         allow delete: if isAdmin() || isSelf(uid);
       }
+
+      // Your Personal Reset: one doc per proof the student ticked ("I did this and have the proof").
+      match /resetProofs/{proofId} {
+        allow read: if isAdmin() || (isSelf(uid) && hasResetAccess());
+        allow create, update: if isSelf(uid)
+          && hasResetAccess()
+          && proofId.matches("^[A-Za-z0-9_-]{1,40}$")
+          && request.resource.data.keys().hasOnly(["proofId", "lessonId", "doneAt"])
+          && request.resource.data.proofId == proofId
+          && request.resource.data.lessonId is string
+          && request.resource.data.lessonId.size() <= 60
+          && request.resource.data.doneAt == request.time;
+        allow delete: if isAdmin() || (isSelf(uid) && hasResetAccess());
+      }
+
+      // Your Personal Reset: the student's settings (their hijack, for the drill videos).
+      match /resetState/{docId} {
+        allow read: if isAdmin() || (isSelf(uid) && hasResetAccess());
+        allow create, update: if isSelf(uid)
+          && hasResetAccess()
+          && docId == "prefs"
+          && request.resource.data.keys().hasOnly(["hijack", "updatedAt"])
+          && request.resource.data.hijack in ["Rusher", "Performer", "Competitor", "Intellectualizer"]
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // Your Personal Reset lessons and modules: buyers after opening, admins any time. Written by admins (Import).
+    match /resetLessons/{lessonId} {
+      allow read: if hasResetAccess();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /resetModules/{moduleId} {
+      allow read: if hasResetAccess();
+      allow create, update, delete: if isAdmin();
     }
 
     match /sessions/{uid} {

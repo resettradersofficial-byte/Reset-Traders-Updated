@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /portal.html
+Disallow: /course/
 Sitemap: https://www.resettraders.com/sitemap.xml
