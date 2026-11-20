@@ -581,3 +581,9 @@ dialog.profile[open] #pf-img { animation: pf-float 4.5s ease-in-out infinite alt
 .snd-icon::after { content: ""; position: absolute; right: 0; top: 4px; width: 7px; height: 10px; border: 2px solid var(--cta); border-left: 0; border-radius: 0 10px 10px 0; opacity: .35; }
 .screen-sound.on .snd-icon::after { opacity: 1; }
 @keyframes snd-nudge { 0%, 100% { transform: none; } 50% { transform: scale(1.06); box-shadow: 0 0 0 6px rgba(155, 188, 255, .15); } }
+
+/* ---------- Breadcrumbs (inner pages) ---------- */
+.crumbs { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+.crumbs a { color: var(--muted); text-decoration: none; padding: 10px 0; }
+.crumbs a:hover { color: var(--text); }
+.crumbs [aria-current] { color: var(--text); }

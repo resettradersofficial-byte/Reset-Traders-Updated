@@ -657,7 +657,7 @@ footer { background: var(--black2); border-top: 1px solid #1a1a1a; padding: 60px
   letter-spacing: 2px; pointer-events: none; user-select: none;
 }
 
-.lesson-header h1 { font-size: 26px; font-weight: 900; margin-bottom: 8px; }
+.lesson-header h1, .lesson-header h2 { font-size: 26px; font-weight: 900; margin-bottom: 8px; }
 .lesson-header p { font-size: 14px; color: var(--gray-light); margin-bottom: 24px; font-weight: 500; }
 .lesson-meta {
   display: flex; gap: 20px; margin-bottom: 32px; flex-wrap: wrap;

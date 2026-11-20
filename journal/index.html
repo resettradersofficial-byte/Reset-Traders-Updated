@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Reset Journal Pro</title>
+<script src="/assets/analytics.js?v=20261120"></script>
+<title>Reset Journal Pro · Free trading journal that tags the hijack</title>
 <meta name="description" content="Log a trade in 20 seconds, tag the hijack and see what it cost you each week. The Reset Journal, built on the Reset Audit's four hijacks. Free while in beta.">
 <meta name="theme-color" content="#F5F2EC" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#15140F" media="(prefers-color-scheme: dark)">
@@ -13,6 +14,40 @@
 <meta property="og:url" content="https://www.resettraders.com/journal/">
 <meta property="og:title" content="Reset Journal Pro: see what the hijack costs you">
 <meta property="og:description" content="Log a trade in 20 seconds. Tag the hijack. See what it cost you each week.">
+<meta property="og:image" content="https://www.resettraders.com/journal/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Reset Journal Pro: log a trade in 20 seconds, tag the hijack, see what it cost you">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Reset Journal Pro: see what the hijack costs you">
+<meta name="twitter:description" content="Log a trade in 20 seconds. Tag the hijack. See what it cost you each week.">
+<meta name="twitter:image" content="https://www.resettraders.com/journal/img/og.jpg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.resettraders.com/journal/#app",
+      "name": "Reset Journal Pro",
+      "url": "https://www.resettraders.com/journal/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Any (web browser)",
+      "description": "A trading journal built on the Reset Audit's four hijacks. Log a trade in 20 seconds, tag the hijack and see what it cost you each week.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+      "publisher": { "@id": "https://www.resettraders.com/#organization" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.resettraders.com/journal/#breadcrumb",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.resettraders.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Journal Pro", "item": "https://www.resettraders.com/journal/" }
+      ]
+    }
+  ]
+}
+</script>
 <link rel="icon" href="img/icon-64.png" type="image/png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -91,7 +126,7 @@
   <section id="v-setup" class="view" hidden>
     <div class="card">
       <div class="step-tag">01 / Set up</div>
-      <h1 class="section-title">Which hijack runs your trades?</h1>
+      <h2 class="section-title">Which hijack runs your trades?</h2>
       <p class="section-sub" id="setup-sub">Pick the one that sounds most like you. You can change it later.</p>
       <div class="pick" id="setup-pick" role="group" aria-label="Your hijack"></div>
       <hr class="divider">
@@ -199,7 +234,7 @@
     </div>
   </section>
 
-  <footer class="tagline">Your goal is not to eliminate emotion. It is to become difficult to hijack.</footer>
+  <footer class="tagline">Your goal is not to eliminate emotion. It is to become difficult to hijack.<nav aria-label="Site" style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px 16px;margin-top:12px;font:500 12.5px var(--sans, Inter, sans-serif)"><a href="/" style="color:inherit;padding:8px 0">Reset Traders</a><a href="/audit/?ref=site-journal" style="color:inherit;padding:8px 0">Take the audit</a><a href="/contact/" style="color:inherit;padding:8px 0">Contact</a><a href="/legal.html#privacy" style="color:inherit;padding:8px 0">Privacy</a></nav></footer>
 </main>
 
 <!-- Settings -->

@@ -212,6 +212,44 @@ export function validate(payload) {
   };
 }
 
+// ---- Contact form (/contact) ----
+// The message goes to the Reset Traders inbox only, never to the address the visitor typed,
+// so the form can't be used to send mail to someone else. Reply-To is the visitor's address.
+const CONTACT_TO = "resettradersofficial@gmail.com";
+export const CONTACT_TOPICS = {
+  general: "General question",
+  reset: "Your Personal Reset (course)",
+  elite: "Elite Mentorship",
+  journal: "Journal Pro",
+  payment: "Payment, invoice or refund",
+  other: "Something else"
+};
+
+export function validateContact(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return { error: "Bad request." };
+  const allowedTop = new Set(["name", "email", "topic", "message", "website", "turnstile"]);
+  if (Object.keys(payload).some((k) => !allowedTop.has(k))) return { error: "Unexpected field." };
+  const name = typeof payload.name === "string" ? payload.name.replace(/\s+/g, " ").trim() : "";
+  if (!name || name.length > 80) return { error: "Please add your name (up to 80 characters)." };
+  const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
+  if (!email || email.length > 254 || !EMAIL_RE.test(email)) return { error: "Please check your email address." };
+  if (!Object.hasOwn(CONTACT_TOPICS, payload.topic)) return { error: "Please pick a topic." };
+  const message = typeof payload.message === "string" ? payload.message.replace(/\r\n?/g, "\n").trim() : "";
+  if (message.length < 10 || message.length > 3000) return { error: "Please write between 10 and 3,000 characters." };
+  return { name, email, topic: payload.topic, message };
+}
+
+export function buildContactEmail({ name, email, topic, message }) {
+  const label = CONTACT_TOPICS[topic];
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#111">
+<p style="margin:0 0 12px"><b>${esc(label)}</b> · from the contact form on resettraders.com</p>
+<p style="margin:0 0 4px"><b>Name:</b> ${esc(name)}</p>
+<p style="margin:0 0 16px"><b>Email:</b> ${esc(email)} (press Reply to answer)</p>
+<div style="white-space:pre-wrap;border-left:3px solid #ff6a3d;padding:4px 0 4px 12px">${esc(message)}</div>
+</div>`;
+  return { to: CONTACT_TO, replyTo: email, subject: `[Contact] ${label}: ${name.slice(0, 60)}`, html, tags: ["contact", "contact-" + topic] };
+}
+
 export function buildEmail({ email, isRetake, profile }) {
   const T = TYPES[profile.type];
   const B = BODY[profile.body];
@@ -355,6 +393,8 @@ export default {
     // Honeypot: real visitors never fill "website". Pretend success so bots learn nothing.
     if (payload && typeof payload === "object" && payload.website) return json(200, { ok: true }, origin);
 
+    if (new URL(request.url).pathname === "/contact") return handleContact(payload, request, env, origin);
+
     const result = validate(payload);
     if (result.error) return json(400, { error: result.error }, origin);
 
@@ -384,6 +424,22 @@ export default {
   }
 };
 
+async function handleContact(payload, request, env, origin) {
+  const result = validateContact(payload);
+  if (result.error) return json(400, { error: result.error }, origin);
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  if (env.TURNSTILE_SECRET_KEY && !(await turnstileOk(env.TURNSTILE_SECRET_KEY, payload.turnstile, ip))) {
+    return json(403, { error: "Verification failed. Reload the page and try again." }, origin);
+  }
+  if (await limited(env.IP_LIMIT, `contact-ip:${ip}`) || await limited(env.EMAIL_LIMIT, `contact-em:${result.email}`)) {
+    return json(429, { error: "Too many messages. Try again in a minute." }, origin);
+  }
+  if (!env.BREVO_API_KEY) return json(500, { error: "Email service not configured." }, origin);
+  // Sent before replying, so the visitor only sees "sent" when it really went out.
+  const ok = await sendViaBrevo(env, buildContactEmail(result));
+  return ok ? json(200, { ok: true }, origin) : json(502, { error: "Couldn't send right now. Email us at resettradersofficial@gmail.com instead." }, origin);
+}
+
 async function handleInternalSend(request, env) {
   const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
   if (request.method !== "POST") return reply(405, { error: "Method not allowed." });
@@ -410,7 +466,7 @@ export async function sendViaBrevo(env, message) {
       headers: { "api-key": env.BREVO_API_KEY, "Content-Type": "application/json", accept: "application/json" },
       body: JSON.stringify({
         sender: { name: "Reset Traders", email: env.MAIL_FROM || "hello@resettraders.com" },
-        replyTo: { name: "Reset Traders", email: "resettradersofficial@gmail.com" },
+        replyTo: message.replyTo ? { email: message.replyTo } : { name: "Reset Traders", email: "resettradersofficial@gmail.com" },
         to: [{ email: message.to }],
         subject: message.subject,
         htmlContent: message.html,
