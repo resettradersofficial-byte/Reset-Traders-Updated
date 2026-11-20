@@ -365,10 +365,10 @@ function answerChat(text) {
     return "Yes, prop-firm traders are a core audience. The hijack shows up right at the daily drawdown limit and the evaluation deadline. Start with the free Reset Audit; international pricing is in USD.";
   }
   if (has("course", "courses", "program", "offer", "inside", "videos", "lesson", "lessons")) {
-    return "It starts with the free Reset Audit. Next is Reset Yourself, the psychology video course (opening soon, founding seats go to the audit list first). Elite Mentorship is 1:1 and by application only.";
+    return "It starts with the free Reset Audit. Next is Your Personal Reset, the psychology video course: founding seats are on sale now and the course opens on 1 January 2027. Elite Mentorship is 1:1 and by application only.";
   }
   if (has("price", "pricing", "cost", "fee", "fees", "elite")) {
-    return "The Reset Audit is free. Reset Yourself has a founding price of ₹4,999 in India or $69 internationally for the first 100 traders, then ₹24,999 / $297. Elite Mentorship is by application: a short form, then a call where you get the full details.";
+    return "The Reset Audit is free. Your Personal Reset has a founding price of ₹4,999 in India or $69 internationally for the first 100 traders, then ₹24,999 / $297. Elite Mentorship is by application: a short form, then a call where you get the full details.";
   }
   if (has("tax", "gst")) {
     return "The final checkout amount is always shown clearly before you pay.";
@@ -377,7 +377,7 @@ function answerChat(text) {
     return "In India, payments go through Razorpay: UPI, cards, net banking or wallets. International pricing is in USD. Course access unlocks only after the payment is verified.";
   }
   if (has("join", "enroll", "buy", "signup", "sign up", "start", "purchase")) {
-    return "Start with the free Reset Audit at resettraders.com/audit. Founding seats for Reset Yourself go to the audit list first. For 1:1 work, use Apply for Elite on the homepage.";
+    return "Start with the free Reset Audit at resettraders.com/audit. Founding seats for Your Personal Reset are on sale on the homepage. For 1:1 work, use Apply for Elite on the homepage.";
   }
   if (has("login", "portal", "access", "password", "account", "firebase")) {
     return "Your student login uses Firebase Authentication. Use the same email and password you created during checkout. If you bought The Trader Reset, your access is unchanged.";
