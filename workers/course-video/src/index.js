@@ -72,7 +72,7 @@ async function sign(request, env, cors) {
 
 function cleanKey(value) {
   const key = String(value || "").trim();
-  return /^[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.(mp4|mp3|m4a)$/.test(key) ? key : "";
+  return /^[A-Za-z0-9][A-Za-z0-9._-]{0,150}\.(mp4|mp3|m4a|pdf)$/.test(key) ? key : "";
 }
 
 export async function hasAccess(uid, idToken, key = "", now = Date.now()) {
@@ -109,10 +109,11 @@ async function stream(request, env, url) {
   if (!object) return new Response("Not found", { status: 404 });
 
   const headers = new Headers({
-    "Content-Type": object.httpMetadata?.contentType || (key.endsWith(".mp3") ? "audio/mpeg" : key.endsWith(".m4a") ? "audio/mp4" : "video/mp4"),
+    "Content-Type": object.httpMetadata?.contentType || (key.endsWith(".pdf") ? "application/pdf" : key.endsWith(".mp3") ? "audio/mpeg" : key.endsWith(".m4a") ? "audio/mp4" : "video/mp4"),
     "Accept-Ranges": "bytes",
     "Cache-Control": "private, max-age=3600",
-    "Content-Disposition": "inline",
+    // Course files (the workbook PDF) download with a friendly name; media plays in the page.
+    "Content-Disposition": key.endsWith(".pdf") ? `attachment; filename="${key.replace(/^reset-/, "Reset-")}"` : "inline",
     "X-Content-Type-Options": "nosniff"
   });
   if (range && object.range) {

@@ -327,6 +327,18 @@ async function setProof(lesson, proofId, done, label) {
   } finally { label.querySelector("input").disabled = false; }
 }
 
+// ---------- workbook (private PDF, same signed links as the videos) ----------
+$("workbook-btn").addEventListener("click", async () => {
+  const btn = $("workbook-btn"); btn.disabled = true; btn.textContent = "Preparing…";
+  try {
+    const url = await privateVideoUrl("reset-workbook.pdf");
+    const a = document.createElement("a"); a.href = url; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+    toast("Your workbook is downloading. Print it once, then photocopy the logs.");
+  } catch (err) {
+    toast(/not found/i.test(err.message) ? "The workbook isn't uploaded yet." : "Couldn't get the workbook. Try again in a minute.");
+  } finally { btn.disabled = false; btn.textContent = "Workbook ↓"; }
+});
+
 // ---------- hijack ----------
 function renderHijackBtn() { $("hijack-btn").textContent = S.hijack ? `Hijack: ${S.hijack}` : "Hijack: not set"; }
 $("hijack-btn").addEventListener("click", () => $("hijack-dlg").showModal());
